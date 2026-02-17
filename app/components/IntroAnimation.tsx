@@ -33,10 +33,10 @@ const P_SHAPE_PIXELS = [
 
 export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isComplete, setIsComplete] = useState(false)
+  const [animationPhase, setAnimationPhase] = useState<'intro' | 'static'>('intro')
 
   useEffect(() => {
-    let phase: 'animating' | 'holding' | 'expanding' | 'complete' = 'animating'
+    let phase: 'animating' | 'holding' | 'expanding' | 'static' = 'animating'
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -700,11 +700,15 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         drawConvergingDither(expandProgress)
 
         if (expandProgress >= 1) {
-          phase = 'complete'
-          setIsComplete(true)
+          phase = 'static'
+          setAnimationPhase('static')
           onComplete()
-          return
         }
+      }
+
+      // STATIC - keep drawing the dither rectangle in its final position
+      if (phase === 'static') {
+        drawConvergingDither(1) // Progress = 1 means final position
       }
 
       animationFrame = requestAnimationFrame(render)
@@ -720,10 +724,6 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     }
   }, [onComplete])
 
-  if (isComplete) {
-    return null
-  }
-
   return (
     <div
       style={{
@@ -732,8 +732,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 9999,
-        backgroundColor: '#000000',
+        zIndex: animationPhase === 'intro' ? 9999 : 1,
+        backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
+        pointerEvents: animationPhase === 'static' ? 'none' : 'auto',
       }}
     >
       <canvas
@@ -741,7 +742,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         style={{
           width: '100%',
           height: '100%',
-          backgroundColor: '#000000',
+          backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
         }}
       />
     </div>

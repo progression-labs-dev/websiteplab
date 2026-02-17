@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
-import DitherBackground from './components/DitherBackground'
 
 const testimonials = [
   {
@@ -31,6 +30,11 @@ export default function Home() {
   const [scrolledPastHero, setScrolledPastHero] = useState(false)
   const [activeTestimonial, setActiveTestimonial] = useState(0)
   const [introComplete, setIntroComplete] = useState(false)
+
+  // Memoize callback to prevent useEffect re-runs in IntroAnimation
+  const handleIntroComplete = useCallback(() => {
+    setIntroComplete(true)
+  }, [])
 
   // Track scroll position for nav styling
   useEffect(() => {
@@ -262,10 +266,8 @@ export default function Home() {
 
   return (
     <>
-      {/* Intro Animation */}
-      {!introComplete && (
-        <IntroAnimation onComplete={() => setIntroComplete(true)} />
-      )}
+      {/* Intro Animation - stays mounted to provide dither background */}
+      <IntroAnimation onComplete={handleIntroComplete} />
 
       {/* Navigation */}
       <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
@@ -322,18 +324,6 @@ export default function Home() {
           </div>
         </div>
         <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <div className="hero-image-dither">
-            <DitherBackground
-              width={300}
-              height={200}
-              blockSize={12}
-              imageSrc="/hero-horse.png"
-              imageOffsetX={0}
-              imageOffsetY={22}
-              imageCropWidth={75}
-              imageCropHeight={40}
-            />
-          </div>
           <Image src="/hero-horse.png" alt="" width={600} height={600} priority />
         </div>
         <div className={`hero-bottom-bar ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
