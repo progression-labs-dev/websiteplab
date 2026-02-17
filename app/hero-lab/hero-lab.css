@@ -1,0 +1,331 @@
+.hero-lab {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #FAFAFA;
+}
+
+.gradient-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Canvas circle grid overlay */
+.circle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* --- Gradient Blobs --- */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+
+/* ====== PRIMARY BLOBS ====== */
+
+/* Orchid — top right, hero purple */
+.blob-orchid {
+  width: 1200px;
+  height: 1200px;
+  top: -15%;
+  right: -8%;
+  background: radial-gradient(circle, rgba(186, 85, 211, 0.90) 0%, rgba(186, 85, 211, 0.50) 25%, rgba(186, 85, 211, 0.15) 50%, rgba(186, 85, 211, 0) 68%);
+  filter: blur(25px);
+  animation: drift-1 20s ease-in-out infinite, breathe-1 14s ease-in-out infinite, hue-shift-1 35s linear infinite;
+}
+
+/* Salmon — pushed warmer/oranger */
+.blob-salmon {
+  width: 1050px;
+  height: 1050px;
+  top: 0%;
+  left: -5%;
+  background: radial-gradient(circle, rgba(255, 140, 90, 0.92) 0%, rgba(255, 140, 90, 0.50) 25%, rgba(255, 140, 90, 0.14) 50%, rgba(255, 140, 90, 0) 68%);
+  filter: blur(25px);
+  animation: drift-2 22s ease-in-out infinite, breathe-2 16s ease-in-out infinite, hue-shift-2 40s linear infinite;
+}
+
+/* Orange — NEW dedicated warm orange blob, center-top */
+.blob-orange {
+  width: 850px;
+  height: 850px;
+  top: -5%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(255, 165, 60, 0.85) 0%, rgba(255, 165, 60, 0.42) 25%, rgba(255, 165, 60, 0.10) 50%, rgba(255, 165, 60, 0) 68%);
+  filter: blur(28px);
+  animation: drift-orange 18s ease-in-out infinite, breathe-orange 12s ease-in-out infinite, hue-shift-orange 38s linear infinite;
+}
+
+/* Blue — top-left, cool accent */
+.blob-blue {
+  width: 800px;
+  height: 800px;
+  top: -22%;
+  left: -8%;
+  background: radial-gradient(circle, rgba(0, 0, 255, 0.45) 0%, rgba(0, 0, 255, 0.18) 28%, rgba(0, 0, 255, 0) 58%);
+  filter: blur(40px);
+  animation: drift-3 24s ease-in-out infinite, breathe-3 15s ease-in-out infinite, hue-shift-3 42s linear infinite;
+}
+
+/* Turquoise — bottom-left, teal wash */
+.blob-turquoise {
+  width: 1100px;
+  height: 1100px;
+  bottom: -18%;
+  left: 5%;
+  background: radial-gradient(circle, rgba(64, 224, 208, 0.85) 0%, rgba(64, 224, 208, 0.42) 25%, rgba(64, 224, 208, 0.10) 50%, rgba(64, 224, 208, 0) 68%);
+  filter: blur(25px);
+  animation: drift-4 18s ease-in-out infinite, breathe-4 13s ease-in-out infinite, hue-shift-4 30s linear infinite;
+}
+
+/* Progression Green — bottom-right */
+.blob-green {
+  width: 950px;
+  height: 950px;
+  bottom: -5%;
+  right: 0%;
+  background: radial-gradient(circle, rgba(185, 233, 121, 0.78) 0%, rgba(185, 233, 121, 0.35) 25%, rgba(185, 233, 121, 0.08) 50%, rgba(185, 233, 121, 0) 68%);
+  filter: blur(28px);
+  animation: drift-5 20s ease-in-out infinite, breathe-5 18s ease-in-out infinite, hue-shift-5 48s linear infinite;
+}
+
+/* ====== SECONDARY BLOBS ====== */
+
+.blob-orchid-secondary {
+  width: 700px;
+  height: 700px;
+  top: 25%;
+  right: 10%;
+  background: radial-gradient(circle, rgba(186, 85, 211, 0.55) 0%, rgba(186, 85, 211, 0.18) 40%, rgba(186, 85, 211, 0) 65%);
+  filter: blur(35px);
+  animation: drift-6 26s ease-in-out infinite, breathe-6 15s ease-in-out infinite;
+}
+
+.blob-salmon-secondary {
+  width: 650px;
+  height: 650px;
+  bottom: 5%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(255, 140, 90, 0.55) 0%, rgba(255, 140, 90, 0.18) 40%, rgba(255, 140, 90, 0) 65%);
+  filter: blur(35px);
+  animation: drift-7 22s ease-in-out infinite, breathe-7 17s ease-in-out infinite;
+}
+
+/* Orange secondary — bottom center */
+.blob-orange-secondary {
+  width: 600px;
+  height: 600px;
+  bottom: 10%;
+  right: 30%;
+  background: radial-gradient(circle, rgba(255, 165, 60, 0.48) 0%, rgba(255, 165, 60, 0.14) 40%, rgba(255, 165, 60, 0) 65%);
+  filter: blur(38px);
+  animation: drift-orange-2 28s ease-in-out infinite, breathe-8 14s ease-in-out infinite;
+}
+
+/* Turquoise secondary — center fill */
+.blob-turquoise-secondary {
+  width: 600px;
+  height: 600px;
+  top: 20%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(64, 224, 208, 0.40) 0%, rgba(64, 224, 208, 0.12) 40%, rgba(64, 224, 208, 0) 65%);
+  filter: blur(40px);
+  animation: drift-8 30s ease-in-out infinite, breathe-9 19s ease-in-out infinite;
+}
+
+/* Green secondary — bottom-right fill */
+.blob-green-secondary {
+  width: 550px;
+  height: 550px;
+  bottom: 15%;
+  right: 20%;
+  background: radial-gradient(circle, rgba(185, 233, 121, 0.42) 0%, rgba(185, 233, 121, 0.12) 40%, rgba(185, 233, 121, 0) 65%);
+  filter: blur(38px);
+  animation: drift-9 24s ease-in-out infinite, breathe-10 20s ease-in-out infinite;
+}
+
+/* ====== DRIFT ANIMATIONS (bigger movements, faster cycles) ====== */
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-60px, 35px) scale(1.08); }
+  50% { transform: translate(30px, -45px) scale(0.94); }
+  75% { transform: translate(-20px, -10px) scale(1.04); }
+}
+
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(50px, -40px) scale(1.06); }
+  40% { transform: translate(-30px, 55px) scale(0.95); }
+  60% { transform: translate(40px, 20px) scale(1.03); }
+  80% { transform: translate(-45px, -25px) scale(0.97); }
+}
+
+@keyframes drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(55px, 40px) scale(1.07); }
+  66% { transform: translate(-30px, -20px) scale(0.95); }
+}
+
+@keyframes drift-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(-40px, -50px) scale(1.08); }
+  60% { transform: translate(35px, 30px) scale(0.93); }
+  85% { transform: translate(-15px, -20px) scale(1.05); }
+}
+
+@keyframes drift-5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(40px, -50px) scale(1.05); }
+  50% { transform: translate(-50px, 30px) scale(1.08); }
+  75% { transform: translate(25px, 40px) scale(0.94); }
+}
+
+@keyframes drift-6 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-50px, -30px) scale(1.10); }
+  66% { transform: translate(35px, 25px) scale(0.92); }
+}
+
+@keyframes drift-7 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(35px, 45px) scale(1.07); }
+  60% { transform: translate(-45px, -20px) scale(0.95); }
+  85% { transform: translate(20px, -35px) scale(1.03); }
+}
+
+@keyframes drift-orange {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(45px, 35px) scale(1.10); }
+  45% { transform: translate(-55px, -20px) scale(0.93); }
+  70% { transform: translate(30px, -45px) scale(1.06); }
+  90% { transform: translate(-20px, 25px) scale(0.97); }
+}
+
+@keyframes drift-orange-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(-40px, 30px) scale(1.08); }
+  75% { transform: translate(30px, -40px) scale(0.94); }
+}
+
+@keyframes drift-8 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  35% { transform: translate(-40px, 30px) scale(1.06); }
+  65% { transform: translate(35px, -35px) scale(0.95); }
+}
+
+@keyframes drift-9 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(30px, -30px) scale(1.08); }
+  80% { transform: translate(-35px, 20px) scale(0.93); }
+}
+
+/* ====== BREATHE ANIMATIONS (more dramatic swings) ====== */
+@keyframes breathe-1 {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes breathe-2 {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes breathe-3 {
+  0%, 100% { opacity: 0.9; }
+  35% { opacity: 0.4; }
+  70% { opacity: 1; }
+}
+
+@keyframes breathe-4 {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes breathe-5 {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes breathe-6 {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes breathe-7 {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes breathe-8 {
+  0%, 100% { opacity: 0.7; }
+  40% { opacity: 1; }
+  80% { opacity: 0.4; }
+}
+
+@keyframes breathe-9 {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+@keyframes breathe-10 {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes breathe-orange {
+  0%, 100% { opacity: 0.5; }
+  35% { opacity: 1; }
+  70% { opacity: 0.6; }
+}
+
+/* ====== HUE SHIFT ANIMATIONS (wider range, faster) ====== */
+@keyframes hue-shift-1 {
+  0% { filter: blur(25px) hue-rotate(0deg); }
+  25% { filter: blur(25px) hue-rotate(18deg); }
+  50% { filter: blur(25px) hue-rotate(-12deg); }
+  75% { filter: blur(25px) hue-rotate(22deg); }
+  100% { filter: blur(25px) hue-rotate(0deg); }
+}
+
+@keyframes hue-shift-2 {
+  0% { filter: blur(25px) hue-rotate(0deg); }
+  33% { filter: blur(25px) hue-rotate(-20deg); }
+  66% { filter: blur(25px) hue-rotate(15deg); }
+  100% { filter: blur(25px) hue-rotate(0deg); }
+}
+
+@keyframes hue-shift-3 {
+  0% { filter: blur(40px) hue-rotate(0deg); }
+  50% { filter: blur(40px) hue-rotate(25deg); }
+  100% { filter: blur(40px) hue-rotate(0deg); }
+}
+
+@keyframes hue-shift-4 {
+  0% { filter: blur(25px) hue-rotate(0deg); }
+  25% { filter: blur(25px) hue-rotate(-18deg); }
+  50% { filter: blur(25px) hue-rotate(22deg); }
+  75% { filter: blur(25px) hue-rotate(-8deg); }
+  100% { filter: blur(25px) hue-rotate(0deg); }
+}
+
+@keyframes hue-shift-5 {
+  0% { filter: blur(28px) hue-rotate(0deg); }
+  50% { filter: blur(28px) hue-rotate(-25deg); }
+  100% { filter: blur(28px) hue-rotate(0deg); }
+}
+
+@keyframes hue-shift-orange {
+  0% { filter: blur(28px) hue-rotate(0deg); }
+  30% { filter: blur(28px) hue-rotate(-15deg); }
+  60% { filter: blur(28px) hue-rotate(20deg); }
+  100% { filter: blur(28px) hue-rotate(0deg); }
+}
