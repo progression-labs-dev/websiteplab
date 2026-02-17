@@ -1,0 +1,598 @@
+/* ── Mosaic Tool ── Dark-themed editor layout ── */
+
+.mosaic-tool {
+  display: flex;
+  height: 100vh;
+  background: #0f1117;
+  color: #e2e4e9;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Canvas Area ── */
+.mosaic-canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #0a0b0f;
+  overflow: hidden;
+}
+
+.mosaic-canvas-area.mosaic-drag-over {
+  background: rgba(168, 85, 247, 0.08);
+  outline: 2px dashed #a855f7;
+  outline-offset: -8px;
+}
+
+.mosaic-canvas-container {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.mosaic-canvas-container canvas {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 40px);
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* ── Click Point Dots Overlay ── */
+.mosaic-click-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mosaic-click-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.mosaic-click-dot.foreground {
+  background: #22c55e;
+}
+
+.mosaic-click-dot.background {
+  background: #ef4444;
+}
+
+.mosaic-upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #555a66;
+}
+
+.mosaic-upload-prompt svg {
+  width: 64px;
+  height: 64px;
+  stroke: #3a3f4b;
+}
+
+.mosaic-upload-prompt p {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.mosaic-upload-prompt span {
+  font-size: 13px;
+  color: #3a3f4b;
+}
+
+/* ── Sidebar ── */
+.mosaic-sidebar {
+  width: 320px;
+  min-width: 320px;
+  background: #14161c;
+  border-left: 1px solid #1e2028;
+  overflow-y: auto;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mosaic-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mosaic-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mosaic-sidebar::-webkit-scrollbar-thumb {
+  background: #2a2d38;
+  border-radius: 3px;
+}
+
+/* ── Sidebar Section ── */
+.mosaic-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid #1e2028;
+}
+
+.mosaic-section:last-child {
+  border-bottom: none;
+}
+
+.mosaic-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7084;
+  margin-bottom: 14px;
+}
+
+/* ── Upload Buttons ── */
+.mosaic-upload-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mosaic-upload-btn {
+  flex: 1;
+  padding: 10px 12px;
+  background: #1e2028;
+  border: 1px solid #2a2d38;
+  border-radius: 8px;
+  color: #c4c7d0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  font-family: inherit;
+}
+
+.mosaic-upload-btn:hover {
+  background: #252830;
+  border-color: #a855f7;
+  color: #e2e4e9;
+}
+
+/* file inputs are hidden via inline style + ref pattern */
+
+/* ── Shape Mode Toggle ── */
+.mosaic-shape-toggle {
+  display: flex;
+  background: #1e2028;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mosaic-shape-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #6b7084;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mosaic-shape-btn.active {
+  background: #a855f7;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.mosaic-shape-btn:not(.active):hover {
+  color: #c4c7d0;
+  background: #252830;
+}
+
+/* ── Slider Controls ── */
+.mosaic-slider-group {
+  margin-bottom: 14px;
+}
+
+.mosaic-slider-group:last-child {
+  margin-bottom: 0;
+}
+
+.mosaic-slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mosaic-slider-label span:first-child {
+  font-size: 13px;
+  color: #c4c7d0;
+}
+
+.mosaic-slider-label span:last-child {
+  font-size: 12px;
+  color: #6b7084;
+  font-variant-numeric: tabular-nums;
+}
+
+.mosaic-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #1e2028;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.mosaic-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #a855f7;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px #14161c, 0 2px 6px rgba(168, 85, 247, 0.4);
+  transition: transform 0.1s ease;
+}
+
+.mosaic-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.mosaic-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+.mosaic-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #a855f7;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 0 3px #14161c, 0 2px 6px rgba(168, 85, 247, 0.4);
+}
+
+/* ── Toggle Switch ── */
+.mosaic-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mosaic-toggle-row:last-child {
+  margin-bottom: 0;
+}
+
+.mosaic-toggle-row span {
+  font-size: 13px;
+  color: #c4c7d0;
+}
+
+.mosaic-toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.mosaic-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mosaic-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #1e2028;
+  border-radius: 11px;
+  transition: background 0.2s ease;
+}
+
+.mosaic-toggle input:checked + .mosaic-toggle-track {
+  background: #a855f7;
+}
+
+.mosaic-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #e2e4e9;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.mosaic-toggle input:checked ~ .mosaic-toggle-thumb {
+  transform: translateX(18px);
+}
+
+/* ── Color Pickers ── */
+.mosaic-color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mosaic-color-row:last-child {
+  margin-bottom: 0;
+}
+
+.mosaic-color-row span {
+  font-size: 13px;
+  color: #c4c7d0;
+  min-width: 50px;
+}
+
+.mosaic-color-picker {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 28px;
+  border: 2px solid #2a2d38;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.mosaic-color-picker::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.mosaic-color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+.mosaic-color-hex {
+  font-size: 12px;
+  color: #6b7084;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ── Angle Presets ── */
+.mosaic-angle-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.mosaic-angle-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: #1e2028;
+  border: 1px solid #2a2d38;
+  border-radius: 6px;
+  color: #6b7084;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mosaic-angle-btn.active {
+  border-color: #a855f7;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.mosaic-angle-btn:not(.active):hover {
+  border-color: #3a3f4b;
+  color: #c4c7d0;
+}
+
+/* ── Background Selector ── */
+.mosaic-bg-selector {
+  display: flex;
+  gap: 6px;
+}
+
+.mosaic-bg-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid #2a2d38;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.mosaic-bg-option.active {
+  border-color: #a855f7;
+}
+
+.mosaic-bg-option:hover:not(.active) {
+  border-color: #3a3f4b;
+}
+
+.mosaic-bg-option.bg-black { background: #000; }
+.mosaic-bg-option.bg-white { background: #fff; }
+.mosaic-bg-option.bg-transparent {
+  background: repeating-conic-gradient(#2a2d38 0% 25%, #1e2028 0% 50%) 0 0 / 12px 12px;
+}
+
+/* ── Subject Mask Controls ── */
+.mosaic-mask-status {
+  font-size: 13px;
+  color: #a855f7;
+  padding: 8px 0;
+  animation: mosaic-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mosaic-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.mosaic-mask-instructions {
+  font-size: 12px;
+  color: #6b7084;
+  padding: 4px 0 10px;
+  line-height: 1.4;
+}
+
+.mosaic-mask-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mosaic-mask-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 7px 10px;
+  background: #1e2028;
+  border: 1px solid #2a2d38;
+  border-radius: 6px;
+  color: #c4c7d0;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mosaic-mask-btn:hover:not(:disabled) {
+  background: #252830;
+  border-color: #a855f7;
+  color: #e2e4e9;
+}
+
+.mosaic-mask-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mosaic-mask-info {
+  font-size: 12px;
+  color: #6b7084;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Export Button ── */
+.mosaic-export-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #a855f7, #c026d3);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mosaic-export-btn:hover {
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.35);
+  transform: translateY(-1px);
+}
+
+.mosaic-export-btn:active {
+  transform: translateY(0);
+}
+
+.mosaic-export-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Split Line Overlay ── */
+.mosaic-split-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mosaic-split-handle {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: #a855f7;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 11;
+}
+
+.mosaic-split-handle:active {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* ── Video Controls ── */
+.mosaic-video-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mosaic-play-btn {
+  width: 32px;
+  height: 32px;
+  background: #1e2028;
+  border: 1px solid #2a2d38;
+  border-radius: 6px;
+  color: #c4c7d0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mosaic-play-btn:hover {
+  border-color: #a855f7;
+  color: #e2e4e9;
+}
+
+.mosaic-video-time {
+  font-size: 12px;
+  color: #6b7084;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .mosaic-tool {
+    flex-direction: column;
+  }
+
+  .mosaic-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid #1e2028;
+  }
+
+  .mosaic-canvas-container canvas {
+    max-height: 55vh;
+  }
+}
