@@ -500,18 +500,26 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const drawConvergingDither = (progress: number) => {
       if (progress <= 0) return
 
-      // Target rectangle position (matching hero-image-dither CSS)
-      // hero-image: right: 60px, vertically centered, max-height: 80vh
-      // hero-image-dither: top: 30%, left: 5%, width: 300px, height: 200px
-      const horseHeight = canvas.height * 0.8
-      const horseWidth = horseHeight * 0.55 // Approximate aspect ratio
-      const horseX = canvas.width - 60 - horseWidth
-      const horseY = (canvas.height - horseHeight) / 2
-
-      const targetRectX = horseX + horseWidth * 0.05
-      const targetRectY = horseY + horseHeight * 0.30
+      // Get actual horse image position from DOM
+      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      let targetRectX: number, targetRectY: number
       const targetRectWidth = 300
       const targetRectHeight = 200
+
+      if (heroImage) {
+        const rect = heroImage.getBoundingClientRect()
+        // Position dither at top: 30%, left: 5% of the horse image
+        targetRectX = rect.left + rect.width * 0.05
+        targetRectY = rect.top + rect.height * 0.30
+      } else {
+        // Fallback calculation if element not found
+        const horseHeight = canvas.height * 0.8
+        const horseWidth = horseHeight * 0.55
+        const horseX = canvas.width - 60 - horseWidth
+        const horseY = (canvas.height - horseHeight) / 2
+        targetRectX = horseX + horseWidth * 0.05
+        targetRectY = horseY + horseHeight * 0.30
+      }
 
       const targetBlockSize = 12
       const targetCols = Math.floor(targetRectWidth / targetBlockSize)
