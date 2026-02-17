@@ -72,6 +72,23 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const startTime = Date.now()
     let phaseStartTime = startTime
 
+    // Load horse image for brightness sampling
+    let horseImageData: ImageData | null = null
+    let horseImageBounds = { x: 0, y: 0, width: 0, height: 0 }
+    const horseImg = new Image()
+    horseImg.src = '/hero-horse.png'
+    horseImg.onload = () => {
+      // Create offscreen canvas to sample horse image pixels
+      const offscreen = document.createElement('canvas')
+      offscreen.width = horseImg.width
+      offscreen.height = horseImg.height
+      const offCtx = offscreen.getContext('2d')
+      if (offCtx) {
+        offCtx.drawImage(horseImg, 0, 0)
+        horseImageData = offCtx.getImageData(0, 0, horseImg.width, horseImg.height)
+      }
+    }
+
     // Timing constants (each step is 0.5 seconds)
     const STEP_DURATION = 500
     const GRID_START = 0
@@ -503,14 +520,15 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       // Get actual horse image position from DOM
       const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
       let targetRectX: number, targetRectY: number
-      const targetRectWidth = 300
-      const targetRectHeight = 200
+      let heroRect: DOMRect | null = null
+      const targetRectWidth = 240
+      const targetRectHeight = 160
 
       if (heroImage) {
-        const rect = heroImage.getBoundingClientRect()
+        heroRect = heroImage.getBoundingClientRect()
         // Position dither at top: 30%, left: 5% of the horse image
-        targetRectX = rect.left + rect.width * 0.05
-        targetRectY = rect.top + rect.height * 0.30
+        targetRectX = heroRect.left + heroRect.width * 0.05
+        targetRectY = heroRect.top + heroRect.height * 0.30
       } else {
         // Fallback calculation if element not found
         const horseHeight = canvas.height * 0.8
@@ -519,6 +537,28 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         const horseY = (canvas.height - horseHeight) / 2
         targetRectX = horseX + horseWidth * 0.05
         targetRectY = horseY + horseHeight * 0.30
+      }
+
+      // Helper to sample brightness from horse image
+      const sampleBrightness = (screenX: number, screenY: number): number => {
+        if (!horseImageData || !heroRect || !horseImg.width) return 0.5
+
+        // Convert screen position to image coordinates
+        const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * horseImg.width)
+        const imgY = Math.floor(((screenY - heroRect.top) / heroRect.height) * horseImg.height)
+
+        // Clamp to image bounds
+        const clampedX = Math.max(0, Math.min(horseImg.width - 1, imgX))
+        const clampedY = Math.max(0, Math.min(horseImg.height - 1, imgY))
+
+        // Get pixel from image data
+        const idx = (clampedY * horseImg.width + clampedX) * 4
+        const r = horseImageData.data[idx]
+        const g = horseImageData.data[idx + 1]
+        const b = horseImageData.data[idx + 2]
+
+        // Convert to grayscale brightness (0-1)
+        return (r * 0.299 + g * 0.587 + b * 0.114) / 255
       }
 
       const targetBlockSize = 12
@@ -560,12 +600,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           // Scale block size during transition
           const currentBlockSize = ditherBlockSize + (targetBlockSize - ditherBlockSize) * easeProgress
 
-          // Use color from target position for consistency
-          const normalizedX = targetCol / targetCols
-          const normalizedY = targetRow / targetRows
-          const baseT = (normalizedX + (1 - normalizedY)) / 2
-          const gradientOffset = (getBlockRandom(finalX, finalY, 4) - 0.5) * 0.6
-          const t = Math.max(0, Math.min(1, baseT + gradientOffset))
+          // Sample brightness from horse image at block's final position
+          // Black (0) -> blue, White (1) -> turquoise
+          const t = sampleBrightness(finalX + targetBlockSize / 2, finalY + targetBlockSize / 2)
 
           const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
           ctx.fillStyle = blockColor
