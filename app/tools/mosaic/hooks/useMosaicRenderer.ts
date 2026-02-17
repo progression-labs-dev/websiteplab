@@ -119,8 +119,9 @@ export function useMosaicRenderer() {
     const cols = Math.ceil(width / step);
     const rows = Math.ceil(height / step);
 
-    // For 'none' or 'subject' mode, fill background over entire canvas first
-    if (!useSplit) {
+    // For 'none' mode, fill background over entire canvas
+    // For 'subject' mode, keep the original image — only overlay mosaic on masked cells
+    if (!useSplit && !useSubject) {
       if (bgMode !== 'transparent') {
         ctx.fillStyle = bgMode === 'black' ? '#000' : '#fff';
         ctx.fillRect(0, 0, width, height);
@@ -164,8 +165,8 @@ export function useMosaicRenderer() {
           [fillR, fillG, fillB] = multiStopGradientColor(brightness, gradientStops.map(s => s.color));
         }
 
-        // Draw background behind this cell (only in split mode)
-        if (useSplit) {
+        // Draw background behind this cell (in split or subject mode — per-cell, not full canvas)
+        if (useSplit || useSubject) {
           if (bgMode !== 'transparent') {
             ctx.fillStyle = bgMode === 'black' ? '#000' : '#fff';
             ctx.fillRect(cellX - cellSize - spacing / 2, cellY - cellSize - spacing / 2, cellSize * 2 + spacing, cellSize * 2 + spacing);

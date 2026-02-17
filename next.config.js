@@ -3,7 +3,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['onnxruntime-node'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       // Prevent onnxruntime-node native binaries from being bundled client-side
       config.resolve.alias = {
@@ -15,13 +15,17 @@ const nextConfig = {
         test: /\.node$/,
         type: 'asset/resource',
       });
-      // Treat onnxruntime-web .mjs files as ES modules so Terser
-      // can handle import.meta syntax during minification
-      config.module.rules.push({
-        test: /\.mjs$/,
-        include: /onnxruntime-web/,
-        type: 'javascript/esm',
-      });
+      // Production only: treat onnxruntime-web .mjs as ESM so Terser
+      // can handle import.meta syntax during minification.
+      // In dev, webpack handles import.meta natively — applying this
+      // rule in dev breaks the RelativeURL polyfill.
+      if (!dev) {
+        config.module.rules.push({
+          test: /\.mjs$/,
+          include: /onnxruntime-web/,
+          type: 'javascript/esm',
+        });
+      }
     }
     return config;
   },
