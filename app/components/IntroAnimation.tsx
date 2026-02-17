@@ -618,9 +618,13 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const render = () => {
       const elapsed = Date.now() - startTime
 
-      // Clear canvas
-      ctx.fillStyle = '#000000'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      // Clear canvas - use transparent clear in static phase so horse shows through
+      if (phase === 'static') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      } else {
+        ctx.fillStyle = '#000000'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+      }
 
 
       if (phase === 'animating') {
@@ -732,7 +736,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: animationPhase === 'intro' ? 9999 : 1,
+        zIndex: animationPhase === 'intro' ? 9999 : 10,
         backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
         pointerEvents: animationPhase === 'static' ? 'none' : 'auto',
       }}
