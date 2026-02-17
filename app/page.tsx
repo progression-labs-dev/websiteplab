@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
+import DitherBackground from './components/DitherBackground'
 
 const testimonials = [
   {
@@ -321,6 +322,18 @@ export default function Home() {
           </div>
         </div>
         <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
+          <div className="hero-image-dither">
+            <DitherBackground
+              width={300}
+              height={200}
+              blockSize={12}
+              imageSrc="/hero-horse.png"
+              imageOffsetX={0}
+              imageOffsetY={22}
+              imageCropWidth={75}
+              imageCropHeight={40}
+            />
+          </div>
           <Image src="/hero-horse.png" alt="" width={600} height={600} priority />
         </div>
         <div className={`hero-bottom-bar ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>

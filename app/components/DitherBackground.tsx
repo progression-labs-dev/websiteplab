@@ -10,6 +10,11 @@ interface DitherBackgroundProps {
   blockColorEnd?: string
   circleProbability?: number
   asciiProbability?: number
+  imageSrc?: string
+  imageOffsetX?: number // percentage (0-100) of where to start sampling from image
+  imageOffsetY?: number // percentage (0-100) of where to start sampling from image
+  imageCropWidth?: number // percentage (0-100) of image width to sample
+  imageCropHeight?: number // percentage (0-100) of image height to sample
 }
 
 const ASCII_CHARS = ['@', '#', '$', '%', '&', '*', '+', '=', '-', ':', '.', '/', '\\', '|', '!', '?', 'X', 'O', '0', '1']
@@ -22,6 +27,11 @@ export default function DitherBackground({
   blockColorEnd = '#00ffff',
   circleProbability = 0.36,
   asciiProbability = 0.8,
+  imageSrc,
+  imageOffsetX = 0,
+  imageOffsetY = 0,
+  imageCropWidth = 100,
+  imageCropHeight = 100,
 }: DitherBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -63,51 +73,95 @@ export default function DitherBackground({
       return `rgb(${newR}, ${newG}, ${newB})`
     }
 
-    // Clear canvas with black
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(0, 0, width, height)
+    const drawDither = (imageData?: ImageData) => {
+      // Clear canvas with black
+      ctx.fillStyle = '#000000'
+      ctx.fillRect(0, 0, width, height)
 
-    // Draw dithered blocks
-    for (let y = 0; y < height; y += blockSize) {
-      for (let x = 0; x < width; x += blockSize) {
-        const normalizedX = x / width
-        const normalizedY = y / height
-        const baseT = (normalizedX + (1 - normalizedY)) / 2
-        const randomOffset = (getBlockRandom(x, y, 4) - 0.5) * 0.6
-        const t = Math.max(0, Math.min(1, baseT + randomOffset))
+      // Draw dithered blocks
+      for (let y = 0; y < height; y += blockSize) {
+        for (let x = 0; x < width; x += blockSize) {
+          let t: number
 
-        const blockColor = lerpColor(blockColorStart, blockColorEnd, t)
-        ctx.fillStyle = blockColor
-        ctx.fillRect(x, y, blockSize, blockSize)
+          if (imageData) {
+            // Sample brightness from image
+            const sampleX = Math.min(Math.floor(x + blockSize / 2), width - 1)
+            const sampleY = Math.min(Math.floor(y + blockSize / 2), height - 1)
+            const idx = (sampleY * width + sampleX) * 4
+            const r = imageData.data[idx]
+            const g = imageData.data[idx + 1]
+            const b = imageData.data[idx + 2]
+            // Convert to grayscale brightness (0-1)
+            t = (r * 0.299 + g * 0.587 + b * 0.114) / 255
+          } else {
+            // Use position-based gradient
+            const normalizedX = x / width
+            const normalizedY = y / height
+            const baseT = (normalizedX + (1 - normalizedY)) / 2
+            const randomOffset = (getBlockRandom(x, y, 4) - 0.5) * 0.6
+            t = Math.max(0, Math.min(1, baseT + randomOffset))
+          }
 
-        const rand1 = getBlockRandom(x, y, 1)
-        const rand2 = getBlockRandom(x, y, 2)
-        const rand3 = getBlockRandom(x, y, 3)
+          const blockColor = lerpColor(blockColorStart, blockColorEnd, t)
+          ctx.fillStyle = blockColor
+          ctx.fillRect(x, y, blockSize, blockSize)
 
-        const rgbMatch = blockColor.match(/\d+/g)
-        const circleColor = rgbMatch ? blendWithWhite(
-          parseInt(rgbMatch[0]),
-          parseInt(rgbMatch[1]),
-          parseInt(rgbMatch[2])
-        ) : '#ffffff'
+          const rand1 = getBlockRandom(x, y, 1)
+          const rand2 = getBlockRandom(x, y, 2)
+          const rand3 = getBlockRandom(x, y, 3)
 
-        if (rand1 < circleProbability) {
-          ctx.fillStyle = circleColor
-          ctx.beginPath()
-          ctx.arc(x + blockSize / 2, y + blockSize / 2, blockSize / 2 - 1, 0, Math.PI * 2)
-          ctx.fill()
-        } else if (rand2 < asciiProbability) {
-          const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
-          const char = ASCII_CHARS[charIndex]
-          ctx.fillStyle = circleColor
-          ctx.font = `${blockSize * 0.9}px monospace`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(char, x + blockSize / 2, y + blockSize / 2)
+          const rgbMatch = blockColor.match(/\d+/g)
+          const circleColor = rgbMatch ? blendWithWhite(
+            parseInt(rgbMatch[0]),
+            parseInt(rgbMatch[1]),
+            parseInt(rgbMatch[2])
+          ) : '#ffffff'
+
+          if (rand1 < circleProbability) {
+            ctx.fillStyle = circleColor
+            ctx.beginPath()
+            ctx.arc(x + blockSize / 2, y + blockSize / 2, blockSize / 2 - 1, 0, Math.PI * 2)
+            ctx.fill()
+          } else if (rand2 < asciiProbability) {
+            const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+            const char = ASCII_CHARS[charIndex]
+            ctx.fillStyle = circleColor
+            ctx.font = `${blockSize * 0.9}px monospace`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(char, x + blockSize / 2, y + blockSize / 2)
+          }
         }
       }
     }
-  }, [width, height, blockSize, blockColorStart, blockColorEnd, circleProbability, asciiProbability])
+
+    if (imageSrc) {
+      // Load image and sample brightness
+      const img = new Image()
+      img.src = imageSrc
+      img.onload = () => {
+        // Calculate crop region based on percentages
+        const srcX = (imageOffsetX / 100) * img.width
+        const srcY = (imageOffsetY / 100) * img.height
+        const srcWidth = (imageCropWidth / 100) * img.width
+        const srcHeight = (imageCropHeight / 100) * img.height
+
+        // Create offscreen canvas to read image pixels
+        const offscreen = document.createElement('canvas')
+        offscreen.width = width
+        offscreen.height = height
+        const offCtx = offscreen.getContext('2d')
+        if (!offCtx) return
+
+        // Draw only the cropped region of the image, scaled to fill the canvas
+        offCtx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, width, height)
+        const imageData = offCtx.getImageData(0, 0, width, height)
+        drawDither(imageData)
+      }
+    } else {
+      drawDither()
+    }
+  }, [width, height, blockSize, blockColorStart, blockColorEnd, circleProbability, asciiProbability, imageSrc, imageOffsetX, imageOffsetY, imageCropWidth, imageCropHeight])
 
   return (
     <canvas

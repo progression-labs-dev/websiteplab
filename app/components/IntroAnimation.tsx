@@ -463,86 +463,134 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       }
     }
 
-    // Draw expanding dither that fills the entire screen from logo center
-    const drawExpandingDither = (progress: number) => {
+    // Collect logo dither blocks for seamless transition
+    const getLogoDitherBlocks = () => {
+      const blocks: { x: number; y: number; t: number; rand1: number; rand2: number; rand3: number }[] = []
+      const logoLeft = startX - ditherBlockSize * 2
+      const logoTop = startY - ditherBlockSize * 2
+      const logoRight = startX + gridWidth + ditherBlockSize * 2
+      const logoBottom = startY + gridHeight + ditherBlockSize * 2
+
+      for (let y = logoTop; y < logoBottom; y += ditherBlockSize) {
+        for (let x = logoLeft; x < logoRight; x += ditherBlockSize) {
+          const centerX = x + ditherBlockSize / 2
+          const centerY = y + ditherBlockSize / 2
+          if (isPartOfLogo(centerX, centerY)) {
+            const normalizedX = (x - logoLeft) / (logoRight - logoLeft)
+            const normalizedY = (y - logoTop) / (logoBottom - logoTop)
+            const baseT = (normalizedX + (1 - normalizedY)) / 2
+            const randomOffset = (getBlockRandom(x, y, 4) - 0.5) * 0.6
+            const t = Math.max(0, Math.min(1, baseT + randomOffset))
+            blocks.push({
+              x, y, t,
+              rand1: getBlockRandom(x, y, 1),
+              rand2: getBlockRandom(x, y, 2),
+              rand3: getBlockRandom(x, y, 3)
+            })
+          }
+        }
+      }
+      return blocks
+    }
+
+    // Pre-calculate logo blocks
+    const logoBlocks = getLogoDitherBlocks()
+
+    // Draw converging dither - blocks flow from logo positions to target rectangle
+    const drawConvergingDither = (progress: number) => {
       if (progress <= 0) return
 
-      // Logo center position
-      const logoCenterX = startX + gridWidth / 2
-      const logoCenterY = startY + gridHeight / 2
+      // Target rectangle position (matching hero-image-dither CSS)
+      // hero-image: right: 60px, vertically centered, max-height: 80vh
+      // hero-image-dither: top: 30%, left: 5%, width: 300px, height: 200px
+      const horseHeight = canvas.height * 0.8
+      const horseWidth = horseHeight * 0.55 // Approximate aspect ratio
+      const horseX = canvas.width - 60 - horseWidth
+      const horseY = (canvas.height - horseHeight) / 2
 
-      // Maximum distance from logo center to screen corner
-      const maxDist = Math.sqrt(
-        Math.max(logoCenterX, canvas.width - logoCenterX) ** 2 +
-        Math.max(logoCenterY, canvas.height - logoCenterY) ** 2
-      )
+      const targetRectX = horseX + horseWidth * 0.05
+      const targetRectY = horseY + horseHeight * 0.30
+      const targetRectWidth = 300
+      const targetRectHeight = 200
 
-      // Use same block size as hero (12px)
-      const expandBlockSize = 12
+      const targetBlockSize = 12
+      const targetCols = Math.floor(targetRectWidth / targetBlockSize)
+      const targetRows = Math.floor(targetRectHeight / targetBlockSize)
 
-      // Draw dithered blocks across entire screen
-      for (let y = 0; y < canvas.height; y += expandBlockSize) {
-        for (let x = 0; x < canvas.width; x += expandBlockSize) {
-          // Calculate distance from logo center
-          const blockCenterX = x + expandBlockSize / 2
-          const blockCenterY = y + expandBlockSize / 2
-          const dist = Math.sqrt((blockCenterX - logoCenterX) ** 2 + (blockCenterY - logoCenterY) ** 2)
+      // Map logo blocks to target positions
+      const totalTargetBlocks = targetCols * targetRows
 
-          // Mix distance (30%) with randomness (70%) for scattered expansion
-          const normalizedDist = dist / maxDist
-          const randomValue = getBlockRandom(x, y, 7)
-          // Combine: slight bias toward expanding from center, but mostly random
-          // Scale to 0-0.8 so all blocks appear before progress reaches 1.0
-          const appearThreshold = (normalizedDist * 0.3 + randomValue * 0.7) * 0.8
+      for (let i = 0; i < totalTargetBlocks; i++) {
+        const targetCol = i % targetCols
+        const targetRow = Math.floor(i / targetCols)
 
-          // Block appears when progress passes its threshold
-          const blockProgress = Math.max(0, Math.min(1, (progress - appearThreshold) / 0.15))
+        // Final position in target rectangle
+        const finalX = targetRectX + targetCol * targetBlockSize
+        const finalY = targetRectY + targetRow * targetBlockSize
 
-          if (blockProgress > 0) {
-            // Calculate position-based gradient with randomness
-            const normalizedX = x / canvas.width
-            const normalizedY = y / canvas.height
-            const baseT = (normalizedX + (1 - normalizedY)) / 2
-            const gradientOffset = (getBlockRandom(x, y, 4) - 0.5) * 0.6
-            const t = Math.max(0, Math.min(1, baseT + gradientOffset))
+        // Get corresponding logo block (wrap around if needed)
+        const logoBlock = logoBlocks[i % logoBlocks.length]
 
-            // Draw block background
-            const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
-            ctx.fillStyle = blockColor
-            ctx.globalAlpha = blockProgress
-            ctx.fillRect(x, y, expandBlockSize, expandBlockSize)
+        // Starting position is the logo block position
+        const blockStartX = logoBlock.x
+        const blockStartY = logoBlock.y
 
-            // Get random values for this block
-            const rand1 = getBlockRandom(x, y, 1)
-            const rand2 = getBlockRandom(x, y, 2)
-            const rand3 = getBlockRandom(x, y, 3)
+        // Random delay for staggered animation
+        const delay = getBlockRandom(finalX, finalY, 12) * 0.5
+        const blockProgress = Math.max(0, Math.min(1, (progress - delay) / (1 - delay) * 1.2))
 
-            // Determine what to draw: circle, ASCII, or nothing
-            const circleColor = blendWithWhite(
-              parseInt(blockColor.match(/\d+/g)![0]),
-              parseInt(blockColor.match(/\d+/g)![1]),
-              parseInt(blockColor.match(/\d+/g)![2])
-            )
+        if (blockProgress > 0) {
+          // Eased interpolation with slight overshoot for organic feel
+          const easeProgress = blockProgress < 1
+            ? 1 - Math.pow(1 - blockProgress, 3)
+            : 1
 
-            if (rand1 < circleProbability) {
-              // Draw circle
-              ctx.fillStyle = circleColor
-              ctx.beginPath()
-              ctx.arc(x + expandBlockSize / 2, y + expandBlockSize / 2, expandBlockSize / 2 - 1, 0, Math.PI * 2)
-              ctx.fill()
-            } else if (rand2 < asciiProbability) {
-              // Draw ASCII character
-              const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
-              const char = ASCII_CHARS[charIndex]
-              ctx.fillStyle = circleColor
-              ctx.font = `${expandBlockSize * 0.9}px monospace`
-              ctx.textAlign = 'center'
-              ctx.textBaseline = 'middle'
-              ctx.fillText(char, x + expandBlockSize / 2, y + expandBlockSize / 2)
-            }
+          // Current position (interpolate from logo to target)
+          const currentX = blockStartX + (finalX - blockStartX) * easeProgress
+          const currentY = blockStartY + (finalY - blockStartY) * easeProgress
 
-            ctx.globalAlpha = 1
+          // Scale block size during transition
+          const currentBlockSize = ditherBlockSize + (targetBlockSize - ditherBlockSize) * easeProgress
+
+          // Use color from target position for consistency
+          const normalizedX = targetCol / targetCols
+          const normalizedY = targetRow / targetRows
+          const baseT = (normalizedX + (1 - normalizedY)) / 2
+          const gradientOffset = (getBlockRandom(finalX, finalY, 4) - 0.5) * 0.6
+          const t = Math.max(0, Math.min(1, baseT + gradientOffset))
+
+          const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
+          ctx.fillStyle = blockColor
+          ctx.globalAlpha = 1
+          ctx.fillRect(currentX, currentY, currentBlockSize, currentBlockSize)
+
+          // Get random values for decoration
+          const rand1 = getBlockRandom(finalX, finalY, 1)
+          const rand2 = getBlockRandom(finalX, finalY, 2)
+          const rand3 = getBlockRandom(finalX, finalY, 3)
+
+          const circleColor = blendWithWhite(
+            parseInt(blockColor.match(/\d+/g)![0]),
+            parseInt(blockColor.match(/\d+/g)![1]),
+            parseInt(blockColor.match(/\d+/g)![2])
+          )
+
+          if (rand1 < circleProbability) {
+            ctx.fillStyle = circleColor
+            ctx.beginPath()
+            ctx.arc(currentX + currentBlockSize / 2, currentY + currentBlockSize / 2, currentBlockSize / 2 - 1, 0, Math.PI * 2)
+            ctx.fill()
+          } else if (rand2 < asciiProbability) {
+            const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+            const char = ASCII_CHARS[charIndex]
+            ctx.fillStyle = circleColor
+            ctx.font = `${currentBlockSize * 0.9}px monospace`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(char, currentX + currentBlockSize / 2, currentY + currentBlockSize / 2)
           }
+
+          ctx.globalAlpha = 1
         }
       }
     }
@@ -640,19 +688,16 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
       }
 
-      // EXPANDING - dither spreads from logo to fill screen
+      // CONVERGING - dither blocks flow from logo to target rectangle
       if (phase === 'expanding') {
         const expandElapsed = Date.now() - phaseStartTime
-        const expandDuration = 800 // 0.8 seconds to expand
+        const expandDuration = 1000 // 1 second to converge
 
         // Progress from 0 to 1
         const expandProgress = Math.min(1, expandElapsed / expandDuration)
 
-        // Draw the logo dither first (as base)
-        drawDitherEffect(1)
-
-        // Draw the expanding dither on top (covers everything as it spreads)
-        drawExpandingDither(expandProgress)
+        // Draw the converging blocks (they start from logo positions)
+        drawConvergingDither(expandProgress)
 
         if (expandProgress >= 1) {
           phase = 'complete'

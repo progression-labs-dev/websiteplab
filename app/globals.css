@@ -1693,6 +1693,15 @@ p {
   object-fit: contain;
 }
 
+.hero-image-dither {
+  position: absolute;
+  top: 30%;
+  left: 5%;
+  width: 300px;
+  height: 200px;
+  z-index: 10;
+}
+
 @media (max-width: 1024px) {
   .hero-image {
     right: 30px;
