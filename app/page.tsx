@@ -2,9 +2,56 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import DitherBackground from './components/DitherBackground'
+import IntroAnimation from './components/IntroAnimation'
+
+const testimonials = [
+  {
+    videoId: 'rDV_iqkWzHY', // Replace with actual YouTube video ID
+    quote: "They've gone beyond just a number of engineers that I'm outsourcing AI for. They truly have been a thought partner, someone that's been very dependable and someone who helped us shape our strategy.",
+    author: "Dipak Patel",
+    role: "CEO of Globo"
+  },
+  {
+    videoId: 'rDV_iqkWzHY', // Replace with actual YouTube video ID
+    quote: "Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn't think were possible.",
+    author: "Sarah Chen",
+    role: "CTO of TechVentures"
+  },
+  {
+    videoId: 'rDV_iqkWzHY', // Replace with actual YouTube video ID
+    quote: "Working with Progression Labs has been a game-changer. They brought deep expertise and a collaborative approach that made all the difference in our AI journey.",
+    author: "Michael Roberts",
+    role: "VP Engineering at DataFlow"
+  }
+]
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 })
+  const [scrolledPastHero, setScrolledPastHero] = useState(false)
+  const [activeTestimonial, setActiveTestimonial] = useState(0)
+  const [introComplete, setIntroComplete] = useState(false)
+
+  // Track window size for fullscreen hero
+  useEffect(() => {
+    const updateSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+    }
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
+
+  // Track scroll position for nav styling
+  useEffect(() => {
+    const handleScroll = () => {
+      const heroHeight = window.innerHeight
+      setScrolledPastHero(window.scrollY > heroHeight - 100)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     // Dynamic import for GSAP to avoid SSR issues
@@ -22,24 +69,24 @@ export default function Home() {
       // Hero animations
       const heroTimeline = gsap.timeline({ delay: 0.2 })
       heroTimeline
-        .fromTo('.hero-title',
+        .fromTo('.hero-dark-title',
           { opacity: 0, y: 40 },
           { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }
         )
-        .fromTo('.hero-subtitle',
+        .fromTo('.hero-dark-subtitle',
           { opacity: 0, y: 30 },
           { opacity: 1, y: 0, duration: 0.8 },
           '-=0.5'
         )
-        .fromTo('.hero-actions',
+        .fromTo('.hero-dark-actions',
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.6 },
           '-=0.4'
         )
-        .fromTo('.gradient-bar',
-          { scaleX: 0, transformOrigin: 'left center' },
-          { scaleX: 1, duration: 1.2, ease: 'power2.inOut' },
-          '-=0.3'
+        .fromTo('.ascii-image-container',
+          { opacity: 0, scale: 0.9 },
+          { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' },
+          '-=0.8'
         )
 
       // Fade up animations
@@ -226,23 +273,28 @@ export default function Home() {
 
   return (
     <>
+      {/* Intro Animation */}
+      {!introComplete && (
+        <IntroAnimation onComplete={() => setIntroComplete(true)} />
+      )}
+
       {/* Navigation */}
-      <nav className="nav" id="nav">
+      <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
         <div className="nav-container">
           <a href="/" className="nav-logo" aria-label="Progression Labs home">
-            <Image src="/logo-black.png" alt="Progression Labs" className="nav-logo-img" width={36} height={24} />
+            <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
             <span className="nav-wordmark">Progression Labs</span>
           </a>
 
           <div className="nav-links">
+            <a href="#hero">Home</a>
             <a href="#services">Services</a>
-            <a href="#platform">Platform</a>
-            <a href="#resources">Resources</a>
+            <a href="#case-studies">Case Studies</a>
+            <a href="#team">Team</a>
+            <a href="#blog">Blog</a>
           </div>
 
           <div className="nav-actions">
-            <a href="#login" className="nav-login">Log in</a>
-            <a href="#get-started" className="nav-cta">Get Started</a>
           </div>
 
           <button className="nav-mobile-toggle" id="mobile-toggle" aria-label="Toggle menu" onClick={toggleMobileMenu}>
@@ -255,27 +307,47 @@ export default function Home() {
 
       {/* Mobile menu */}
       <div className={`mobile-menu ${mobileMenuOpen ? 'active' : ''}`} id="mobile-menu">
+        <a href="#hero" onClick={closeMobileMenu}>Home</a>
         <a href="#services" onClick={closeMobileMenu}>Services</a>
-        <a href="#platform" onClick={closeMobileMenu}>Platform</a>
-        <a href="#resources" onClick={closeMobileMenu}>Resources</a>
-        <a href="#login" className="btn btn-ghost" onClick={closeMobileMenu}>Log in</a>
-        <a href="#get-started" className="btn btn-primary" onClick={closeMobileMenu}>Get Started</a>
+        <a href="#case-studies" onClick={closeMobileMenu}>Case Studies</a>
+        <a href="#team" onClick={closeMobileMenu}>Team</a>
+        <a href="#blog" onClick={closeMobileMenu}>Blog</a>
       </div>
 
-      {/* Hero Section */}
-      <section className="hero section" id="hero">
-        <div className="container">
-          <div className="hero-content">
-            <h1 className="hero-title fade-up">AI systems that work<br />in production — not<br />just in demos.</h1>
-            <p className="hero-subtitle fade-up">Progression Labs is an AI consultancy and technology partner delivering business transformation through production-ready artificial intelligence systems, strategic advisory, and managed AI platforms.</p>
-            <div className="hero-actions fade-up">
-              <a href="#contact" className="btn btn-primary btn-lg">Talk to an expert</a>
-              <a href="#platform" className="btn btn-ghost btn-lg">Explore the platform</a>
+      {/* Announcement Bar */}
+      <div className="announcement-bar">
+        <div className="announcement-bar-content">
+          <span className="announcement-bar-text">New: AI Agent Platform now available for enterprise</span>
+          <a href="#contact" className="announcement-bar-link">Learn more &rarr;</a>
+        </div>
+      </div>
+
+      {/* Hero Section - Fullscreen with Dither Animation */}
+      <section className="hero-fullscreen" id="hero">
+        <div className="hero-animation-bg">
+          <DitherBackground
+            width={windowSize.width}
+            height={windowSize.height}
+            blockSize={12}
+          />
+        </div>
+        <div className="hero-vignette"></div>
+        <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
+          <h1 className="hero-dark-title">Turn your company a leader in the age of AI</h1>
+          <p className="hero-dark-subtitle">We're a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
+          <div className="hero-dark-actions">
+            <a href="#contact" className="btn btn-white">Request a brainstorm</a>
+          </div>
+        </div>
+        <div className={`hero-bottom-bar ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
+          <div className="hero-bottom-bar-content">
+            <span className="hero-bottom-bar-text">Trusted by leading enterprises across 12 industries</span>
+            <div className="hero-bottom-bar-links">
+              <a href="#case-studies">View case studies</a>
+              <a href="#services">Our services</a>
             </div>
           </div>
-          <div className="hero-gradient" aria-hidden="true"></div>
         </div>
-        <div className="gradient-bar" aria-hidden="true"></div>
       </section>
 
       {/* Services */}
@@ -385,13 +457,95 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Platform */}
-      <section className="section" id="platform" style={{ background: 'var(--white)' }}>
+      {/* Case Studies */}
+      <section className="section section-dark" id="case-studies">
+        <div className="container">
+          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p className="label">Case Studies</p>
+            <h2 style={{ color: 'var(--white)' }}>Measurable impact across every engagement</h2>
+          </div>
+
+          <div className="metrics-grid">
+            <div className="metric-card fade-up">
+              <div className="metric-value" data-count="50" data-suffix="+">0</div>
+              <div className="metric-label">Enterprise clients across 12 industries</div>
+            </div>
+            <div className="metric-card fade-up">
+              <div className="metric-value" data-count="3.2" data-suffix="x" data-decimal="true">0</div>
+              <div className="metric-label">Average ROI within first 12 months</div>
+            </div>
+            <div className="metric-card fade-up">
+              <div className="metric-value" data-count="47" data-suffix="%">0</div>
+              <div className="metric-label">Reduction in operational costs through AI automation</div>
+            </div>
+            <div className="metric-card fade-up">
+              <div className="metric-value" data-count="99.9" data-suffix="%" data-decimal="true">0</div>
+              <div className="metric-label">Platform uptime SLA</div>
+            </div>
+          </div>
+
+          <div className="testimonial-carousel fade-up">
+            <button
+              className="carousel-arrow carousel-arrow-left"
+              onClick={() => setActiveTestimonial(prev => prev === 0 ? testimonials.length - 1 : prev - 1)}
+              aria-label="Previous testimonial"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            <div className="testimonial-cards">
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={index}
+                  className={`testimonial-card ${index === activeTestimonial ? 'active' : ''}`}
+                >
+                  <div className="testimonial-video">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${testimonial.videoId}`}
+                      title={`${testimonial.author} testimonial`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                  <blockquote>&ldquo;{testimonial.quote}&rdquo;</blockquote>
+                  <cite>— {testimonial.author}, {testimonial.role}</cite>
+                </div>
+              ))}
+            </div>
+
+            <button
+              className="carousel-arrow carousel-arrow-right"
+              onClick={() => setActiveTestimonial(prev => prev === testimonials.length - 1 ? 0 : prev + 1)}
+              aria-label="Next testimonial"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            <div className="testimonial-dots">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`testimonial-dot ${index === activeTestimonial ? 'active' : ''}`}
+                  onClick={() => setActiveTestimonial(index)}
+                  aria-label={`View testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="section" id="team" style={{ background: 'var(--white)' }}>
         <div className="container">
           <div className="platform-content">
             <div className="platform-text">
-              <p className="label fade-up">The Progression Platform</p>
-              <h2 className="fade-up">One platform for enterprise AI operations</h2>
+              <p className="label fade-up">Our Team</p>
+              <h2 className="fade-up">The people behind Progression Labs</h2>
               <p className="fade-up">Technology consultation, computer technology consultancy, and AI-powered analytics — unified in a single platform. Monitor, deploy, and scale your AI systems with confidence.</p>
 
               <div className="platform-features">
@@ -481,45 +635,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Metrics */}
-      <section className="section section-dark" id="metrics">
-        <div className="container">
-          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-            <p className="label">Results that speak</p>
-            <h2 style={{ color: 'var(--white)' }}>Measurable impact across every engagement</h2>
-          </div>
-
-          <div className="metrics-grid">
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="50" data-suffix="+">0</div>
-              <div className="metric-label">Enterprise clients across 12 industries</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="3.2" data-suffix="x" data-decimal="true">0</div>
-              <div className="metric-label">Average ROI within first 12 months</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="47" data-suffix="%">0</div>
-              <div className="metric-label">Reduction in operational costs through AI automation</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="99.9" data-suffix="%" data-decimal="true">0</div>
-              <div className="metric-label">Platform uptime SLA</div>
-            </div>
-          </div>
-
-          <div className="testimonial fade-up">
-            <blockquote>&ldquo;Progression Labs transformed how we approach AI — from experimental pilots to production systems that drive real business value. Their consultancy expertise combined with their technology platform is unmatched.&rdquo;</blockquote>
-            <cite>— VP of Technology, Enterprise Client</cite>
-          </div>
-        </div>
-      </section>
-
-      {/* Resources */}
-      <section className="section" id="resources" style={{ background: 'var(--white)' }}>
+      {/* Blog */}
+      <section className="section" id="blog" style={{ background: 'var(--white)' }}>
         <div className="container">
           <div className="section-header fade-up">
-            <p className="label">Insights</p>
+            <p className="label">Blog</p>
             <h2>Latest thinking from<br />our team</h2>
           </div>
 
