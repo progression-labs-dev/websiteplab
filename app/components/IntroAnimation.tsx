@@ -670,15 +670,15 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       }
     }
 
-    // Draw dither animating from horse to horizontal line at top of services section
+    // Draw dither animating from horse to horizontal line, then down sides
     const drawScrollDither = () => {
       const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
-      const ditherLine = document.querySelector('.services-dither-line') as HTMLElement
+      const servicesSection = document.querySelector('#services') as HTMLElement
 
-      if (!heroImage) return
+      if (!heroImage || !servicesSection) return
 
       const heroRect = heroImage.getBoundingClientRect()
-      const lineRect = ditherLine?.getBoundingClientRect()
+      const servicesRect = servicesSection.getBoundingClientRect()
 
       // Horse dither position (rectangle on horse)
       const horseRectX = heroRect.left + heroRect.width * 0.05
@@ -686,40 +686,38 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       const horseRectWidth = 240
       const horseRectHeight = 160
 
-      // Line position at top of services section
-      const lineY = lineRect ? lineRect.top : canvas.height
-      const lineWidth = canvas.width * 0.8
-      const lineX = (canvas.width - lineWidth) / 2
-      const lineHeight = 24
+      // Services section dimensions
+      const sectionTop = servicesRect.top
+      const sectionHeight = servicesRect.height
+      const sectionLeft = servicesRect.left + 40
+      const sectionRight = servicesRect.right - 40
 
       const targetBlockSize = 12
       const horseCols = Math.floor(horseRectWidth / targetBlockSize)
       const horseRows = Math.floor(horseRectHeight / targetBlockSize)
       const totalHorseBlocks = horseCols * horseRows
 
-      // Line has more columns (spread horizontally)
+      // Line dimensions
+      const lineWidth = sectionRight - sectionLeft
       const lineCols = Math.floor(lineWidth / targetBlockSize)
-      const lineRows = Math.floor(lineHeight / targetBlockSize) || 2
+
+      // Side dimensions (how far down)
+      const sideHeight = sectionHeight * 0.6
+      const sideRows = Math.floor(sideHeight / targetBlockSize)
 
       // S-curve easing (smootherstep) - stickier to both ends
       const clampedScroll = Math.max(0, Math.min(1, scrollProgress))
       const easedProgress = clampedScroll * clampedScroll * clampedScroll * (clampedScroll * (6 * clampedScroll - 15) + 10)
 
-      // Helper to sample brightness from horse image
-      const sampleHorseBrightness = (screenX: number, screenY: number): number => {
-        if (!horseImageData || !horseImg.width) return 0.5
-        const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * horseImg.width)
-        const imgY = Math.floor(((screenY - heroRect.top) / heroRect.height) * horseImg.height)
-        const clampedX = Math.max(0, Math.min(horseImg.width - 1, imgX))
-        const clampedY = Math.max(0, Math.min(horseImg.height - 1, imgY))
-        const idx = (clampedY * horseImg.width + clampedX) * 4
-        const r = horseImageData.data[idx]
-        const g = horseImageData.data[idx + 1]
-        const b = horseImageData.data[idx + 2]
-        return (r * 0.299 + g * 0.587 + b * 0.114) / 255
-      }
+      // Three-phase animation
+      const phase1End = 0.33  // Gather to center
+      const phase2End = 0.66  // Spread to line
+      // Phase 3: Flow down sides
 
-      // Draw blocks - each block from horse maps to a position on the line
+      const centerX = canvas.width / 2
+      const centerY = sectionTop + targetBlockSize
+
+      // Draw blocks
       for (let i = 0; i < totalHorseBlocks; i++) {
         const horseCol = i % horseCols
         const horseRow = Math.floor(i / horseCols)
@@ -728,52 +726,52 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         const horseX = horseRectX + horseCol * targetBlockSize
         const horseY = horseRectY + horseRow * targetBlockSize
 
-        // Map to position on line - blocks spread from center outward
-        // First, map block index to line position
+        // Determine if this block goes left or right side
+        const goesLeft = i < totalHorseBlocks / 2
+
+        // Position on horizontal line
         const lineCol = Math.floor((i / totalHorseBlocks) * lineCols)
-        const lineRow = i % lineRows
+        const lineX = sectionLeft + lineCol * targetBlockSize
+        const lineY = sectionTop
 
-        // Calculate distance from center for spread effect
-        const centerCol = lineCols / 2
-        const distFromCenter = Math.abs(lineCol - centerCol) / centerCol
+        // Position on side (flowing down)
+        const sideBlockIndex = goesLeft ? i : i - Math.floor(totalHorseBlocks / 2)
+        const sideRow = Math.floor(sideBlockIndex / 2) % sideRows
+        const sideX = goesLeft ? sectionLeft : sectionRight - targetBlockSize
+        const sideY = sectionTop + sideRow * targetBlockSize
 
-        // Final position on line
-        const finalLineX = lineX + lineCol * targetBlockSize
-        const finalLineY = lineY + lineRow * targetBlockSize
+        // Random delays
+        const gatherDelay = getBlockRandom(horseX, horseY, 15) * 0.15
+        const spreadDelay = Math.abs(lineCol - lineCols / 2) / lineCols * 0.2
+        const flowDelay = sideRow / sideRows * 0.3
 
-        // Intermediate position (center of line) for the "gather then spread" effect
-        const centerX = canvas.width / 2
-        const centerY = lineY + lineHeight / 2
-
-        // Two-phase animation: gather to center, then spread to line position
-        const gatherProgress = Math.min(1, easedProgress * 2) // 0-0.5 of scroll
-        const spreadProgress = Math.max(0, (easedProgress - 0.5) * 2) // 0.5-1 of scroll
-
-        // Random delay for staggered movement
-        const gatherDelay = getBlockRandom(horseX, horseY, 15) * 0.2
-        const spreadDelay = distFromCenter * 0.3 // Blocks further from center spread later
-
-        const adjustedGatherProgress = Math.max(0, Math.min(1, (gatherProgress - gatherDelay) / (1 - gatherDelay)))
-        const adjustedSpreadProgress = Math.max(0, Math.min(1, (spreadProgress - spreadDelay) / (1 - spreadDelay)))
-
-        // Calculate current position
         let currentX, currentY
 
-        if (easedProgress < 0.5) {
+        if (easedProgress < phase1End) {
           // Phase 1: Gather from horse to center
-          currentX = horseX + (centerX - horseX) * adjustedGatherProgress
-          currentY = horseY + (centerY - horseY) * adjustedGatherProgress
+          const phaseProgress = easedProgress / phase1End
+          const adjustedProgress = Math.max(0, Math.min(1, (phaseProgress - gatherDelay) / (1 - gatherDelay)))
+          currentX = horseX + (centerX - horseX) * adjustedProgress
+          currentY = horseY + (centerY - horseY) * adjustedProgress
+        } else if (easedProgress < phase2End) {
+          // Phase 2: Spread from center to line
+          const phaseProgress = (easedProgress - phase1End) / (phase2End - phase1End)
+          const adjustedProgress = Math.max(0, Math.min(1, (phaseProgress - spreadDelay) / (1 - spreadDelay)))
+          currentX = centerX + (lineX - centerX) * adjustedProgress
+          currentY = centerY + (lineY - centerY) * adjustedProgress
         } else {
-          // Phase 2: Spread from center to line position
-          currentX = centerX + (finalLineX - centerX) * adjustedSpreadProgress
-          currentY = centerY + (finalLineY - centerY) * adjustedSpreadProgress
+          // Phase 3: Flow down the sides
+          const phaseProgress = (easedProgress - phase2End) / (1 - phase2End)
+          const adjustedProgress = Math.max(0, Math.min(1, (phaseProgress - flowDelay) / (1 - flowDelay)))
+          currentX = lineX + (sideX - lineX) * adjustedProgress
+          currentY = lineY + (sideY - lineY) * adjustedProgress
         }
 
-        // Color based on position in gradient
-        const normalizedPos = lineCol / lineCols
-        const t = normalizedPos
+        // Color gradient based on vertical position
+        const normalizedY = (currentY - sectionTop) / sideHeight
+        const t = Math.max(0, Math.min(1, normalizedY))
 
-        const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
+        const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, 1 - t)
         ctx.fillStyle = blockColor
         ctx.globalAlpha = 1
         ctx.fillRect(currentX, currentY, targetBlockSize, targetBlockSize)
