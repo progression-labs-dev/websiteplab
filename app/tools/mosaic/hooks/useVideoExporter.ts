@@ -65,18 +65,46 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
 
 /**
  * Triggers a browser file-download for the given Blob.
- * The anchor must be attached to the document body for Safari/macOS compatibility.
+ * Uses the File System Access API (showSaveFilePicker) when available —
+ * this gives a native save dialog that always respects the filename.
+ * Falls back to anchor-click for browsers that don't support it.
  */
-function downloadBlob(blob: Blob, filename: string): void {
+async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+  // 1. Try File System Access API (Chrome 86+ / Edge 86+)
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await (window as unknown as { showSaveFilePicker: (opts: unknown) => Promise<FileSystemFileHandle> })
+        .showSaveFilePicker({
+          suggestedName: filename,
+          types: [{
+            description: 'MP4 Video',
+            accept: { 'video/mp4': ['.mp4'] },
+          }],
+        });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return; // User cancelled
+      // Fall through to anchor method
+    }
+  }
+
+  // 2. Fallback: anchor element with download attribute
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.type = 'video/mp4';
   a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  // Delay cleanup so the browser has time to start the download
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 60_000);
 }
 
 // ---------------------------------------------------------------------------
@@ -202,7 +230,7 @@ export function useVideoExporter() {
       // 8. Flush + mux → Blob → download
       const blob = await encoder.finalize();
       encoder.close();
-      downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
+      await downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
 
     } catch (err) {
       encoder.close();
