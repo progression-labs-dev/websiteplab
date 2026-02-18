@@ -64,23 +64,29 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
 }
 
 /**
- * Triggers a browser file-download for the given Blob.
- * Wraps the blob in a File object so the browser can pick up the filename
- * from the object URL, then uses an anchor click to trigger the download.
+ * Downloads a video blob with the correct filename by routing through
+ * a server-side API endpoint that sets Content-Disposition headers.
+ * This bypasses the browser bug where blob: URLs ignore the download attribute.
  */
-function downloadBlob(blob: Blob, filename: string): void {
-  const file = new File([blob], filename, { type: 'video/mp4' });
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 60_000);
+async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+  // 1. POST the blob to the server, get back a one-time download token
+  const res = await fetch('/api/tools/mosaic/download', {
+    method: 'POST',
+    headers: { 'x-filename': filename },
+    body: blob,
+  });
+
+  if (!res.ok) throw new Error(`Upload for download failed: ${res.status}`);
+  const { token } = await res.json();
+
+  // 2. Navigate a hidden iframe to the GET endpoint.
+  //    The server responds with Content-Disposition: attachment,
+  //    so the browser downloads with the correct filename.
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = `/api/tools/mosaic/download?token=${token}`;
+  document.body.appendChild(iframe);
+  setTimeout(() => document.body.removeChild(iframe), 60_000);
 }
 
 // ---------------------------------------------------------------------------
@@ -206,7 +212,7 @@ export function useVideoExporter() {
       // 8. Flush + mux → Blob → download
       const blob = await encoder.finalize();
       encoder.close();
-      downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
+      await downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
 
     } catch (err) {
       encoder.close();
