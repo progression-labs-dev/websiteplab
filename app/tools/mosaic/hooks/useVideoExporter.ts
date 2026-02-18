@@ -64,29 +64,46 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
 }
 
 /**
- * Downloads a video blob with the correct filename by routing through
- * a server-side API endpoint that sets Content-Disposition headers.
- * This bypasses the browser bug where blob: URLs ignore the download attribute.
+ * Downloads a video blob. Tries the API route (correct filename via
+ * Content-Disposition) first; falls back to anchor click if that fails.
  */
 async function downloadBlob(blob: Blob, filename: string): Promise<void> {
-  // 1. POST the blob to the server, get back a one-time download token
-  const res = await fetch('/api/tools/mosaic/download', {
-    method: 'POST',
-    headers: { 'x-filename': filename },
-    body: blob,
-  });
+  // Try 1: API route → proper filename via Content-Disposition header
+  try {
+    const res = await fetch('/api/tools/mosaic/download', {
+      method: 'POST',
+      headers: { 'x-filename': filename },
+      body: blob,
+    });
 
-  if (!res.ok) throw new Error(`Upload for download failed: ${res.status}`);
-  const { token } = await res.json();
+    if (res.ok) {
+      const { token } = await res.json();
+      // Use anchor pointing at the GET endpoint (Content-Disposition forces download)
+      const a = document.createElement('a');
+      a.href = `/api/tools/mosaic/download?token=${token}`;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => document.body.removeChild(a), 10_000);
+      return;
+    }
+  } catch {
+    // Fall through to anchor fallback
+  }
 
-  // 2. Navigate a hidden iframe to the GET endpoint.
-  //    The server responds with Content-Disposition: attachment,
-  //    so the browser downloads with the correct filename.
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = `/api/tools/mosaic/download?token=${token}`;
-  document.body.appendChild(iframe);
-  setTimeout(() => document.body.removeChild(iframe), 60_000);
+  // Try 2: Direct blob URL anchor click (may produce UUID filename but at least downloads)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 60_000);
 }
 
 // ---------------------------------------------------------------------------
