@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ImageBuffer } from '../utils/imageProcessing';
 
+export type PlaybackQuality = 'draft' | 'standard' | 'full';
+
 export interface VideoState {
   loaded: boolean;
   playing: boolean;
@@ -9,15 +11,28 @@ export interface VideoState {
   fps: number;
 }
 
+const QUALITY_PRESETS: Record<PlaybackQuality, { scale: number; targetFps: number }> = {
+  draft:    { scale: 0.5,  targetFps: 15 },
+  standard: { scale: 0.75, targetFps: 24 },
+  full:     { scale: 1.0,  targetFps: 30 },
+};
+
+const RAF_NATIVE_FPS = 60;
+
 export function useVideoPlayer(
   onFrame: (buffer: ImageBuffer) => void,
-  previewScale = 0.5
+  quality: PlaybackQuality = 'standard'
 ) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const offscreenCanvas = useRef<HTMLCanvasElement | null>(null);
   // Store full-resolution dimensions so we can restore on pause/seek
   const fullRes = useRef<{ w: number; h: number } | null>(null);
   const rafId = useRef<number>(0);
+
+  // Use refs for quality settings so the RAF loop always reads the latest values
+  // without needing to recreate the extractFrame callback
+  const qualityRef = useRef(quality);
+  qualityRef.current = quality;
 
   // Frame-skipping state: track ticks and last-emit time for FPS calculation
   const rafTickCount = useRef<number>(0);
@@ -31,11 +46,6 @@ export function useVideoPlayer(
     duration: 0,
     fps: 0,
   });
-
-  // Target ~15fps during playback. Most monitors run at 60fps, so emit every 4th tick.
-  const PLAYBACK_TARGET_FPS = 15;
-  const RAF_NATIVE_FPS = 60;
-  const SKIP_INTERVAL = Math.round(RAF_NATIVE_FPS / PLAYBACK_TARGET_FPS); // 4
 
   /** Resize the offscreen canvas to the given dimensions, keeping the element */
   const resizeCanvas = useCallback((w: number, h: number) => {
@@ -52,8 +62,12 @@ export function useVideoPlayer(
 
     rafTickCount.current += 1;
 
-    // Frame skipping: only emit every SKIP_INTERVAL ticks
-    if (rafTickCount.current % SKIP_INTERVAL !== 0) {
+    // Read quality settings from ref (always latest, no callback recreation needed)
+    const { scale, targetFps } = QUALITY_PRESETS[qualityRef.current];
+    const skipInterval = Math.max(1, Math.round(RAF_NATIVE_FPS / targetFps));
+
+    // Frame skipping: only emit every skipInterval ticks
+    if (rafTickCount.current % skipInterval !== 0) {
       rafId.current = requestAnimationFrame(extractFrame);
       return;
     }
@@ -61,8 +75,8 @@ export function useVideoPlayer(
     // Ensure canvas is at preview resolution during playback
     const full = fullRes.current;
     if (full) {
-      const pw = Math.round(full.w * previewScale);
-      const ph = Math.round(full.h * previewScale);
+      const pw = Math.round(full.w * scale);
+      const ph = Math.round(full.h * scale);
       if (canvas.width !== pw || canvas.height !== ph) {
         canvas.width = pw;
         canvas.height = ph;
@@ -95,7 +109,7 @@ export function useVideoPlayer(
     }
 
     rafId.current = requestAnimationFrame(extractFrame);
-  }, [onFrame, previewScale, SKIP_INTERVAL, resizeCanvas]);
+  }, [onFrame, resizeCanvas]);
 
   const loadVideo = useCallback((file: File) => {
     const url = URL.createObjectURL(file);

@@ -6,7 +6,7 @@ import MosaicCanvas, { MosaicCanvasHandle } from './components/MosaicCanvas';
 import ControlPanel from './components/ControlPanel';
 import { MosaicParams, DEFAULT_PARAMS, useMosaicRenderer } from './hooks/useMosaicRenderer';
 import { ImageBuffer, loadImageToBuffer } from './utils/imageProcessing';
-import { useVideoPlayer } from './hooks/useVideoPlayer';
+import { useVideoPlayer, PlaybackQuality } from './hooks/useVideoPlayer';
 import { useSubjectMask } from './hooks/useSubjectMask';
 import { useVideoExporter, ExportOptions } from './hooks/useVideoExporter';
 
@@ -19,6 +19,9 @@ export default function MosaicToolPage() {
   // Export settings state
   const [exportResolution, setExportResolution] = useState<string>('original');
   const [exportQuality, setExportQuality] = useState<number>(80);
+
+  // Video playback quality
+  const [playbackQuality, setPlaybackQuality] = useState<PlaybackQuality>('standard');
 
   // Subject mask hook
   const {
@@ -49,7 +52,7 @@ export default function MosaicToolPage() {
     setBuffer(frameBuffer);
   }, []);
 
-  const { state: videoState, loadVideo, togglePlay, seek, getVideoElement } = useVideoPlayer(handleVideoFrame);
+  const { state: videoState, loadVideo, togglePlay, seek, getVideoElement } = useVideoPlayer(handleVideoFrame, playbackQuality);
 
   // Derived: mask is locked when video is playing in subject mode.
   // This prevents expensive re-encoding on every frame during live playback.
@@ -238,6 +241,8 @@ export default function MosaicToolPage() {
         onExportResolutionChange={setExportResolution}
         exportQuality={exportQuality}
         onExportQualityChange={setExportQuality}
+        playbackQuality={playbackQuality}
+        onPlaybackQualityChange={setPlaybackQuality}
       />
     </div>
   );

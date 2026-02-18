@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { MosaicParams, ShapeMode, ColorMode, BgMode, MaskMode, GradientStop } from '../hooks/useMosaicRenderer';
 import { ExportState } from '../hooks/useVideoExporter';
+import { PlaybackQuality } from '../hooks/useVideoPlayer';
 import { rgbToHex, hexToRgb } from '../utils/colorMapping';
 
 interface SubjectMaskState {
@@ -43,6 +44,8 @@ interface ControlPanelProps {
   onExportResolutionChange?: (resolution: string) => void;
   exportQuality?: number;
   onExportQualityChange?: (quality: number) => void;
+  playbackQuality?: PlaybackQuality;
+  onPlaybackQualityChange?: (quality: PlaybackQuality) => void;
 }
 
 function Slider({
@@ -149,6 +152,8 @@ export default function ControlPanel({
   onExportResolutionChange,
   exportQuality = 80,
   onExportQualityChange,
+  playbackQuality = 'standard',
+  onPlaybackQualityChange,
 }: ControlPanelProps) {
   const isExporting = exportState?.exporting ?? false;
 
@@ -213,6 +218,30 @@ export default function ControlPanel({
               <span className="mosaic-video-time">
                 {formatTime(videoState.currentTime)} / {formatTime(videoState.duration)}
               </span>
+            </div>
+
+            {/* Playback Quality */}
+            <div style={{ marginTop: 12 }}>
+              <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: '#c4c7d0' }}>Playback Quality</span>
+              </div>
+              <div className="mosaic-shape-toggle">
+                {([
+                  { key: 'draft' as PlaybackQuality, label: 'Draft', desc: '50% · 15fps' },
+                  { key: 'standard' as PlaybackQuality, label: 'Standard', desc: '75% · 24fps' },
+                  { key: 'full' as PlaybackQuality, label: 'Full', desc: '100% · 30fps' },
+                ] as const).map(preset => (
+                  <button
+                    key={preset.key}
+                    className={`mosaic-shape-btn ${playbackQuality === preset.key ? 'active' : ''}`}
+                    onClick={() => onPlaybackQualityChange?.(preset.key)}
+                    title={preset.desc}
+                    disabled={isExporting}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
