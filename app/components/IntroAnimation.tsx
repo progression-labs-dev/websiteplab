@@ -750,11 +750,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       const horseRectWidth = 240
       const horseRectHeight = 160
 
-      // Services section dimensions
+      // Services section dimensions - sides at viewport edge (next to scroll bar)
       const sectionTop = servicesRect.top
       const sectionHeight = servicesRect.height
-      const sectionLeft = servicesRect.left + 40
-      const sectionRight = servicesRect.right - 40
+      const sectionLeft = 0  // Left edge of viewport
+      const sectionRight = canvas.width - targetBlockSize  // Right edge (leave room for block)
       const sectionBottom = sectionTop + sectionHeight - 40
 
       const horseCols = Math.floor(horseRectWidth / targetBlockSize)
@@ -765,11 +765,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       const clampedScroll = Math.max(0, Math.min(1, scrollProgress))
       const easedProgress = clampedScroll * clampedScroll * clampedScroll * (clampedScroll * (6 * clampedScroll - 15) + 10)
 
-      // Phase thresholds - 4 phases now
-      const phase1End = 0.15  // Gather under horse
-      const phase2End = 0.35  // Flow down to services section center
-      const phase3End = 0.6   // Spread horizontally to sides
-      // Phase 4: Flow down sides (0.6 - 1.0)
+      // Phase thresholds - 4 phases now (horizontal flow takes 5x more time)
+      const phase1End = 0.05  // Gather under horse
+      const phase2End = 0.1   // Flow down to services section center
+      const phase3End = 0.85  // Spread horizontally to sides (75% of scroll time)
+      // Phase 4: Flow down sides (0.85 - 1.0)
 
       const centerX = canvas.width / 2
       const serviceCenterY = sectionTop
