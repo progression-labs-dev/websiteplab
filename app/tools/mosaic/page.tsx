@@ -47,6 +47,16 @@ export default function MosaicToolPage() {
   // Track whether the SAM model has been initialized
   const modelInitedRef = useRef(false);
 
+  // Clear subject mask when switching mask modes — prevents stale clicks
+  // from a previous mode restricting the new mode's selection.
+  const prevMaskModeRef = useRef(params.maskMode);
+  useEffect(() => {
+    if (prevMaskModeRef.current !== params.maskMode) {
+      clearMask();
+      prevMaskModeRef.current = params.maskMode;
+    }
+  }, [params.maskMode, clearMask]);
+
   // Video frame callback — updates the buffer each frame
   const handleVideoFrame = useCallback((frameBuffer: ImageBuffer) => {
     setBuffer(frameBuffer);
@@ -54,14 +64,15 @@ export default function MosaicToolPage() {
 
   const { state: videoState, loadVideo, togglePlay, seek, getVideoElement } = useVideoPlayer(handleVideoFrame, playbackQuality);
 
-  // Derived: mask is locked when video is playing in subject mode.
+  // Derived: mask is locked when video is playing in subject/auto mode.
   // This prevents expensive re-encoding on every frame during live playback.
-  const isMaskLocked = mediaType === 'video' && videoState.playing && params.maskMode === 'subject';
+  const usesSAM = params.maskMode === 'subject' || params.maskMode === 'auto';
+  const isMaskLocked = mediaType === 'video' && videoState.playing && usesSAM;
 
-  // When maskMode switches to 'subject', init model + encode image.
+  // When maskMode switches to 'subject' or 'auto', init model + encode image.
   // Skip re-encoding while video is playing (mask is locked to last computed value).
   useEffect(() => {
-    if (params.maskMode !== 'subject') return;
+    if (!usesSAM) return;
 
     const setup = async () => {
       if (!modelInitedRef.current) {
@@ -75,7 +86,7 @@ export default function MosaicToolPage() {
     setup().catch(err => {
       console.error('Subject mask setup failed:', err);
     });
-  }, [params.maskMode, buffer, initModel, encodeImage, isMaskLocked]);
+  }, [usesSAM, buffer, initModel, encodeImage, isMaskLocked]);
 
   const handleParamChange = useCallback((partial: Partial<MosaicParams>) => {
     setParams(prev => ({ ...prev, ...partial }));
@@ -121,6 +132,10 @@ export default function MosaicToolPage() {
         outHeight = Math.round(buffer.height * scale);
       }
     }
+
+    // H.264 requires even dimensions
+    outWidth = outWidth % 2 === 0 ? outWidth : outWidth - 1;
+    outHeight = outHeight % 2 === 0 ? outHeight : outHeight - 1;
 
     // Map quality slider (0–100) to bitrate (500 kbps – 8 Mbps)
     const bitrate = Math.round(500_000 + (exportQuality / 100) * 7_500_000);

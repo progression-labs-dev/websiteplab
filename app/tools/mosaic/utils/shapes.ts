@@ -1,7 +1,14 @@
 import { adjustBrightness, rgbString, rgbToHsl, hslToRgb } from './colorMapping';
 
-// ASCII density ramp: from lightest (bright areas) to densest (dark areas)
-const ASCII_RAMP = ' .·:;=+*#%@';
+// Multiple character sets per density tier — picks pseudo-randomly per cell for variety.
+// 5 tiers from sparse (bright) to dense (dark), each with several character options.
+const ASCII_TIERS = [
+  [' '],                         // tier 0: brightest — blank
+  ['·', ':', '~', '-'],          // tier 1: light
+  ['+', '×', '=', '*', '÷'],    // tier 2: mid-light
+  ['#', '%', '$', '&', 'X'],    // tier 3: mid-dark
+  ['@', 'W', 'M', '█', '■'],   // tier 4: darkest — heaviest
+];
 
 
 /**
@@ -69,6 +76,7 @@ export function drawConvexCircle(
 /**
  * Draw an ASCII character centered on a cell, chosen by brightness.
  * Bright pixels → sparse chars, dark pixels → dense chars.
+ * White text with dark outline + colored glow — visible on ANY background.
  */
 export function drawAsciiChar(
   ctx: CanvasRenderingContext2D,
@@ -76,19 +84,36 @@ export function drawAsciiChar(
   cy: number,
   cellSize: number,
   brightness: number,
-  opacity: number
+  opacity: number,
+  fillR = 128, fillG = 128, fillB = 128
 ): void {
-  // Map brightness (0=dark, 255=bright) to ramp index
-  // Invert: dark areas get dense characters, bright areas get sparse ones
-  const idx = Math.floor((1 - brightness / 255) * (ASCII_RAMP.length - 1));
-  const char = ASCII_RAMP[Math.min(idx, ASCII_RAMP.length - 1)];
+  // Pick density tier — skip tier 0 (blank), so every cell gets a character.
+  // Remap brightness to tiers 1–4 only.
+  const tierIdx = Math.min(
+    ASCII_TIERS.length - 1,
+    Math.max(1, Math.floor((1 - brightness / 255) * ASCII_TIERS.length))
+  );
+  const tier = ASCII_TIERS[tierIdx];
 
-  if (char === ' ') return; // skip blank
+  // Pseudo-random pick within the tier based on cell position (deterministic, no flicker)
+  const hash = ((cx * 7919) + (cy * 104729)) >>> 0;
+  const char = tier[hash % tier.length];
 
-  const fontSize = Math.max(6, cellSize * 1.4);
+  const fontSize = Math.max(8, cellSize * 1.6);
   ctx.font = `bold ${fontSize}px "SF Mono", "Fira Code", "Courier New", monospace`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+
+  // Colored glow from the cell's own color
+  const [glowR, glowG, glowB] = adjustBrightness(fillR, fillG, fillB, 1.8);
+  ctx.shadowColor = `rgb(${glowR}, ${glowG}, ${glowB})`;
+  ctx.shadowBlur = cellSize * 0.8;
+
+  // White fill
   ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
   ctx.fillText(char, cx, cy);
+
+  // Reset shadow
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
 }

@@ -46,14 +46,14 @@ export const DEFAULT_GRADIENT_STOPS: GradientStop[] = [
 export const DEFAULT_PARAMS: MosaicParams = {
   shapeMode: 'circle',
   cellSize: 12,
-  spacing: 2,
+  spacing: 0,
   threshold: 0,
   invertThreshold: false,
   colorMode: 'original',
   gradientStops: DEFAULT_GRADIENT_STOPS,
   bgMode: 'black',
-  asciiEnabled: false,
-  asciiOpacity: 0.7,
+  asciiEnabled: true,
+  asciiOpacity: 0.85,
   maskMode: 'split',
   splitEnabled: true,
   splitPosition: 0.5,
@@ -108,6 +108,18 @@ export function useMosaicRenderer() {
     const useSubject = maskMode === 'subject' && !!subjectMask;
     const useAuto = maskMode === 'auto';
 
+    // Compute mask lookup dimensions — handles resolution mismatch during video playback.
+    // The mask may have been computed at full resolution while the buffer is at preview scale.
+    let maskW = width, maskH = height;
+    if (subjectMask && subjectMask.length !== width * height) {
+      maskH = Math.round(Math.sqrt(subjectMask.length * height / width));
+      maskW = Math.round(subjectMask.length / maskH);
+      // Guard against rounding drift
+      if (maskW * maskH !== subjectMask.length) {
+        maskH = Math.round(subjectMask.length / maskW);
+      }
+    }
+
     // Step 1: Draw original image as the base layer
     const offscreen = document.createElement('canvas');
     offscreen.width = width;
@@ -150,7 +162,9 @@ export function useMosaicRenderer() {
         }
 
         if (useSubject) {
-          const maskIdx = cellY * width + cellX;
+          const mx = Math.round(cellX * maskW / width);
+          const my = Math.round(cellY * maskH / height);
+          const maskIdx = my * maskW + mx;
           if (maskIdx < 0 || maskIdx >= subjectMask.length || subjectMask[maskIdx] === 0) continue;
         }
 
@@ -158,11 +172,20 @@ export function useMosaicRenderer() {
         const brightness = getBrightness(r, g, b);
 
         // Auto brightness mask: only mosaic bright/light areas, keep dark areas as original
+        // If a subject mask is present (user clicked to refine), also require it
         if (useAuto) {
           const passesBrightness = invertAutoMask
             ? brightness <= autoBrightnessCutoff
             : brightness >= autoBrightnessCutoff;
           if (!passesBrightness) continue;
+
+          // Subject mask refinement: further filter auto-selected cells
+          if (subjectMask) {
+            const mx = Math.round(cellX * maskW / width);
+            const my = Math.round(cellY * maskH / height);
+            const maskIdx = my * maskW + mx;
+            if (maskIdx >= 0 && maskIdx < subjectMask.length && subjectMask[maskIdx] === 0) continue;
+          }
         }
 
         // Threshold check
@@ -197,7 +220,7 @@ export function useMosaicRenderer() {
 
         // ASCII overlay
         if (asciiEnabled) {
-          drawAsciiChar(ctx, cellX, cellY, cellSize, brightness, asciiOpacity);
+          drawAsciiChar(ctx, cellX, cellY, cellSize, brightness, asciiOpacity, fillR, fillG, fillB);
         }
       }
     }

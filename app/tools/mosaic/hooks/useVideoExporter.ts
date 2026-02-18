@@ -65,13 +65,17 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
 
 /**
  * Triggers a browser file-download for the given Blob.
+ * The anchor must be attached to the document body for Safari/macOS compatibility.
  */
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
@@ -197,6 +201,7 @@ export function useVideoExporter() {
 
       // 8. Flush + mux → Blob → download
       const blob = await encoder.finalize();
+      encoder.close();
       downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
 
     } catch (err) {

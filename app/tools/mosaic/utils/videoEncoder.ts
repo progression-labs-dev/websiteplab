@@ -44,7 +44,11 @@ export async function createVideoEncoder(config: VideoEncoderConfig): Promise<Mo
     );
   }
 
-  const { width, height, fps, bitrate, keyframeInterval = 60 } = config;
+  const { fps, bitrate, keyframeInterval = 60 } = config;
+
+  // H.264 requires even dimensions — round down if odd
+  const width = config.width % 2 === 0 ? config.width : config.width - 1;
+  const height = config.height % 2 === 0 ? config.height : config.height - 1;
 
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
@@ -69,7 +73,7 @@ export async function createVideoEncoder(config: VideoEncoderConfig): Promise<Mo
   });
 
   encoder.configure({
-    codec: 'avc1.42001f', // H.264 Baseline Profile Level 3.1
+    codec: 'avc1.640028', // H.264 High Profile Level 4.0 (best macOS/QuickTime compat)
     width,
     height,
     bitrate,

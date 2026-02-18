@@ -83,27 +83,29 @@ const MosaicCanvas = forwardRef<MosaicCanvasHandle, MosaicCanvasProps>(
       return { imageX, imageY, renderW, renderH, offsetX, offsetY };
     }, []);
 
-    // Handle canvas clicks in subject mode
+    // Clicking is enabled in subject mode and auto mode (for refinement)
+    const clickEnabled = params.maskMode === 'subject' || params.maskMode === 'auto';
+
+    // Handle canvas clicks — left-click = foreground (1)
     const handleClick = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
-      if (params.maskMode !== 'subject' || !onCanvasClick) return;
+      if (!clickEnabled || !onCanvasClick) return;
 
       const coords = cssToImageCoords(e);
       if (!coords) return;
 
-      // Left-click = foreground (1), don't handle right-click here (use contextmenu)
       onCanvasClick(coords.imageX, coords.imageY, 1);
-    }, [params.maskMode, onCanvasClick, cssToImageCoords]);
+    }, [clickEnabled, onCanvasClick, cssToImageCoords]);
 
     // Right-click = background (0)
     const handleContextMenu = useCallback((e: MouseEvent<HTMLCanvasElement>) => {
-      if (params.maskMode !== 'subject' || !onCanvasClick) return;
+      if (!clickEnabled || !onCanvasClick) return;
 
       e.preventDefault();
       const coords = cssToImageCoords(e);
       if (!coords) return;
 
       onCanvasClick(coords.imageX, coords.imageY, 0);
-    }, [params.maskMode, onCanvasClick, cssToImageCoords]);
+    }, [clickEnabled, onCanvasClick, cssToImageCoords]);
 
     // Export handler
     const exportPNG = useCallback(() => {
@@ -156,8 +158,6 @@ const MosaicCanvas = forwardRef<MosaicCanvasHandle, MosaicCanvasProps>(
         }
       : {};
 
-    const isSubjectMode = params.maskMode === 'subject';
-
     return (
       <div ref={containerRef} className="mosaic-canvas-container">
         {buffer ? (
@@ -166,13 +166,13 @@ const MosaicCanvas = forwardRef<MosaicCanvasHandle, MosaicCanvasProps>(
               ref={canvasRef}
               style={{
                 ...displayStyle,
-                cursor: isSubjectMode ? 'crosshair' : undefined,
+                cursor: clickEnabled ? 'crosshair' : undefined,
               }}
               onClick={handleClick}
               onContextMenu={handleContextMenu}
             />
             {/* Click point overlay dots */}
-            {isSubjectMode && clickPoints && clickPoints.length > 0 && (
+            {clickEnabled && clickPoints && clickPoints.length > 0 && (
               <div className="mosaic-click-dots">
                 {dotPositions().map((dot, i) => (
                   <div

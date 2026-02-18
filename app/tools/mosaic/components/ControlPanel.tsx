@@ -440,7 +440,7 @@ export default function ControlPanel({
         {params.maskMode === 'auto' && (
           <div style={{ marginTop: 8 }}>
             <div className="mosaic-mask-instructions">
-              Mosaic effect applies to bright/light areas automatically. Dark areas show original.
+              Auto-selects bright areas. Click to refine — left-click to include, right-click to exclude.
             </div>
             <Slider
               label="Brightness Cutoff"
@@ -456,6 +456,57 @@ export default function ControlPanel({
               onChange={v => onChange({ invertAutoMask: v })}
               disabled={isExporting}
             />
+
+            {/* Loading states */}
+            {subjectMaskState?.isModelLoading && (
+              <div className="mosaic-mask-status">Loading AI model...</div>
+            )}
+            {subjectMaskState?.isEncoding && (
+              <div className="mosaic-mask-status">Encoding image...</div>
+            )}
+            {subjectMaskState?.isDecoding && (
+              <div className="mosaic-mask-status">Generating mask...</div>
+            )}
+
+            {/* Mask locked during video playback */}
+            {maskLocked && (
+              <div className="mask-locked-indicator">
+                Mask locked during playback
+              </div>
+            )}
+
+            {/* Refinement actions */}
+            {(subjectMaskState?.pointCount ?? 0) > 0 && (
+              <div className="mosaic-mask-actions">
+                <button
+                  className="mosaic-mask-btn"
+                  onClick={onUndoClick}
+                  disabled={!subjectMaskState?.pointCount || maskLocked || isExporting}
+                >
+                  Undo Click
+                </button>
+                <button
+                  className="mosaic-mask-btn"
+                  onClick={onClearMask}
+                  disabled={!subjectMaskState?.hasMask || maskLocked || isExporting}
+                >
+                  Clear Refinement
+                </button>
+                <button
+                  className="mosaic-mask-btn"
+                  onClick={onInvertMask}
+                  disabled={!subjectMaskState?.hasMask || maskLocked || isExporting}
+                >
+                  Invert Mask
+                </button>
+              </div>
+            )}
+
+            {subjectMaskState?.pointCount && !maskLocked ? (
+              <div className="mosaic-mask-info">
+                {subjectMaskState.pointCount} refinement click{subjectMaskState.pointCount !== 1 ? 's' : ''}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
