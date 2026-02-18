@@ -716,7 +716,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       const totalTargetBlocks = targetCols * targetRows
 
       // S-curve easing (smootherstep) - stickier to both ends
-      const easedProgress = scrollProgress * scrollProgress * scrollProgress * (scrollProgress * (6 * scrollProgress - 15) + 10)
+      const clampedScroll = Math.max(0, Math.min(1, scrollProgress))
+      const easedProgress = clampedScroll * clampedScroll * clampedScroll * (clampedScroll * (6 * clampedScroll - 15) + 10)
 
       // Helper to sample brightness from horse image
       const sampleHorseBrightness = (screenX: number, screenY: number): number => {
