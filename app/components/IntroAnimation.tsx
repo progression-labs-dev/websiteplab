@@ -792,6 +792,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           width: '100%',
           height: '100%',
           backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
+          mixBlendMode: animationPhase === 'static' ? 'multiply' : 'normal',
         }}
       />
     </div>
