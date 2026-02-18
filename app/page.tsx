@@ -332,6 +332,12 @@ export default function Home() {
       {/* Services */}
       <section className="section" id="services">
         <div className="container">
+          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
+            <p className="label">What we do</p>
+            <h2>End-to-end AI consultancy<br />and technology services</h2>
+            <p>From strategic advisory and business planning to custom software development and AI-as-a-Service platforms — we bridge the gap between ambition and production.</p>
+          </div>
+
           <div className="services-layout">
             <div className="services-flower">
               <div className="services-flower-dither">
@@ -349,12 +355,6 @@ export default function Home() {
               <Image src="/hero-flower.png" alt="" width={500} height={500} />
             </div>
             <div className="services-content">
-              <div className="section-header fade-up">
-                <p className="label">What we do</p>
-                <h2>End-to-end AI consultancy<br />and technology services</h2>
-                <p>From strategic advisory and business planning to custom software development and AI-as-a-Service platforms — we bridge the gap between ambition and production.</p>
-              </div>
-
               <div className="services-list">
             {/* Service 1 */}
             <div className="service-card fade-up">
