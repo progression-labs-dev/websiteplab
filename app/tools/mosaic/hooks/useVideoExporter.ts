@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { saveAs } from 'file-saver';
 import { ImageBuffer } from '../utils/imageProcessing';
 import { createVideoEncoder, supportsWebCodecs } from '../utils/videoEncoder';
 
@@ -64,7 +63,29 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
   return { data: imageData.data, width: canvas.width, height: canvas.height };
 }
 
-// file-saver's saveAs handles all cross-browser download quirks.
+/**
+ * Downloads a video blob by routing through the server API endpoint.
+ * POSTs the blob to get a one-time token, then navigates to the GET
+ * endpoint which responds with Content-Disposition: attachment headers.
+ * This forces ALL browsers to download with the correct .mp4 filename.
+ */
+async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+  const res = await fetch('/api/tools/mosaic/download', {
+    method: 'POST',
+    headers: { 'x-filename': filename },
+    body: blob,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Download upload failed: ${res.status}`);
+  }
+
+  const { token } = await res.json();
+
+  // Navigate to the GET endpoint — Content-Disposition: attachment
+  // makes the browser download without leaving the current page.
+  window.location.href = `/api/tools/mosaic/download?token=${token}`;
+}
 
 // ---------------------------------------------------------------------------
 
@@ -189,7 +210,7 @@ export function useVideoExporter() {
       // 8. Flush + mux → Blob → download
       const blob = await encoder.finalize();
       encoder.close();
-      saveAs(blob, `mosaic-export-${Date.now()}.mp4`);
+      await downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
 
     } catch (err) {
       encoder.close();
