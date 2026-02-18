@@ -6,7 +6,7 @@ import { drawPixelBlock, drawConvexCircle, drawAsciiChar } from '../utils/shapes
 export type ShapeMode = 'pixel' | 'circle';
 export type ColorMode = 'original' | 'gradient';
 export type BgMode = 'black' | 'white' | 'transparent';
-export type MaskMode = 'none' | 'split' | 'subject';
+export type MaskMode = 'none' | 'split' | 'subject' | 'auto';
 
 export interface GradientStop {
   color: [number, number, number];
@@ -24,12 +24,15 @@ export interface MosaicParams {
   bgMode: BgMode;
   asciiEnabled: boolean;
   asciiOpacity: number; // 0-1
-  // Mask mode: 'none' = full effect, 'split' = geometric split, 'subject' = AI mask
+  // Mask mode: 'none' = full effect, 'split' = geometric split, 'subject' = AI mask, 'auto' = brightness-based
   maskMode: MaskMode;
   // Split params (used when maskMode='split')
   splitEnabled: boolean;
   splitPosition: number;
   splitAngle: number;
+  // Auto brightness mask params (used when maskMode='auto')
+  autoBrightnessCutoff: number; // 0-255, pixels above this get the mosaic effect
+  invertAutoMask: boolean;
 }
 
 export const DEFAULT_GRADIENT_STOPS: GradientStop[] = [
@@ -55,6 +58,8 @@ export const DEFAULT_PARAMS: MosaicParams = {
   splitEnabled: true,
   splitPosition: 0.5,
   splitAngle: 45,
+  autoBrightnessCutoff: 128,
+  invertAutoMask: false,
 };
 
 /**
@@ -95,11 +100,13 @@ export function useMosaicRenderer() {
       shapeMode, cellSize, spacing, threshold, invertThreshold,
       colorMode, gradientStops, bgMode, asciiEnabled, asciiOpacity,
       maskMode, splitPosition, splitAngle,
+      autoBrightnessCutoff, invertAutoMask,
     } = params;
 
-    // Derive effective split from maskMode (backwards compat: splitEnabled still in params)
+    // Derive effective mask modes
     const useSplit = maskMode === 'split';
     const useSubject = maskMode === 'subject' && !!subjectMask;
+    const useAuto = maskMode === 'auto';
 
     // Step 1: Draw original image as the base layer
     const offscreen = document.createElement('canvas');
@@ -120,8 +127,8 @@ export function useMosaicRenderer() {
     const rows = Math.ceil(height / step);
 
     // For 'none' mode, fill background over entire canvas
-    // For 'subject' mode, keep the original image — only overlay mosaic on masked cells
-    if (!useSplit && !useSubject) {
+    // For 'subject'/'auto' modes, keep the original image — only overlay mosaic on masked cells
+    if (!useSplit && !useSubject && !useAuto) {
       if (bgMode !== 'transparent') {
         ctx.fillStyle = bgMode === 'black' ? '#000' : '#fff';
         ctx.fillRect(0, 0, width, height);
@@ -150,6 +157,14 @@ export function useMosaicRenderer() {
         const [r, g, b] = sampleColorAt(buffer, cellX, cellY);
         const brightness = getBrightness(r, g, b);
 
+        // Auto brightness mask: only mosaic bright/light areas, keep dark areas as original
+        if (useAuto) {
+          const passesBrightness = invertAutoMask
+            ? brightness <= autoBrightnessCutoff
+            : brightness >= autoBrightnessCutoff;
+          if (!passesBrightness) continue;
+        }
+
         // Threshold check
         const passesThreshold = invertThreshold
           ? brightness <= threshold
@@ -165,8 +180,8 @@ export function useMosaicRenderer() {
           [fillR, fillG, fillB] = multiStopGradientColor(brightness, gradientStops.map(s => s.color));
         }
 
-        // Draw background behind this cell (in split or subject mode — per-cell, not full canvas)
-        if (useSplit || useSubject) {
+        // Draw background behind this cell (in split, subject, or auto mode — per-cell, not full canvas)
+        if (useSplit || useSubject || useAuto) {
           if (bgMode !== 'transparent') {
             ctx.fillStyle = bgMode === 'black' ? '#000' : '#fff';
             ctx.fillRect(cellX - cellSize - spacing / 2, cellY - cellSize - spacing / 2, cellSize * 2 + spacing, cellSize * 2 + spacing);

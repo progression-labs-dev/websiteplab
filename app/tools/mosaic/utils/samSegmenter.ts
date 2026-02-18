@@ -210,6 +210,50 @@ export async function decodeMask(
 }
 
 /**
+ * Returns true if the SAM model singleton has been loaded and is ready to use.
+ */
+export function isModelLoaded(): boolean {
+  return model !== null && processor !== null;
+}
+
+/**
+ * Tracks a subject across a video frame using keyframe-based re-encoding.
+ *
+ * On keyframes (`forceReencode = true`), encodes the frame and decodes a fresh
+ * mask from the given point prompts. Between keyframes, returns `previousMask`
+ * unchanged to avoid the expensive encoder step.
+ *
+ * Falls back to `previousMask` (or an empty mask if null) on any error.
+ */
+export async function trackSubjectOnFrame(
+  frameBuffer: ImageBuffer,
+  points: Array<{ x: number; y: number; label: 0 | 1 }>,
+  previousMask: Uint8Array | null,
+  forceReencode: boolean
+): Promise<Uint8Array> {
+  if (!model || !processor) {
+    throw new Error('SAM model not loaded. Call loadSAM() first.');
+  }
+
+  if (!forceReencode) {
+    // Between keyframes: reuse the previous mask as-is.
+    if (previousMask) return previousMask;
+    return new Uint8Array(frameBuffer.width * frameBuffer.height);
+  }
+
+  // Keyframe: run the full encode → decode pipeline.
+  try {
+    const embeddings = await encodeImage(frameBuffer);
+    const imageSize = { width: frameBuffer.width, height: frameBuffer.height };
+    return await decodeMask(embeddings, points, imageSize);
+  } catch (err) {
+    console.warn('[samSegmenter] trackSubjectOnFrame encode/decode failed, falling back to previous mask:', err);
+    if (previousMask) return previousMask;
+    return new Uint8Array(frameBuffer.width * frameBuffer.height);
+  }
+}
+
+/**
  * Frees model and processor from memory.
  */
 export async function disposeSAM(): Promise<void> {

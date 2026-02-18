@@ -32,11 +32,14 @@ const MosaicCanvas = forwardRef<MosaicCanvasHandle, MosaicCanvasProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const { render, renderAnimated, cleanup } = useMosaicRenderer();
 
-    // Re-render when params, buffer, or mask change
+    // Re-render when params, buffer, or mask change.
+    // Call render() directly (not renderAnimated) — React already batches state updates,
+    // so by the time the effect fires all changes are applied. Direct rendering fixes
+    // video playback where RAF-deferred renders could be cancelled by the next frame.
     useEffect(() => {
       if (!buffer || !canvasRef.current) return;
-      renderAnimated(canvasRef.current, buffer, params, subjectMask);
-    }, [buffer, params, subjectMask, renderAnimated]);
+      render(canvasRef.current, buffer, params, subjectMask);
+    }, [buffer, params, subjectMask, render]);
 
     // Cleanup on unmount
     useEffect(() => cleanup, [cleanup]);

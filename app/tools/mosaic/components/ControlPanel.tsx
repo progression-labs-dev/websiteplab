@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { MosaicParams, ShapeMode, ColorMode, BgMode, MaskMode, GradientStop } from '../hooks/useMosaicRenderer';
+import { ExportState } from '../hooks/useVideoExporter';
 import { rgbToHex, hexToRgb } from '../utils/colorMapping';
 
 interface SubjectMaskState {
@@ -19,6 +20,7 @@ interface ControlPanelProps {
   onVideoUpload: (file: File) => void;
   onExport: () => void;
   hasMedia: boolean;
+  mediaType?: 'none' | 'image' | 'video';
   videoState?: {
     loaded: boolean;
     playing: boolean;
@@ -32,6 +34,15 @@ interface ControlPanelProps {
   onUndoClick?: () => void;
   onClearMask?: () => void;
   onInvertMask?: () => void;
+  // Export props
+  exportState?: ExportState;
+  onExportVideo?: () => void;
+  onCancelExport?: () => void;
+  maskLocked?: boolean;
+  exportResolution?: string;
+  onExportResolutionChange?: (resolution: string) => void;
+  exportQuality?: number;
+  onExportQualityChange?: (quality: number) => void;
 }
 
 function Slider({
@@ -42,6 +53,7 @@ function Slider({
   step = 1,
   onChange,
   suffix = '',
+  disabled = false,
 }: {
   label: string;
   value: number;
@@ -50,6 +62,7 @@ function Slider({
   step?: number;
   onChange: (v: number) => void;
   suffix?: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="mosaic-slider-group">
@@ -65,6 +78,7 @@ function Slider({
         step={step}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
+        disabled={disabled}
       />
     </div>
   );
@@ -74,10 +88,12 @@ function Toggle({
   label,
   checked,
   onChange,
+  disabled = false,
 }: {
   label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="mosaic-toggle-row">
@@ -87,6 +103,7 @@ function Toggle({
           type="checkbox"
           checked={checked}
           onChange={e => onChange(e.target.checked)}
+          disabled={disabled}
         />
         <div className="mosaic-toggle-track" />
         <div className="mosaic-toggle-thumb" />
@@ -101,6 +118,14 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function formatETA(seconds: number): string {
+  if (seconds < 0) return '…';
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
+}
+
 export default function ControlPanel({
   params,
   onChange,
@@ -108,6 +133,7 @@ export default function ControlPanel({
   onVideoUpload,
   onExport,
   hasMedia,
+  mediaType = 'none',
   videoState,
   onTogglePlay,
   onSeek,
@@ -115,10 +141,21 @@ export default function ControlPanel({
   onUndoClick,
   onClearMask,
   onInvertMask,
+  exportState,
+  onExportVideo,
+  onCancelExport,
+  maskLocked = false,
+  exportResolution = 'original',
+  onExportResolutionChange,
+  exportQuality = 80,
+  onExportQualityChange,
 }: ControlPanelProps) {
+  const isExporting = exportState?.exporting ?? false;
+
   // Imperative file picker — creates a throwaway <input> per click
   // so React StrictMode / hydration can never double-trigger it
   const pickFile = useCallback((accept: string, onFile: (f: File) => void) => {
+    if (isExporting) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = accept;
@@ -127,7 +164,7 @@ export default function ControlPanel({
       if (file) onFile(file);
     };
     input.click();
-  }, []);
+  }, [isExporting]);
 
   return (
     <aside className="mosaic-sidebar">
@@ -138,12 +175,14 @@ export default function ControlPanel({
           <button
             className="mosaic-upload-btn"
             onClick={() => pickFile('image/jpeg,image/png,image/webp,image/gif', onImageUpload)}
+            disabled={isExporting}
           >
             Upload Image
           </button>
           <button
             className="mosaic-upload-btn"
             onClick={() => pickFile('video/mp4,video/webm', onVideoUpload)}
+            disabled={isExporting}
           >
             Upload Video
           </button>
@@ -153,7 +192,11 @@ export default function ControlPanel({
         {videoState?.loaded && (
           <div style={{ marginTop: 12 }}>
             <div className="mosaic-video-controls">
-              <button className="mosaic-play-btn" onClick={onTogglePlay}>
+              <button
+                className="mosaic-play-btn"
+                onClick={onTogglePlay}
+                disabled={isExporting}
+              >
                 {videoState.playing ? '⏸' : '▶'}
               </button>
               <input
@@ -165,6 +208,7 @@ export default function ControlPanel({
                 value={videoState.currentTime}
                 onChange={e => onSeek?.(Number(e.target.value))}
                 style={{ flex: 1 }}
+                disabled={isExporting}
               />
               <span className="mosaic-video-time">
                 {formatTime(videoState.currentTime)} / {formatTime(videoState.duration)}
@@ -181,12 +225,14 @@ export default function ControlPanel({
           <button
             className={`mosaic-shape-btn ${params.shapeMode === 'pixel' ? 'active' : ''}`}
             onClick={() => onChange({ shapeMode: 'pixel' as ShapeMode })}
+            disabled={isExporting}
           >
             Pixel
           </button>
           <button
             className={`mosaic-shape-btn ${params.shapeMode === 'circle' ? 'active' : ''}`}
             onClick={() => onChange({ shapeMode: 'circle' as ShapeMode })}
+            disabled={isExporting}
           >
             Circle
           </button>
@@ -203,6 +249,7 @@ export default function ControlPanel({
           max={40}
           onChange={v => onChange({ cellSize: v })}
           suffix="px"
+          disabled={isExporting}
         />
         <Slider
           label="Spacing"
@@ -211,6 +258,7 @@ export default function ControlPanel({
           max={20}
           onChange={v => onChange({ spacing: v })}
           suffix="px"
+          disabled={isExporting}
         />
         <div style={{ marginTop: 12 }}>
           <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
@@ -223,6 +271,7 @@ export default function ControlPanel({
                 className={`mosaic-bg-option bg-${bg} ${params.bgMode === bg ? 'active' : ''}`}
                 onClick={() => onChange({ bgMode: bg })}
                 title={bg}
+                disabled={isExporting}
               />
             ))}
           </div>
@@ -233,7 +282,7 @@ export default function ControlPanel({
       <div className="mosaic-section">
         <div className="mosaic-section-title">Mask Mode</div>
         <div className="mosaic-shape-toggle">
-          {(['none', 'split', 'subject'] as MaskMode[]).map(mode => (
+          {(['none', 'split', 'subject', 'auto'] as MaskMode[]).map(mode => (
             <button
               key={mode}
               className={`mosaic-shape-btn ${params.maskMode === mode ? 'active' : ''}`}
@@ -241,8 +290,9 @@ export default function ControlPanel({
                 maskMode: mode,
                 splitEnabled: mode === 'split',
               })}
+              disabled={isExporting}
             >
-              {mode === 'none' ? 'None' : mode === 'split' ? 'Split' : 'Subject'}
+              {mode === 'none' ? 'None' : mode === 'split' ? 'Split' : mode === 'subject' ? 'Subject' : 'Auto'}
             </button>
           ))}
         </div>
@@ -257,6 +307,7 @@ export default function ControlPanel({
               max={100}
               onChange={v => onChange({ splitPosition: v / 100 })}
               suffix="%"
+              disabled={isExporting}
             />
             <div style={{ marginTop: 4 }}>
               <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
@@ -274,6 +325,7 @@ export default function ControlPanel({
                     className={`mosaic-angle-btn ${params.splitAngle === preset.value ? 'active' : ''}`}
                     onClick={() => onChange({ splitAngle: preset.value })}
                     title={preset.title}
+                    disabled={isExporting}
                   >
                     {preset.label}
                   </button>
@@ -286,6 +338,7 @@ export default function ControlPanel({
                 max={180}
                 onChange={v => onChange({ splitAngle: v })}
                 suffix="°"
+                disabled={isExporting}
               />
             </div>
           </>
@@ -294,22 +347,31 @@ export default function ControlPanel({
         {/* Subject mask controls (shown when maskMode='subject') */}
         {params.maskMode === 'subject' && (
           <div style={{ marginTop: 8 }}>
-            {/* Loading states */}
-            {subjectMaskState?.isModelLoading && (
-              <div className="mosaic-mask-status">Loading AI model...</div>
-            )}
-            {subjectMaskState?.isEncoding && (
-              <div className="mosaic-mask-status">Encoding image...</div>
-            )}
-            {subjectMaskState?.isDecoding && (
-              <div className="mosaic-mask-status">Generating mask...</div>
-            )}
-
-            {/* Instructions */}
-            {!subjectMaskState?.isModelLoading && !subjectMaskState?.isEncoding && (
-              <div className="mosaic-mask-instructions">
-                Left-click to select, right-click to exclude
+            {/* Mask locked indicator during video playback */}
+            {maskLocked ? (
+              <div className="mask-locked-indicator">
+                Mask locked during playback
               </div>
+            ) : (
+              <>
+                {/* Loading states */}
+                {subjectMaskState?.isModelLoading && (
+                  <div className="mosaic-mask-status">Loading AI model...</div>
+                )}
+                {subjectMaskState?.isEncoding && (
+                  <div className="mosaic-mask-status">Encoding image...</div>
+                )}
+                {subjectMaskState?.isDecoding && (
+                  <div className="mosaic-mask-status">Generating mask...</div>
+                )}
+
+                {/* Instructions */}
+                {!subjectMaskState?.isModelLoading && !subjectMaskState?.isEncoding && (
+                  <div className="mosaic-mask-instructions">
+                    Left-click to select, right-click to exclude
+                  </div>
+                )}
+              </>
             )}
 
             {/* Action buttons */}
@@ -317,31 +379,54 @@ export default function ControlPanel({
               <button
                 className="mosaic-mask-btn"
                 onClick={onUndoClick}
-                disabled={!subjectMaskState?.pointCount}
+                disabled={!subjectMaskState?.pointCount || maskLocked || isExporting}
               >
                 Undo Click
               </button>
               <button
                 className="mosaic-mask-btn"
                 onClick={onClearMask}
-                disabled={!subjectMaskState?.hasMask}
+                disabled={!subjectMaskState?.hasMask || maskLocked || isExporting}
               >
                 Clear Mask
               </button>
               <button
                 className="mosaic-mask-btn"
                 onClick={onInvertMask}
-                disabled={!subjectMaskState?.hasMask}
+                disabled={!subjectMaskState?.hasMask || maskLocked || isExporting}
               >
                 Invert Mask
               </button>
             </div>
 
-            {subjectMaskState?.pointCount ? (
+            {subjectMaskState?.pointCount && !maskLocked ? (
               <div className="mosaic-mask-info">
                 {subjectMaskState.pointCount} click{subjectMaskState.pointCount !== 1 ? 's' : ''} placed
               </div>
             ) : null}
+          </div>
+        )}
+
+        {/* Auto brightness mask controls (shown when maskMode='auto') */}
+        {params.maskMode === 'auto' && (
+          <div style={{ marginTop: 8 }}>
+            <div className="mosaic-mask-instructions">
+              Mosaic effect applies to bright/light areas automatically. Dark areas show original.
+            </div>
+            <Slider
+              label="Brightness Cutoff"
+              value={params.autoBrightnessCutoff}
+              min={0}
+              max={255}
+              onChange={v => onChange({ autoBrightnessCutoff: v })}
+              disabled={isExporting}
+            />
+            <Toggle
+              label="Invert (dark areas)"
+              checked={params.invertAutoMask}
+              onChange={v => onChange({ invertAutoMask: v })}
+              disabled={isExporting}
+            />
           </div>
         )}
       </div>
@@ -355,11 +440,13 @@ export default function ControlPanel({
           min={0}
           max={255}
           onChange={v => onChange({ threshold: v })}
+          disabled={isExporting}
         />
         <Toggle
           label="Invert"
           checked={params.invertThreshold}
           onChange={v => onChange({ invertThreshold: v })}
+          disabled={isExporting}
         />
       </div>
 
@@ -370,12 +457,14 @@ export default function ControlPanel({
           <button
             className={`mosaic-shape-btn ${params.colorMode === 'original' ? 'active' : ''}`}
             onClick={() => onChange({ colorMode: 'original' as ColorMode })}
+            disabled={isExporting}
           >
             Original
           </button>
           <button
             className={`mosaic-shape-btn ${params.colorMode === 'gradient' ? 'active' : ''}`}
             onClick={() => onChange({ colorMode: 'gradient' as ColorMode })}
+            disabled={isExporting}
           >
             Gradient
           </button>
@@ -394,6 +483,7 @@ export default function ControlPanel({
                     newStops[i] = { ...newStops[i], color: hexToRgb(e.target.value) };
                     onChange({ gradientStops: newStops });
                   }}
+                  disabled={isExporting}
                 />
                 <span className="mosaic-color-hex">{rgbToHex(...stop.color)}</span>
               </div>
@@ -409,6 +499,7 @@ export default function ControlPanel({
           label="Enable ASCII"
           checked={params.asciiEnabled}
           onChange={v => onChange({ asciiEnabled: v })}
+          disabled={isExporting}
         />
         {params.asciiEnabled && (
           <Slider
@@ -418,19 +509,84 @@ export default function ControlPanel({
             max={100}
             onChange={v => onChange({ asciiOpacity: v / 100 })}
             suffix="%"
+            disabled={isExporting}
           />
         )}
       </div>
 
+      {/* Export Settings (video only) */}
+      {mediaType === 'video' && (
+        <div className="mosaic-section export-settings">
+          <div className="mosaic-section-title">Export Settings</div>
+          <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: '#c4c7d0' }}>Resolution</span>
+          </div>
+          <div className="mosaic-shape-toggle" style={{ marginBottom: 14 }}>
+            {[
+              { key: 'original', label: 'Original' },
+              { key: '1080p', label: '1080p' },
+              { key: '720p', label: '720p' },
+            ].map(preset => (
+              <button
+                key={preset.key}
+                className={`mosaic-shape-btn ${exportResolution === preset.key ? 'active' : ''}`}
+                onClick={() => onExportResolutionChange?.(preset.key)}
+                disabled={isExporting}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+          <Slider
+            label="Quality"
+            value={exportQuality}
+            min={10}
+            max={100}
+            step={5}
+            onChange={v => onExportQualityChange?.(v)}
+            suffix="%"
+            disabled={isExporting}
+          />
+        </div>
+      )}
+
       {/* Export */}
       <div className="mosaic-section">
-        <button
-          className="mosaic-export-btn"
-          onClick={onExport}
-          disabled={!hasMedia}
-        >
-          Export PNG
-        </button>
+        {isExporting && exportState ? (
+          <div className="export-progress-container">
+            <div className="export-progress-header">
+              <span className="export-progress-label">
+                Exporting frame {exportState.currentFrame} / {exportState.totalFrames}
+              </span>
+              <span className="export-progress-eta">
+                ETA {formatETA(exportState.estimatedTimeLeft)}
+              </span>
+            </div>
+            <div className="export-progress-bar">
+              <div
+                className="export-progress-fill"
+                style={{ width: `${Math.round(exportState.progress * 100)}%` }}
+              />
+            </div>
+            <div className="export-progress-pct">
+              {Math.round(exportState.progress * 100)}%
+            </div>
+            <button
+              className="mosaic-export-btn export-cancel-btn"
+              onClick={onCancelExport}
+            >
+              Cancel Export
+            </button>
+          </div>
+        ) : (
+          <button
+            className="mosaic-export-btn"
+            onClick={onExport}
+            disabled={!hasMedia}
+          >
+            {mediaType === 'video' ? 'Export Video' : 'Export PNG'}
+          </button>
+        )}
       </div>
     </aside>
   );
