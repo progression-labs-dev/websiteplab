@@ -64,27 +64,67 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
 }
 
 /**
- * Downloads a video blob by routing through the server API endpoint.
- * POSTs the blob to get a one-time token, then navigates to the GET
- * endpoint which responds with Content-Disposition: attachment headers.
- * This forces ALL browsers to download with the correct .mp4 filename.
+ * Downloads a video blob using multiple strategies in sequence.
+ * Each method targets a different browser quirk:
+ *
+ * 1. Data URL + anchor (no blob URL, no server, works in Safari 14.1+)
+ * 2. API route + window.location.href (server-side Content-Disposition)
+ * 3. Blob URL + anchor (last resort, may produce UUID filename)
  */
 async function downloadBlob(blob: Blob, filename: string): Promise<void> {
-  const res = await fetch('/api/tools/mosaic/download', {
-    method: 'POST',
-    headers: { 'x-filename': filename },
-    body: blob,
-  });
+  // Strategy 1: Data URL with application/octet-stream
+  // Converts blob to base64 data URL. Unlike blob: URLs, the download
+  // attribute IS respected on data: URLs in Safari/WebKit/Arc.
+  // Using octet-stream prevents the browser from trying to play the video.
+  try {
+    const octetBlob = new Blob([blob], { type: 'application/octet-stream' });
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(octetBlob);
+    });
 
-  if (!res.ok) {
-    throw new Error(`Download upload failed: ${res.status}`);
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => document.body.removeChild(a), 10_000);
+    return;
+  } catch {
+    // Fall through to strategy 2
   }
 
-  const { token } = await res.json();
+  // Strategy 2: Server-side Content-Disposition via API route
+  try {
+    const res = await fetch('/api/tools/mosaic/download', {
+      method: 'POST',
+      headers: { 'x-filename': filename },
+      body: blob,
+    });
+    if (res.ok) {
+      const { token } = await res.json();
+      window.location.href = `/api/tools/mosaic/download?token=${token}`;
+      return;
+    }
+  } catch {
+    // Fall through to strategy 3
+  }
 
-  // Navigate to the GET endpoint — Content-Disposition: attachment
-  // makes the browser download without leaving the current page.
-  window.location.href = `/api/tools/mosaic/download?token=${token}`;
+  // Strategy 3: Direct blob URL (may produce UUID filename but at least downloads)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 60_000);
 }
 
 // ---------------------------------------------------------------------------
