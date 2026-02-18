@@ -74,11 +74,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     // Load horse image for brightness sampling
     let horseImageData: ImageData | null = null
-    let horseImageBounds = { x: 0, y: 0, width: 0, height: 0 }
     const horseImg = new Image()
     horseImg.src = '/hero-horse.png'
     horseImg.onload = () => {
-      // Create offscreen canvas to sample horse image pixels
       const offscreen = document.createElement('canvas')
       offscreen.width = horseImg.width
       offscreen.height = horseImg.height
@@ -88,6 +86,54 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         horseImageData = offCtx.getImageData(0, 0, horseImg.width, horseImg.height)
       }
     }
+
+    // Load flower image for brightness sampling
+    let flowerImageData: ImageData | null = null
+    const flowerImg = new Image()
+    flowerImg.src = '/hero-flower.png'
+    flowerImg.onload = () => {
+      const offscreen = document.createElement('canvas')
+      offscreen.width = flowerImg.width
+      offscreen.height = flowerImg.height
+      const offCtx = offscreen.getContext('2d')
+      if (offCtx) {
+        offCtx.drawImage(flowerImg, 0, 0)
+        flowerImageData = offCtx.getImageData(0, 0, flowerImg.width, flowerImg.height)
+      }
+    }
+
+    // Scroll tracking for horse-to-flower animation
+    let scrollProgress = 0
+    const updateScrollProgress = () => {
+      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      const flowerImage = document.querySelector('.services-flower img') as HTMLImageElement
+
+      if (!heroImage || !flowerImage) {
+        scrollProgress = 0
+        return
+      }
+
+      const heroRect = heroImage.getBoundingClientRect()
+      const flowerRect = flowerImage.getBoundingClientRect()
+
+      // Start animation when horse dither reaches top of viewport
+      // End animation when flower is in center of viewport
+      const startTrigger = heroRect.top + heroRect.height * 0.3 // Where dither is on horse
+      const endTrigger = flowerRect.top + flowerRect.height * 0.5
+
+      if (startTrigger > 0) {
+        scrollProgress = 0
+      } else if (endTrigger < canvas.height / 2) {
+        scrollProgress = 1
+      } else {
+        // Calculate progress between start and end
+        const totalDistance = Math.abs(startTrigger) + (canvas.height / 2 - endTrigger)
+        scrollProgress = Math.abs(startTrigger) / (Math.abs(startTrigger) + endTrigger - canvas.height / 2)
+        scrollProgress = Math.max(0, Math.min(1, scrollProgress))
+      }
+    }
+    window.addEventListener('scroll', updateScrollProgress)
+    updateScrollProgress()
 
     // Timing constants (each step is 0.5 seconds)
     const STEP_DURATION = 500
@@ -640,6 +686,128 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       }
     }
 
+    // Draw dither at scroll-interpolated position between horse and flower
+    const drawScrollDither = () => {
+      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      const flowerImage = document.querySelector('.services-flower img') as HTMLImageElement
+
+      if (!heroImage) return
+
+      const heroRect = heroImage.getBoundingClientRect()
+      const flowerRect = flowerImage?.getBoundingClientRect()
+
+      // Horse dither position
+      const horseRectX = heroRect.left + heroRect.width * 0.05
+      const horseRectY = heroRect.top + heroRect.height * 0.30
+
+      // Flower dither position (if flower exists)
+      let flowerRectX = horseRectX
+      let flowerRectY = horseRectY
+      if (flowerRect) {
+        flowerRectX = flowerRect.left + flowerRect.width * 0.05
+        flowerRectY = flowerRect.top + flowerRect.height * 0.25
+      }
+
+      const targetRectWidth = 240
+      const targetRectHeight = 160
+      const targetBlockSize = 12
+      const targetCols = Math.floor(targetRectWidth / targetBlockSize)
+      const targetRows = Math.floor(targetRectHeight / targetBlockSize)
+      const totalTargetBlocks = targetCols * targetRows
+
+      // Eased scroll progress
+      const easedProgress = scrollProgress < 1
+        ? 1 - Math.pow(1 - scrollProgress, 2)
+        : 1
+
+      // Helper to sample brightness from horse image
+      const sampleHorseBrightness = (screenX: number, screenY: number): number => {
+        if (!horseImageData || !horseImg.width) return 0.5
+        const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * horseImg.width)
+        const imgY = Math.floor(((screenY - heroRect.top) / heroRect.height) * horseImg.height)
+        const clampedX = Math.max(0, Math.min(horseImg.width - 1, imgX))
+        const clampedY = Math.max(0, Math.min(horseImg.height - 1, imgY))
+        const idx = (clampedY * horseImg.width + clampedX) * 4
+        const r = horseImageData.data[idx]
+        const g = horseImageData.data[idx + 1]
+        const b = horseImageData.data[idx + 2]
+        return (r * 0.299 + g * 0.587 + b * 0.114) / 255
+      }
+
+      // Helper to sample brightness from flower image
+      const sampleFlowerBrightness = (screenX: number, screenY: number): number => {
+        if (!flowerImageData || !flowerImg.width || !flowerRect) return 0.5
+        const imgX = Math.floor(((screenX - flowerRect.left) / flowerRect.width) * flowerImg.width)
+        const imgY = Math.floor(((screenY - flowerRect.top) / flowerRect.height) * flowerImg.height)
+        const clampedX = Math.max(0, Math.min(flowerImg.width - 1, imgX))
+        const clampedY = Math.max(0, Math.min(flowerImg.height - 1, imgY))
+        const idx = (clampedY * flowerImg.width + clampedX) * 4
+        const r = flowerImageData.data[idx]
+        const g = flowerImageData.data[idx + 1]
+        const b = flowerImageData.data[idx + 2]
+        return (r * 0.299 + g * 0.587 + b * 0.114) / 255
+      }
+
+      for (let i = 0; i < totalTargetBlocks; i++) {
+        const targetCol = i % targetCols
+        const targetRow = Math.floor(i / targetCols)
+
+        // Position on horse
+        const horseX = horseRectX + targetCol * targetBlockSize
+        const horseY = horseRectY + targetRow * targetBlockSize
+
+        // Position on flower
+        const flowerX = flowerRectX + targetCol * targetBlockSize
+        const flowerY = flowerRectY + targetRow * targetBlockSize
+
+        // Random delay for staggered movement
+        const delay = getBlockRandom(horseX, horseY, 15) * 0.3
+        const blockProgress = Math.max(0, Math.min(1, (easedProgress - delay) / (1 - delay)))
+
+        // Interpolate position
+        const currentX = horseX + (flowerX - horseX) * blockProgress
+        const currentY = horseY + (flowerY - horseY) * blockProgress
+
+        // Interpolate brightness between horse and flower
+        const horseBrightness = sampleHorseBrightness(horseX + targetBlockSize / 2, horseY + targetBlockSize / 2)
+        const flowerBrightness = sampleFlowerBrightness(flowerX + targetBlockSize / 2, flowerY + targetBlockSize / 2)
+        const t = horseBrightness + (flowerBrightness - horseBrightness) * blockProgress
+
+        const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
+        ctx.fillStyle = blockColor
+        ctx.globalAlpha = 1
+        ctx.fillRect(currentX, currentY, targetBlockSize, targetBlockSize)
+
+        // Get random values for decoration
+        const rand1 = getBlockRandom(horseX, horseY, 1)
+        const rand2 = getBlockRandom(horseX, horseY, 2)
+        const rand3 = getBlockRandom(horseX, horseY, 3)
+
+        const circleColor = blendWithWhite(
+          parseInt(blockColor.match(/\d+/g)![0]),
+          parseInt(blockColor.match(/\d+/g)![1]),
+          parseInt(blockColor.match(/\d+/g)![2])
+        )
+
+        if (rand1 < circleProbability) {
+          ctx.fillStyle = circleColor
+          ctx.beginPath()
+          ctx.arc(currentX + targetBlockSize / 2, currentY + targetBlockSize / 2, targetBlockSize / 2 - 1, 0, Math.PI * 2)
+          ctx.fill()
+        } else if (rand2 < asciiProbability) {
+          const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+          const char = ASCII_CHARS[charIndex]
+          ctx.fillStyle = circleColor
+          ctx.font = `${targetBlockSize * 0.9}px monospace`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(char, currentX + targetBlockSize / 2, currentY + targetBlockSize / 2)
+        }
+
+        ctx.globalAlpha = 1
+      }
+    }
+
     // LAYER 3: Black circles (cutting through) with random appearance
     const drawStep3BlackCircles = (elapsed: number) => {
       const cutoutsElapsed = Math.max(0, elapsed - CUTOUTS_START)
@@ -755,9 +923,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
       }
 
-      // STATIC - keep drawing the dither rectangle in its final position
+      // STATIC - draw dither at scroll-interpolated position between horse and flower
       if (phase === 'static') {
-        drawConvergingDither(1) // Progress = 1 means final position
+        drawScrollDither()
       }
 
       animationFrame = requestAnimationFrame(render)
@@ -767,6 +935,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     return () => {
       window.removeEventListener('resize', updateSize)
+      window.removeEventListener('scroll', updateScrollProgress)
       if (animationFrame) {
         cancelAnimationFrame(animationFrame)
       }
