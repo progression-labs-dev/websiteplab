@@ -48,9 +48,13 @@ export async function GET(request: NextRequest) {
   return new NextResponse(download.data, {
     status: 200,
     headers: {
-      'Content-Type': 'video/mp4',
+      // application/octet-stream prevents browsers from trying to play the video
+      // inline instead of downloading it (Safari/WebKit overrides Content-Disposition
+      // for known MIME types like video/mp4).
+      'Content-Type': 'application/octet-stream',
       'Content-Disposition': `attachment; filename="${download.filename}"`,
       'Content-Length': String(download.data.byteLength),
+      'Cache-Control': 'no-store',
     },
   });
 }
