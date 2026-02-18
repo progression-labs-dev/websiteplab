@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { saveAs } from 'file-saver';
 import { ImageBuffer } from '../utils/imageProcessing';
 import { createVideoEncoder, supportsWebCodecs } from '../utils/videoEncoder';
 
@@ -63,48 +64,7 @@ function canvasToImageBuffer(canvas: HTMLCanvasElement): ImageBuffer {
   return { data: imageData.data, width: canvas.width, height: canvas.height };
 }
 
-/**
- * Downloads a video blob. Tries the API route (correct filename via
- * Content-Disposition) first; falls back to anchor click if that fails.
- */
-async function downloadBlob(blob: Blob, filename: string): Promise<void> {
-  // Try 1: API route → proper filename via Content-Disposition header
-  try {
-    const res = await fetch('/api/tools/mosaic/download', {
-      method: 'POST',
-      headers: { 'x-filename': filename },
-      body: blob,
-    });
-
-    if (res.ok) {
-      const { token } = await res.json();
-      // Use anchor pointing at the GET endpoint (Content-Disposition forces download)
-      const a = document.createElement('a');
-      a.href = `/api/tools/mosaic/download?token=${token}`;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => document.body.removeChild(a), 10_000);
-      return;
-    }
-  } catch {
-    // Fall through to anchor fallback
-  }
-
-  // Try 2: Direct blob URL anchor click (may produce UUID filename but at least downloads)
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 60_000);
-}
+// file-saver's saveAs handles all cross-browser download quirks.
 
 // ---------------------------------------------------------------------------
 
@@ -229,7 +189,7 @@ export function useVideoExporter() {
       // 8. Flush + mux → Blob → download
       const blob = await encoder.finalize();
       encoder.close();
-      await downloadBlob(blob, `mosaic-export-${Date.now()}.mp4`);
+      saveAs(blob, `mosaic-export-${Date.now()}.mp4`);
 
     } catch (err) {
       encoder.close();
