@@ -72,25 +72,32 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const startTime = Date.now()
     let phaseStartTime = startTime
 
-    // Load horse image for brightness sampling
+    // Load first video frame for brightness sampling
     let horseImageData: ImageData | null = null
-    const horseImg = new Image()
-    horseImg.src = '/hero-horse.png'
-    horseImg.onload = () => {
+    let sampleWidth = 0
+    let sampleHeight = 0
+    const sampleVideo = document.createElement('video')
+    sampleVideo.src = '/green-rocket.mp4'
+    sampleVideo.muted = true
+    sampleVideo.playsInline = true
+    sampleVideo.preload = 'auto'
+    sampleVideo.addEventListener('loadeddata', () => {
+      sampleWidth = sampleVideo.videoWidth
+      sampleHeight = sampleVideo.videoHeight
       const offscreen = document.createElement('canvas')
-      offscreen.width = horseImg.width
-      offscreen.height = horseImg.height
+      offscreen.width = sampleWidth
+      offscreen.height = sampleHeight
       const offCtx = offscreen.getContext('2d')
       if (offCtx) {
-        offCtx.drawImage(horseImg, 0, 0)
-        horseImageData = offCtx.getImageData(0, 0, horseImg.width, horseImg.height)
+        offCtx.drawImage(sampleVideo, 0, 0)
+        horseImageData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight)
       }
-    }
+    })
 
     // Scroll tracking for horse-to-line animation
     let scrollProgress = 0
     const updateScrollProgress = () => {
-      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      const heroImage = document.querySelector('.hero-image video.active') as HTMLElement
       const ditherLine = document.querySelector('.services-dither-line') as HTMLElement
 
       if (!heroImage || !ditherLine) {
@@ -204,7 +211,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
 
         if (progress > 0 && fadeMultiplier > 0) {
-          ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * progress * fadeMultiplier})`
+          ctx.strokeStyle = `rgba(26, 26, 26, ${opacity * progress * fadeMultiplier})`
           const y = startY + i * circleSpan
 
           // Calculate offset based on direction and progress
@@ -238,7 +245,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
 
         if (progress > 0 && fadeMultiplier > 0) {
-          ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * progress * fadeMultiplier})`
+          ctx.strokeStyle = `rgba(26, 26, 26, ${opacity * progress * fadeMultiplier})`
           const x = startX + i * circleSpan
 
           // Calculate offset based on direction and progress
@@ -284,11 +291,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             ctx.arc(cx, cy, radius, 0, Math.PI * 2)
 
             if (isWhite) {
-              // White filled circle
-              ctx.fillStyle = `rgba(255, 255, 255, ${progress})`
+              // Charcoal filled circle
+              ctx.fillStyle = `rgba(26, 26, 26, ${progress})`
               ctx.fill()
             } else {
-              // Black circle with white outline (outline only in step 1)
+              // Beige circle with dark outline (outline only in step 1)
               // Fade out the outline during holding phase
               let outlineOpacity = progress * 0.5
               if (fadeElapsed >= 0) {
@@ -298,7 +305,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               }
               // Only draw if opacity is significant (threshold to avoid anti-aliasing artifacts)
               if (outlineOpacity > 0.01) {
-                ctx.strokeStyle = `rgba(255, 255, 255, ${outlineOpacity})`
+                ctx.strokeStyle = `rgba(26, 26, 26, ${outlineOpacity})`
                 ctx.lineWidth = 1
                 ctx.stroke()
               }
@@ -326,7 +333,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             const { cx, cy } = getCircleCenter(row, col)
             ctx.beginPath()
             ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2)
-            ctx.strokeStyle = `rgba(255, 255, 255, ${finalOpacity})`
+            ctx.strokeStyle = `rgba(26, 26, 26, ${finalOpacity})`
             ctx.lineWidth = 1
             ctx.stroke()
           }
@@ -345,7 +352,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             const progress = Math.max(0, Math.min(1, (squaresElapsed - delay) / 75))
 
             if (progress > 0) {
-              ctx.fillStyle = `rgba(255, 255, 255, ${progress})`
+              ctx.fillStyle = `rgba(26, 26, 26, ${progress})`
               const x = startX + col * pixelSize
               const y = startY + row * pixelSize
               ctx.fillRect(x, y, pixelSize + 1, pixelSize + 1)
@@ -358,10 +365,10 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     // Dither effect configuration - half the size of P shape squares
     const ditherBlockSize = pixelSize / 2
     const ditherColors = {
-      blockColorStart: '#0000ff',
-      blockColorEnd: '#00ffff',
-      circleColorStart: '#d4f1f9',
-      circleColorEnd: '#ffffff',
+      blockColorStart: '#1a1a1a',
+      blockColorEnd: '#666666',
+      circleColorStart: '#333333',
+      circleColorEnd: '#999999',
     }
     const ASCII_CHARS = ['@', '#', '$', '%', '&', '*', '+', '=', '-', ':', '.', '/', '\\', '|', '!', '?', 'X', 'O', '0', '1']
     const circleProbability = 0.36
@@ -387,11 +394,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       return `rgb(${r}, ${g}, ${b})`
     }
 
-    // Blend color 50% with white
+    // Blend color 50% with beige (#f0e6d3) for visible dither detail on dark blocks
     const blendWithWhite = (r: number, g: number, b: number): string => {
-      const newR = Math.round((r + 255) / 2)
-      const newG = Math.round((g + 255) / 2)
-      const newB = Math.round((b + 255) / 2)
+      const newR = Math.round((r + 240) / 2)
+      const newG = Math.round((g + 230) / 2)
+      const newB = Math.round((b + 211) / 2)
       return `rgb(${newR}, ${newG}, ${newB})`
     }
 
@@ -548,7 +555,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       if (progress <= 0) return
 
       // Get actual horse image position from DOM
-      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      const heroImage = document.querySelector('.hero-image video.active') as HTMLElement
       let targetRectX: number, targetRectY: number
       let heroRect: DOMRect | null = null
       const targetRectWidth = 240
@@ -571,18 +578,18 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
       // Helper to sample brightness from horse image
       const sampleBrightness = (screenX: number, screenY: number): number => {
-        if (!horseImageData || !heroRect || !horseImg.width) return 0.5
+        if (!horseImageData || !heroRect || !sampleWidth) return 0.5
 
         // Convert screen position to image coordinates
-        const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * horseImg.width)
-        const imgY = Math.floor(((screenY - heroRect.top) / heroRect.height) * horseImg.height)
+        const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * sampleWidth)
+        const imgY = Math.floor(((screenY - heroRect.top) / heroRect.height) * sampleHeight)
 
         // Clamp to image bounds
-        const clampedX = Math.max(0, Math.min(horseImg.width - 1, imgX))
-        const clampedY = Math.max(0, Math.min(horseImg.height - 1, imgY))
+        const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
+        const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
 
         // Get pixel from image data
-        const idx = (clampedY * horseImg.width + clampedX) * 4
+        const idx = (clampedY * sampleWidth + clampedX) * 4
         const r = horseImageData.data[idx]
         const g = horseImageData.data[idx + 1]
         const b = horseImageData.data[idx + 2]
@@ -672,12 +679,12 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     // Helper to sample horse brightness
     const sampleHorseBrightnessFn = (screenX: number, screenY: number, rect: DOMRect): number => {
-      if (!horseImageData || !horseImg.width) return 0.5
-      const imgX = Math.floor(((screenX - rect.left) / rect.width) * horseImg.width)
-      const imgY = Math.floor(((screenY - rect.top) / rect.height) * horseImg.height)
-      const clampedX = Math.max(0, Math.min(horseImg.width - 1, imgX))
-      const clampedY = Math.max(0, Math.min(horseImg.height - 1, imgY))
-      const idx = (clampedY * horseImg.width + clampedX) * 4
+      if (!horseImageData || !sampleWidth) return 0.5
+      const imgX = Math.floor(((screenX - rect.left) / rect.width) * sampleWidth)
+      const imgY = Math.floor(((screenY - rect.top) / rect.height) * sampleHeight)
+      const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
+      const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
+      const idx = (clampedY * sampleWidth + clampedX) * 4
       const r = horseImageData.data[idx]
       const g = horseImageData.data[idx + 1]
       const b = horseImageData.data[idx + 2]
@@ -686,7 +693,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     // Draw dither animating from horse to horizontal line, then down sides
     const drawScrollDither = () => {
-      const heroImage = document.querySelector('.hero-image img') as HTMLImageElement
+      const heroImage = document.querySelector('.hero-image video.active') as HTMLElement
       const servicesSection = document.querySelector('#services') as HTMLElement
 
       if (!heroImage) return
@@ -724,21 +731,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
       }
 
-      // If services section not found or scroll is 0, just draw at horse position
+      // Don't draw dither overlay when not scrolling — video is visible underneath
       if (!servicesSection || scrollProgress === 0) {
-        const horseRectX = heroRect.left + heroRect.width * 0.05
-        const horseRectY = heroRect.top + heroRect.height * 0.30
-        const horseCols = 20
-        const horseRows = 13
-
-        for (let row = 0; row < horseRows; row++) {
-          for (let col = 0; col < horseCols; col++) {
-            const x = horseRectX + col * targetBlockSize
-            const y = horseRectY + row * targetBlockSize
-            const t = sampleHorseBrightnessFn(x, y, heroRect)
-            drawBlock(x, y, t, x, y)
-          }
-        }
         return
       }
 
@@ -867,10 +861,10 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           const { cx, cy } = getCircleCenter(row, col)
           const radius = (circleRadius - 1) * progress
 
-          // Black filled circle
+          // Beige filled circle (punches through to background)
           ctx.beginPath()
           ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-          ctx.fillStyle = '#000000'
+          ctx.fillStyle = '#f0e6d3'
           ctx.fill()
         }
       }
@@ -883,7 +877,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       if (phase === 'static') {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
-        ctx.fillStyle = '#000000'
+        ctx.fillStyle = '#f0e6d3'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
 
@@ -961,8 +955,14 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         // Progress from 0 to 1
         const expandProgress = Math.min(1, expandElapsed / expandDuration)
 
-        // Draw the converging blocks (they start from logo positions)
+        // Fade out dither in the last 40% so blocks dissolve before reaching the video
+        const fadeStart = 0.6
+        const fadeAlpha = expandProgress > fadeStart
+          ? 1 - (expandProgress - fadeStart) / (1 - fadeStart)
+          : 1
+        ctx.globalAlpha = fadeAlpha
         drawConvergingDither(expandProgress)
+        ctx.globalAlpha = 1
 
         if (expandProgress >= 1) {
           phase = 'static'
@@ -998,8 +998,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: animationPhase === 'intro' ? 9999 : 10,
-        backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
+        zIndex: animationPhase === 'intro' ? 9999 : 1,
+        backgroundColor: animationPhase === 'intro' ? '#f0e6d3' : 'transparent',
         pointerEvents: animationPhase === 'static' ? 'none' : 'auto',
       }}
     >
@@ -1008,7 +1008,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         style={{
           width: '100%',
           height: '100%',
-          backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
+          backgroundColor: animationPhase === 'intro' ? '#f0e6d3' : 'transparent',
           mixBlendMode: animationPhase === 'static' ? 'multiply' : 'normal',
         }}
       />

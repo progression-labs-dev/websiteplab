@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
+import VideoCarousel from './components/VideoCarousel'
+import PixelVine from './components/PixelVine'
 
 const testimonials = [
   {
@@ -76,13 +78,13 @@ export default function Home() {
           { opacity: 1, y: 0, duration: 0.6 },
           '-=0.4'
         )
-        .fromTo('.ascii-image-container',
-          { opacity: 0, scale: 0.9 },
-          { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' },
+        .fromTo('.hero-image',
+          { opacity: 0, scale: 0.95 },
+          { opacity: 1, scale: 1, duration: 1.2, ease: 'back.out(1.2)' },
           '-=0.8'
         )
 
-      // Fade up animations
+      // Fade up animations — bouncy easing
       const fadeUpElements = document.querySelectorAll('.fade-up:not(.hero-title):not(.hero-subtitle):not(.hero-actions)')
       fadeUpElements.forEach((el) => {
         gsap.fromTo(el,
@@ -90,7 +92,8 @@ export default function Home() {
           {
             opacity: 1,
             y: 0,
-            duration: 0.8,
+            duration: 1,
+            ease: 'back.out(1.2)',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
@@ -116,46 +119,36 @@ export default function Home() {
         )
       })
 
-      // Service cards stagger
-      const serviceCards = document.querySelectorAll('.service-card')
-      if (serviceCards.length) {
-        const rows: Element[][] = []
-        let currentRow: Element[] = []
-        serviceCards.forEach((card, i) => {
-          currentRow.push(card)
-          if (currentRow.length === 3 || i === serviceCards.length - 1) {
-            rows.push([...currentRow])
-            currentRow = []
-          }
-        })
-
-        rows.forEach((row) => {
-          gsap.fromTo(row,
-            { opacity: 0, y: 30 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              stagger: 0.12,
-              scrollTrigger: {
-                trigger: row[0],
-                start: 'top 85%',
-                toggleActions: 'play none none none'
-              }
+      // Service tiles stagger
+      const serviceTiles = document.querySelectorAll('.service-tile')
+      if (serviceTiles.length) {
+        gsap.fromTo(serviceTiles,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: 'back.out(1.2)',
+            scrollTrigger: {
+              trigger: serviceTiles[0],
+              start: 'top 85%',
+              toggleActions: 'play none none none'
             }
-          )
-        })
+          }
+        )
       }
 
-      // Slide animations
+      // Slide animations — bouncy
       document.querySelectorAll('.slide-left').forEach((el, i) => {
         gsap.fromTo(el,
           { opacity: 0, x: -40 },
           {
             opacity: 1,
             x: 0,
-            duration: 0.7,
+            duration: 0.9,
             delay: i * 0.1,
+            ease: 'back.out(1.2)',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
@@ -171,7 +164,8 @@ export default function Home() {
           {
             opacity: 1,
             x: 0,
-            duration: 0.8,
+            duration: 0.9,
+            ease: 'back.out(1.2)',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
@@ -197,8 +191,8 @@ export default function Home() {
             const obj = { val: 0 }
             gsap.to(obj, {
               val: target,
-              duration: 2,
-              ease: 'power2.out',
+              duration: 2.5,
+              ease: 'elastic.out(1, 0.5)',
               onUpdate: () => {
                 if (isDecimal) {
                   htmlEl.textContent = obj.val.toFixed(1) + suffix
@@ -219,8 +213,9 @@ export default function Home() {
           {
             opacity: 1,
             y: 0,
-            duration: 0.6,
-            stagger: 0.12,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: 'back.out(1.2)',
             scrollTrigger: {
               trigger: resourceCards[0],
               start: 'top 85%',
@@ -269,11 +264,14 @@ export default function Home() {
       {/* Intro Animation - stays mounted to provide dither background */}
       <IntroAnimation onComplete={handleIntroComplete} />
 
+      {/* Pixel Vine — scroll-driven dither particles flowing down the page */}
+      {introComplete && <PixelVine />}
+
       {/* Navigation */}
-      <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
+      <nav className={`nav nav-warm ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
         <div className="nav-container">
           <a href="/" className="nav-logo" aria-label="Progression Labs home">
-            <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
+            <Image src="/logo-black.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
             <span className="nav-wordmark">Progression Labs</span>
           </a>
 
@@ -315,80 +313,87 @@ export default function Home() {
 
       {/* Hero Section - Fullscreen */}
       <section className="hero-fullscreen" id="hero">
-        <div className="hero-vignette"></div>
         <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
           <h1 className="hero-dark-title">Turn your company a leader in the age of AI</h1>
-          <p className="hero-dark-subtitle">We're a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
+          <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
           <div className="hero-dark-actions">
-            <a href="#contact" className="btn btn-white">Request a brainstorm</a>
+            <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
           </div>
         </div>
         <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <Image src="/hero-horse.png" alt="" width={600} height={600} priority />
+          <VideoCarousel isActive={introComplete} />
         </div>
       </section>
 
       {/* Services */}
-      <section className="section" id="services">
-        {/* Dither line target at top of section */}
-        <div className="services-dither-line" />
-        <div className="container">
-          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
-            <p className="label">What we do</p>
-            <h2>End-to-end AI consultancy<br />and technology services</h2>
-            <p>From strategic advisory and business planning to custom software development and AI-as-a-Service platforms — we bridge the gap between ambition and production.</p>
-          </div>
-
-          <div className="services-grid-centered">
-            {/* Service 1 */}
-            <div className="service-card fade-up">
-              <div className="service-icon service-icon-strategy">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 1L12.5 6.5L18.5 7.5L14 12L15 18L10 15.5L5 18L6 12L1.5 7.5L7.5 6.5L10 1Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                </svg>
-              </div>
-              <h4>Digital Transformation Advisory</h4>
-              <p>Business consultancy services for digital transformation, business planning, and organizational change management. We help enterprises navigate the strategic complexities of AI adoption.</p>
-              <a href="#" className="service-link">Learn more &rarr;</a>
+      <section className="section grid-section" id="services">
+        <div className="grid-container">
+          <div className="container">
+            <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
+              <p className="label">What we do</p>
+              <h2>End-to-end AI consultancy<br />and technology services</h2>
             </div>
 
-            {/* Service 2 */}
-            <div className="service-card fade-up">
-              <div className="service-icon service-icon-analytics">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="8" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                  <rect x="8" y="4" width="4" height="15" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                  <rect x="15" y="1" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                </svg>
+            <div className="services-grid-3col">
+              {/* Service 1: AI Expert */}
+              <div className="service-tile fade-up">
+                <pre className="service-ascii-icon">{`
+  ┌─────────┐
+  │ ◉  ◉  ◉ │
+  │ ╠══╬══╣ │
+  │ ║ AI  ║ │
+  │ ╚═════╝ │
+  └─────────┘
+                `}</pre>
+                <span className="service-number">01</span>
+                <h3>AI Expert</h3>
+                <p>On-demand access to senior AI engineers and strategists. We embed within your team to architect, build, and ship production AI — from LLM fine-tuning to agent orchestration.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
               </div>
-              <h4>Business Intelligence &amp; Analytics</h4>
-              <p>Advisory services for business management, customer analysis, and marketing strategy powered by AI. We transform raw data into actionable intelligence for executive decision-making.</p>
-              <a href="#" className="service-link">Learn more &rarr;</a>
-            </div>
 
-            {/* Service 3 */}
-            <div className="service-card fade-up">
-              <div className="service-icon service-icon-roadmap">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 17L10 3L17 17H3Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                  <line x1="10" y1="9" x2="10" y2="13" stroke="currentColor" strokeWidth="1.5"/>
-                  <circle cx="10" cy="15" r="0.5" fill="currentColor"/>
-                </svg>
+              {/* Service 2: AI Builds */}
+              <div className="service-tile fade-up">
+                <pre className="service-ascii-icon">{`
+  ┌─────────┐
+  │ ▓▓▓░░░░ │
+  │ ████▓▓░ │
+  │ ███████ │
+  │ ▓▓▓▓▓▓▓ │
+  └─────────┘
+                `}</pre>
+                <span className="service-number">02</span>
+                <h3>AI Builds</h3>
+                <p>Full-stack AI product development from zero to production. Custom models, data pipelines, APIs, and interfaces — delivered as working software with ongoing support.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
               </div>
-              <h4>Strategic AI Roadmapping</h4>
-              <p>Professional business consultancy helping organizations plan, prioritize, and implement AI across their operations. Business analysis and strategic advisory for long-term competitive advantage.</p>
-              <a href="#" className="service-link">Learn more &rarr;</a>
+
+              {/* Service 3: AI Transformation */}
+              <div className="service-tile fade-up">
+                <pre className="service-ascii-icon">{`
+  ┌─────────┐
+  │ ○───→ ● │
+  │ │     ↓ │
+  │ ◇ ←── ◆ │
+  │ ↓       │
+  └─────────┘
+                `}</pre>
+                <span className="service-number">03</span>
+                <h3>AI Transformation</h3>
+                <p>Strategic advisory for enterprise AI adoption. We assess, plan, and guide your organization through digital transformation — from roadmapping to change management.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Case Studies */}
-      <section className="section section-dark" id="case-studies">
+      <section className="section grid-section" id="case-studies">
+        <div className="grid-container">
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
             <p className="label">Case Studies</p>
-            <h2 style={{ color: 'var(--white)' }}>Measurable impact across every engagement</h2>
+            <h2>Measurable impact across every engagement</h2>
           </div>
 
           <div className="metrics-grid">
@@ -463,10 +468,11 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* Team */}
-      <section className="section" id="team" style={{ background: 'var(--white)' }}>
+      <section className="section grid-section" id="team">
         <div className="container">
           <div className="platform-content">
             <div className="platform-text">
@@ -562,7 +568,7 @@ export default function Home() {
       </section>
 
       {/* Blog */}
-      <section className="section" id="blog" style={{ background: 'var(--white)' }}>
+      <section className="section grid-section" id="blog">
         <div className="container">
           <div className="section-header fade-up">
             <p className="label">Blog</p>
