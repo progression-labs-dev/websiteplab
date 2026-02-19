@@ -35,13 +35,92 @@ export interface MosaicParams {
   invertAutoMask: boolean;
 }
 
-export const DEFAULT_GRADIENT_STOPS: GradientStop[] = [
-  { color: [8, 8, 48], label: 'Shadow' },
-  { color: [0, 0, 255], label: 'Blue' },
-  { color: [64, 224, 208], label: 'Turquoise' },
-  { color: [185, 233, 121], label: 'Green' },
-  { color: [245, 245, 245], label: 'Highlight' },
+// ── Brand Color Palettes ──
+// Each palette maps image brightness (dark → light) to curated brand colors.
+// 3-stop gradients: shadow color → accent → highlight.
+
+export interface BrandPalette {
+  id: string;
+  label: string;
+  stops: GradientStop[];
+}
+
+export const BRAND_PALETTES: BrandPalette[] = [
+  {
+    id: 'blue',
+    label: 'Blue',
+    stops: [
+      { color: [8, 8, 48], label: 'Shadow' },
+      { color: [0, 0, 255], label: 'Blue' },
+      { color: [245, 245, 245], label: 'White Smoke' },
+    ],
+  },
+  {
+    id: 'purple',
+    label: 'Purple',
+    stops: [
+      { color: [40, 12, 52], label: 'Shadow' },
+      { color: [186, 85, 211], label: 'Orchid' },
+      { color: [245, 245, 245], label: 'White Smoke' },
+    ],
+  },
+  {
+    id: 'green',
+    label: 'Green',
+    stops: [
+      { color: [20, 38, 12], label: 'Shadow' },
+      { color: [185, 233, 121], label: 'Green' },
+      { color: [245, 245, 245], label: 'White Smoke' },
+    ],
+  },
+  {
+    id: 'turquoise',
+    label: 'Turquoise',
+    stops: [
+      { color: [8, 32, 30], label: 'Shadow' },
+      { color: [64, 224, 208], label: 'Turquoise' },
+      { color: [245, 245, 245], label: 'White Smoke' },
+    ],
+  },
+  {
+    id: 'salmon',
+    label: 'Salmon',
+    stops: [
+      { color: [52, 22, 16], label: 'Shadow' },
+      { color: [255, 160, 122], label: 'Salmon' },
+      { color: [245, 245, 245], label: 'White Smoke' },
+    ],
+  },
+  {
+    id: 'ocean',
+    label: 'Ocean',
+    stops: [
+      { color: [8, 8, 48], label: 'Deep Navy' },
+      { color: [0, 0, 255], label: 'Blue' },
+      { color: [64, 224, 208], label: 'Turquoise' },
+    ],
+  },
+  {
+    id: 'sunset',
+    label: 'Sunset',
+    stops: [
+      { color: [40, 12, 52], label: 'Deep Purple' },
+      { color: [186, 85, 211], label: 'Orchid' },
+      { color: [255, 160, 122], label: 'Salmon' },
+    ],
+  },
+  {
+    id: 'forest',
+    label: 'Forest',
+    stops: [
+      { color: [8, 20, 18], label: 'Deep Teal' },
+      { color: [64, 224, 208], label: 'Turquoise' },
+      { color: [185, 233, 121], label: 'Green' },
+    ],
+  },
 ];
+
+export const DEFAULT_GRADIENT_STOPS: GradientStop[] = BRAND_PALETTES[0].stops;
 
 export const DEFAULT_PARAMS: MosaicParams = {
   shapeMode: 'circle',

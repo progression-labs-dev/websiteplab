@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { MosaicParams, ShapeMode, ColorMode, BgMode, MaskMode, GradientStop } from '../hooks/useMosaicRenderer';
+import { MosaicParams, ShapeMode, ColorMode, BgMode, MaskMode, GradientStop, BRAND_PALETTES } from '../hooks/useMosaicRenderer';
 import { ExportState } from '../hooks/useVideoExporter';
 import { PlaybackQuality } from '../hooks/useVideoPlayer';
 import { rgbToHex, hexToRgb } from '../utils/colorMapping';
@@ -551,23 +551,61 @@ export default function ControlPanel({
         </div>
         {params.colorMode === 'gradient' && (
           <>
-            {params.gradientStops.map((stop, i) => (
-              <div className="mosaic-color-row" key={i}>
-                <span>{stop.label}</span>
-                <input
-                  type="color"
-                  className="mosaic-color-picker"
-                  value={rgbToHex(...stop.color)}
-                  onChange={e => {
-                    const newStops = [...params.gradientStops];
-                    newStops[i] = { ...newStops[i], color: hexToRgb(e.target.value) };
-                    onChange({ gradientStops: newStops });
-                  }}
-                  disabled={isExporting}
-                />
-                <span className="mosaic-color-hex">{rgbToHex(...stop.color)}</span>
+            {/* Brand Palette Swatches */}
+            <div className="mosaic-palette-grid">
+              {BRAND_PALETTES.map(palette => {
+                const isActive = params.gradientStops.length === palette.stops.length &&
+                  palette.stops.every((s, i) =>
+                    s.color[0] === params.gradientStops[i]?.color[0] &&
+                    s.color[1] === params.gradientStops[i]?.color[1] &&
+                    s.color[2] === params.gradientStops[i]?.color[2]
+                  );
+                // Build CSS gradient from stops
+                const gradientCSS = `linear-gradient(135deg, ${palette.stops.map((s, i) =>
+                  `rgb(${s.color.join(',')}) ${Math.round((i / (palette.stops.length - 1)) * 100)}%`
+                ).join(', ')})`;
+
+                return (
+                  <button
+                    key={palette.id}
+                    className={`mosaic-palette-swatch ${isActive ? 'active' : ''}`}
+                    onClick={() => onChange({ gradientStops: palette.stops })}
+                    disabled={isExporting}
+                    title={palette.label}
+                  >
+                    <div
+                      className="mosaic-palette-preview"
+                      style={{ background: gradientCSS }}
+                    />
+                    <span className="mosaic-palette-label">{palette.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Fine-tune: individual stop pickers */}
+            <div className="mosaic-palette-fine-tune">
+              <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: '#6b7084' }}>Fine-tune stops</span>
               </div>
-            ))}
+              {params.gradientStops.map((stop, i) => (
+                <div className="mosaic-color-row" key={i}>
+                  <span>{stop.label}</span>
+                  <input
+                    type="color"
+                    className="mosaic-color-picker"
+                    value={rgbToHex(...stop.color)}
+                    onChange={e => {
+                      const newStops = [...params.gradientStops];
+                      newStops[i] = { ...newStops[i], color: hexToRgb(e.target.value) };
+                      onChange({ gradientStops: newStops });
+                    }}
+                    disabled={isExporting}
+                  />
+                  <span className="mosaic-color-hex">{rgbToHex(...stop.color)}</span>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>
