@@ -77,7 +77,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     let sampleWidth = 0
     let sampleHeight = 0
     const sampleVideo = document.createElement('video')
-    sampleVideo.src = '/green-rocket.mp4'
+    sampleVideo.src = '/blue-flower-no-background.mp4'
     sampleVideo.muted = true
     sampleVideo.playsInline = true
     sampleVideo.preload = 'auto'
@@ -211,7 +211,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
 
         if (progress > 0 && fadeMultiplier > 0) {
-          ctx.strokeStyle = `rgba(26, 26, 26, ${opacity * progress * fadeMultiplier})`
+          ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * progress * fadeMultiplier})`
           const y = startY + i * circleSpan
 
           // Calculate offset based on direction and progress
@@ -245,7 +245,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
 
         if (progress > 0 && fadeMultiplier > 0) {
-          ctx.strokeStyle = `rgba(26, 26, 26, ${opacity * progress * fadeMultiplier})`
+          ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * progress * fadeMultiplier})`
           const x = startX + i * circleSpan
 
           // Calculate offset based on direction and progress
@@ -291,11 +291,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             ctx.arc(cx, cy, radius, 0, Math.PI * 2)
 
             if (isWhite) {
-              // Charcoal filled circle
-              ctx.fillStyle = `rgba(26, 26, 26, ${progress})`
+              // White filled circle (on dark bg)
+              ctx.fillStyle = `rgba(255, 255, 255, ${progress})`
               ctx.fill()
             } else {
-              // Beige circle with dark outline (outline only in step 1)
+              // Circle with light outline (outline only in step 1)
               // Fade out the outline during holding phase
               let outlineOpacity = progress * 0.5
               if (fadeElapsed >= 0) {
@@ -305,7 +305,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               }
               // Only draw if opacity is significant (threshold to avoid anti-aliasing artifacts)
               if (outlineOpacity > 0.01) {
-                ctx.strokeStyle = `rgba(26, 26, 26, ${outlineOpacity})`
+                ctx.strokeStyle = `rgba(255, 255, 255, ${outlineOpacity})`
                 ctx.lineWidth = 1
                 ctx.stroke()
               }
@@ -333,7 +333,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             const { cx, cy } = getCircleCenter(row, col)
             ctx.beginPath()
             ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2)
-            ctx.strokeStyle = `rgba(26, 26, 26, ${finalOpacity})`
+            ctx.strokeStyle = `rgba(255, 255, 255, ${finalOpacity})`
             ctx.lineWidth = 1
             ctx.stroke()
           }
@@ -352,7 +352,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             const progress = Math.max(0, Math.min(1, (squaresElapsed - delay) / 75))
 
             if (progress > 0) {
-              ctx.fillStyle = `rgba(26, 26, 26, ${progress})`
+              ctx.fillStyle = `rgba(255, 255, 255, ${progress})`
               const x = startX + col * pixelSize
               const y = startY + row * pixelSize
               ctx.fillRect(x, y, pixelSize + 1, pixelSize + 1)
@@ -365,10 +365,10 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     // Dither effect configuration - half the size of P shape squares
     const ditherBlockSize = pixelSize / 2
     const ditherColors = {
-      blockColorStart: '#1a1a1a',
-      blockColorEnd: '#666666',
-      circleColorStart: '#333333',
-      circleColorEnd: '#999999',
+      blockColorStart: '#ffffff',
+      blockColorEnd: '#999999',
+      circleColorStart: '#cccccc',
+      circleColorEnd: '#666666',
     }
     const ASCII_CHARS = ['@', '#', '$', '%', '&', '*', '+', '=', '-', ':', '.', '/', '\\', '|', '!', '?', 'X', 'O', '0', '1']
     const circleProbability = 0.36
@@ -394,11 +394,11 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       return `rgb(${r}, ${g}, ${b})`
     }
 
-    // Blend color 50% with beige (#f0e6d3) for visible dither detail on dark blocks
-    const blendWithWhite = (r: number, g: number, b: number): string => {
-      const newR = Math.round((r + 240) / 2)
-      const newG = Math.round((g + 230) / 2)
-      const newB = Math.round((b + 211) / 2)
+    // Blend color 50% with black (#000000) for visible dither detail on light blocks
+    const blendWithBlack = (r: number, g: number, b: number): string => {
+      const newR = Math.round(r / 2)
+      const newG = Math.round(g / 2)
+      const newB = Math.round(b / 2)
       return `rgb(${newR}, ${newG}, ${newB})`
     }
 
@@ -486,7 +486,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               const rand3 = getBlockRandom(x, y, 3)
 
               // Determine what to draw: circle, ASCII, or nothing
-              const circleColor = blendWithWhite(
+              const circleColor = blendWithBlack(
                 parseInt(blockColor.match(/\d+/g)![0]),
                 parseInt(blockColor.match(/\d+/g)![1]),
                 parseInt(blockColor.match(/\d+/g)![2])
@@ -651,7 +651,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           const rand2 = getBlockRandom(finalX, finalY, 2)
           const rand3 = getBlockRandom(finalX, finalY, 3)
 
-          const circleColor = blendWithWhite(
+          const circleColor = blendWithBlack(
             parseInt(blockColor.match(/\d+/g)![0]),
             parseInt(blockColor.match(/\d+/g)![1]),
             parseInt(blockColor.match(/\d+/g)![2])
@@ -710,7 +710,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         const rand1 = getBlockRandom(seedX, seedY, 1)
         const rand2 = getBlockRandom(seedX, seedY, 2)
         const rand3 = getBlockRandom(seedX, seedY, 3)
-        const circleColor = blendWithWhite(
+        const circleColor = blendWithBlack(
           parseInt(blockColor.match(/\d+/g)![0]),
           parseInt(blockColor.match(/\d+/g)![1]),
           parseInt(blockColor.match(/\d+/g)![2])
@@ -861,10 +861,10 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           const { cx, cy } = getCircleCenter(row, col)
           const radius = (circleRadius - 1) * progress
 
-          // Beige filled circle (punches through to background)
+          // Dark filled circle (punches through to background)
           ctx.beginPath()
           ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-          ctx.fillStyle = '#f0e6d3'
+          ctx.fillStyle = '#000000'
           ctx.fill()
         }
       }
@@ -877,7 +877,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       if (phase === 'static') {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
       } else {
-        ctx.fillStyle = '#f0e6d3'
+        ctx.fillStyle = '#000000'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
 
@@ -999,7 +999,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         width: '100vw',
         height: '100vh',
         zIndex: animationPhase === 'intro' ? 9999 : 1,
-        backgroundColor: animationPhase === 'intro' ? '#f0e6d3' : 'transparent',
+        backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
         pointerEvents: animationPhase === 'static' ? 'none' : 'auto',
       }}
     >
@@ -1008,8 +1008,8 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         style={{
           width: '100%',
           height: '100%',
-          backgroundColor: animationPhase === 'intro' ? '#f0e6d3' : 'transparent',
-          mixBlendMode: animationPhase === 'static' ? 'multiply' : 'normal',
+          backgroundColor: animationPhase === 'intro' ? '#000000' : 'transparent',
+          mixBlendMode: animationPhase === 'static' ? 'screen' : 'normal',
         }}
       />
     </div>

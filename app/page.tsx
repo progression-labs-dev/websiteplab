@@ -269,10 +269,10 @@ export default function Home() {
       {introComplete && <PixelVine />}
 
       {/* Navigation */}
-      <nav className={`nav nav-warm ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
+      <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
         <div className="nav-container">
           <a href="/" className="nav-logo" aria-label="Progression Labs home">
-            <Image src="/logo-black.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
+            <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
             <span className="nav-wordmark">Progression Labs</span>
           </a>
 
@@ -315,7 +315,7 @@ export default function Home() {
       {/* Hero Section - Fullscreen */}
       <section className="hero-fullscreen" id="hero">
         <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <TextScramble tag="h1" text="Turn your company a leader in the age of AI" trigger="load" delay={300} duration={800} className="hero-dark-title" triggerWhen={introComplete} />
+          <TextScramble tag="h1" text="Turn your company a leader in the age of AI" trigger="load" delay={300} duration={1400} className="hero-dark-title" triggerWhen={introComplete} />
           <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
           <div className="hero-dark-actions">
             <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
@@ -332,7 +332,7 @@ export default function Home() {
           <div className="container">
             <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
               <p className="label">What we do</p>
-              <TextScramble tag="h2" text="End-to-end AI consultancy and technology services" trigger="inView" duration={600} />
+              <TextScramble tag="h2" text="End-to-end AI consultancy and technology services" trigger="inView" duration={1000} />
             </div>
 
             <div className="services-grid-3col">
@@ -394,7 +394,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
             <p className="label">Case Studies</p>
-            <TextScramble tag="h2" text="Measurable impact across every engagement" trigger="inView" duration={600} />
+            <TextScramble tag="h2" text="Measurable impact across every engagement" trigger="inView" duration={1000} />
           </div>
 
           <div className="metrics-grid">
@@ -478,7 +478,7 @@ export default function Home() {
           <div className="platform-content">
             <div className="platform-text">
               <p className="label fade-up">Our Team</p>
-              <TextScramble tag="h2" text="The people behind Progression Labs" trigger="inView" duration={600} className="fade-up" />
+              <TextScramble tag="h2" text="The people behind Progression Labs" trigger="inView" duration={1000} className="fade-up" />
               <p className="fade-up">Technology consultation, computer technology consultancy, and AI-powered analytics — unified in a single platform. Monitor, deploy, and scale your AI systems with confidence.</p>
 
               <div className="platform-features">
@@ -573,7 +573,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header fade-up">
             <p className="label">Blog</p>
-            <TextScramble tag="h2" text="Latest thinking from our team" trigger="inView" duration={600} />
+            <TextScramble tag="h2" text="Latest thinking from our team" trigger="inView" duration={1000} />
           </div>
 
           <div className="resources-grid">
@@ -603,7 +603,7 @@ export default function Home() {
         <div className="container">
           <div className="fade-up">
             <p className="label">Get in touch</p>
-            <TextScramble tag="h2" text="Ready to transform your business with AI?" trigger="inView" duration={600} />
+            <TextScramble tag="h2" text="Ready to transform your business with AI?" trigger="inView" duration={1000} />
             <p>Whether you need strategic business consultancy, a managed AI platform, or custom technology solutions — our team of experts is ready to help you build AI systems that deliver real results.</p>
             <a href="mailto:hello@progressionlabs.com" className="cta-email">hello@progressionlabs.com</a>
           </div>

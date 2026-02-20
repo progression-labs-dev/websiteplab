@@ -41,11 +41,11 @@ export default function PixelVine() {
     ]
 
     const COLOR_STOPS: Array<{ pos: number; color: [number, number, number] }> = [
-      { pos: 0.0, color: hexToRgb('#1b4332') },
-      { pos: 0.25, color: hexToRgb('#52b788') },
-      { pos: 0.5, color: hexToRgb('#2d9a8f') },
-      { pos: 0.75, color: hexToRgb('#95e0d9') },
-      { pos: 1.0, color: hexToRgb('#8a7a64') },
+      { pos: 0.0, color: hexToRgb('#0a1628') },
+      { pos: 0.25, color: hexToRgb('#1e3a5f') },
+      { pos: 0.5, color: hexToRgb('#2563eb') },
+      { pos: 0.75, color: hexToRgb('#60a5fa') },
+      { pos: 1.0, color: hexToRgb('#93c5fd') },
     ]
 
     const colorAtT = (t: number): [number, number, number] => {
