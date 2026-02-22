@@ -254,6 +254,14 @@ p {
   flex-grow: 1;
 }
 
+.service-tile .feature-row-link {
+  color: #60a5fa;
+}
+
+.service-tile .feature-row-link:hover {
+  color: #93c5fd;
+}
+
 @media (max-width: 768px) {
   .services-grid-3col {
     grid-template-columns: 1fr;
@@ -528,13 +536,15 @@ p {
 }
 
 .btn-dark {
-  background-color: var(--charcoal);
-  color: var(--white);
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-pill);
 }
 
 .btn-dark:hover {
-  background-color: var(--charcoal-hover);
+  background-color: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 
@@ -2294,3 +2304,179 @@ p {
 }
 
 /* --- Text Scramble Animation (no per-char spans, plain text swap) --- */
+
+/* --- Comparison Section (Off-white theme) --- */
+.section-offwhite {
+  background-color: #f5f5f0;
+  color: #1a1a1a;
+}
+
+.section-offwhite .label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.section-offwhite h2 {
+  color: #1a1a1a;
+}
+
+.section-offwhite p {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.comparison-card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 40px 32px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.comparison-card.old {
+  opacity: 0.85;
+}
+
+.comparison-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.comparison-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.comparison-icon.old {
+  background: rgba(0, 0, 0, 0.06);
+  color: #666;
+}
+
+.comparison-icon.new {
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--blue);
+}
+
+.comparison-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.comparison-card h3 {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.comparison-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comparison-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.comparison-item-icon {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.comparison-item-icon.negative {
+  color: #dc2626;
+}
+
+.comparison-item-icon.positive {
+  color: #16a34a;
+}
+
+.comparison-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Comparison Visual Diagrams */
+.comparison-visual {
+  padding: 32px 24px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.comparison-visual svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Subtle pulse animation for AI nodes */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.comparison-visual .ai-node {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.comparison-visual .ai-node:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.comparison-visual .ai-node:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@media (max-width: 768px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .comparison-vs {
+    padding: 8px 0;
+  }
+
+  .comparison-card {
+    padding: 32px 24px;
+  }
+
+  .comparison-visual {
+    min-height: 120px;
+    padding: 24px 16px;
+  }
+}
