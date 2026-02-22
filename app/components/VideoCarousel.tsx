@@ -8,7 +8,7 @@ export default function VideoCarousel({ isActive }: VideoCarouselProps) {
   return (
     <div className="video-carousel">
       <video
-        src="/blue-flower-no-background.mp4"
+        src="/flower_open.mov"
         className={isActive ? 'active' : ''}
         muted
         autoPlay

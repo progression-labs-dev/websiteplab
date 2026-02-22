@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
-import VideoCarousel from './components/VideoCarousel'
+import AsciiVideoCanvas from './components/AsciiVideoCanvas'
 import PixelVine from './components/PixelVine'
 import TextScramble from './components/TextScramble'
 
@@ -322,7 +322,7 @@ export default function Home() {
           </div>
         </div>
         <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <VideoCarousel isActive={introComplete} />
+          <AsciiVideoCanvas isActive={introComplete} videoSrc="/flower_open.mov" />
         </div>
       </section>
 
@@ -331,26 +331,13 @@ export default function Home() {
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
             <p className="label">A Different Approach</p>
-            <h2>We rebuilt consulting from scratch</h2>
+            <TextScramble tag="h2" text="We Rebuilt Consulting From Scratch" trigger="inView" duration={1000} />
           </div>
 
           <div className="comparison-grid">
             {/* Old Approach */}
             <div className="comparison-card old fade-up">
-              <div className="comparison-card-header">
-                <div className="comparison-icon old">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <div>
-                  <span className="comparison-card-label">Traditional Consulting</span>
-                  <h3>Legacy Model</h3>
-                </div>
-              </div>
+              <h3 className="comparison-card-title">Legacy Model</h3>
 
               {/* Visual: Bloated org hierarchy */}
               <div className="comparison-visual">
@@ -441,19 +428,7 @@ export default function Home() {
 
             {/* New Approach */}
             <div className="comparison-card fade-up">
-              <div className="comparison-card-header">
-                <div className="comparison-icon new">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                    <path d="M2 17l10 5 10-5"/>
-                    <path d="M2 12l10 5 10-5"/>
-                  </svg>
-                </div>
-                <div>
-                  <span className="comparison-card-label">Progression Labs</span>
-                  <h3>The New Way</h3>
-                </div>
-              </div>
+              <h3 className="comparison-card-title">The New Way</h3>
 
               {/* Visual: Triangle team + AI agents per person */}
               <div className="comparison-visual">
@@ -606,7 +581,7 @@ export default function Home() {
       </section>
 
       {/* Case Studies */}
-      <section className="section grid-section" id="case-studies">
+      <section className="section section-offwhite" id="case-studies">
         <div className="grid-container">
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>

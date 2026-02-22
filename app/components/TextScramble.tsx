@@ -104,9 +104,9 @@ export default function TextScramble({
         }
 
         if (i < leadPos - TAIL) {
-          // STATE C — LOCKED: correct character, white, fully visible
+          // STATE C — LOCKED: correct character, inherit color, fully visible
           span.textContent = char
-          span.style.color = '#FFFFFF'
+          span.style.color = 'inherit'
           span.style.textShadow = 'none'
           span.style.opacity = '1'
         } else if (i < leadPos) {
@@ -131,7 +131,7 @@ export default function TextScramble({
           const span = spanRefs.current[i]
           if (!span) continue
           span.textContent = displayText[i] === ' ' ? ' ' : displayText[i]
-          span.style.color = '#FFFFFF'
+          span.style.color = 'inherit'
           span.style.textShadow = 'none'
           span.style.opacity = '1'
         }

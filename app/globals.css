@@ -2226,7 +2226,7 @@ p {
 .announcement-bar-link {
   font-size: 14px;
   font-weight: 500;
-  color: var(--salmon);
+  color: #60a5fa;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2323,6 +2323,46 @@ p {
   color: rgba(0, 0, 0, 0.65);
 }
 
+.section-offwhite .metric-value {
+  color: #1a1a1a;
+}
+
+.section-offwhite .metric-label {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.section-offwhite .testimonial-card blockquote {
+  color: #1a1a1a;
+}
+
+.section-offwhite .testimonial-card cite {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.section-offwhite .testimonial-dot {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.section-offwhite .testimonial-dot:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.section-offwhite .testimonial-dot.active {
+  background: var(--salmon);
+}
+
+.section-offwhite .carousel-arrow {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.section-offwhite .carousel-arrow:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
 .comparison-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2386,6 +2426,15 @@ p {
   letter-spacing: -0.02em;
   color: #1a1a1a;
   margin: 0;
+}
+
+.comparison-card-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  text-align: center;
 }
 
 .comparison-list {
