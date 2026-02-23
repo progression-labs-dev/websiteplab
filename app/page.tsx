@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
 // AsciiVideoCanvas now integrated into IntroAnimation for seamless P logo -> flower transition
-import PixelVine from './components/PixelVine'
-import TextScramble from './components/TextScramble'
+import { TextScramble } from '@/components/motion-primitives/text-scramble'
+import TeamCarousel from './components/TeamCarousel'
+import ServiceIcon from './components/AsciiIcon'
 
 const testimonials = [
   {
@@ -33,6 +34,20 @@ export default function Home() {
   const [scrolledPastHero, setScrolledPastHero] = useState(false)
   const [activeTestimonial, setActiveTestimonial] = useState(0)
   const [introComplete, setIntroComplete] = useState(false)
+  const [comparisonInView, setComparisonInView] = useState(false)
+  const comparisonRef = useRef<HTMLDivElement>(null)
+
+  // Trigger comparison TextScramble when scrolled into view
+  useEffect(() => {
+    const el = comparisonRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setComparisonInView(true); observer.disconnect() } },
+      { threshold: 0.2 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   // Memoize callback to prevent useEffect re-runs in IntroAnimation
   const handleIntroComplete = useCallback(() => {
@@ -176,35 +191,214 @@ export default function Home() {
         )
       })
 
-      // Metric count-up
-      const metricValues = document.querySelectorAll('.metric-value')
-      metricValues.forEach((el) => {
-        const htmlEl = el as HTMLElement
-        const target = parseFloat(htmlEl.dataset.count || '0')
-        const suffix = htmlEl.dataset.suffix || ''
-        const isDecimal = htmlEl.dataset.decimal === 'true'
-
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 80%',
-          once: true,
-          onEnter: () => {
-            const obj = { val: 0 }
-            gsap.to(obj, {
-              val: target,
-              duration: 2.5,
-              ease: 'elastic.out(1, 0.5)',
-              onUpdate: () => {
-                if (isDecimal) {
-                  htmlEl.textContent = obj.val.toFixed(1) + suffix
-                } else {
-                  htmlEl.textContent = Math.round(obj.val) + suffix
-                }
-              }
-            })
+      // === Comparison Section Choreography ===
+      const comparisonSection = document.querySelector('#comparison')
+      if (comparisonSection) {
+        const compTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: comparisonSection,
+            start: 'top 65%',
+            toggleActions: 'play none none none'
           }
         })
-      })
+
+        // Phase 1a — Legacy SVG: "The Bureaucracy Builds" (0.0s → 1.4s)
+        compTl
+          // Company circle fades in
+          .fromTo('.legacy-company',
+            { opacity: 0, scale: 0.8, transformOrigin: '55px 70px' },
+            { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' },
+            0
+          )
+          // Dashed arrow draws in
+          .fromTo('.legacy-arrow',
+            { opacity: 0 },
+            { opacity: 1, duration: 0.4, stagger: 0.05, ease: 'power2.inOut' },
+            0.3
+          )
+          // Partner (tier 1) drops in
+          .fromTo('.legacy-tier1',
+            { opacity: 0, y: -20, transformOrigin: '220px 20px' },
+            { opacity: 1, y: 0, duration: 0.4, ease: 'back.out(1.4)' },
+            0.5
+          )
+          // Tier 2 lines + managers
+          .fromTo('.legacy-tier2-line',
+            { opacity: 0 },
+            { opacity: 1, duration: 0.3, stagger: 0.05 },
+            0.7
+          )
+          .fromTo('.legacy-tier2',
+            { opacity: 0, scale: 0, transformOrigin: 'center' },
+            { opacity: 1, scale: 1, duration: 0.35, stagger: 0.08, ease: 'back.out(1.4)' },
+            0.75
+          )
+          // Tier 3 lines + PMs — faster stagger
+          .fromTo('.legacy-tier3-line',
+            { opacity: 0 },
+            { opacity: 1, duration: 0.25, stagger: 0.04 },
+            0.9
+          )
+          .fromTo('.legacy-tier3',
+            { opacity: 0, scale: 0, transformOrigin: 'center' },
+            { opacity: 1, scale: 1, duration: 0.3, stagger: 0.06, ease: 'back.out(1.4)' },
+            0.95
+          )
+          // Tier 4 lines + juniors — rapid = overwhelming
+          .fromTo('.legacy-tier4-line',
+            { opacity: 0 },
+            { opacity: 1, duration: 0.2, stagger: 0.03 },
+            1.1
+          )
+          .fromTo('.legacy-tier4',
+            { opacity: 0, scale: 0, transformOrigin: 'center' },
+            { opacity: 1, scale: 1, duration: 0.25, stagger: 0.04, ease: 'back.out(1.4)' },
+            1.15
+          )
+
+        // Phase 1b — New Way SVG: "The Network Ignites" (0.3s → 1.6s)
+        compTl
+          // Engineers scale in with elastic snap
+          .fromTo('.newway-engineer',
+            { opacity: 0, scale: 0, transformOrigin: 'center' },
+            { opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: 'elastic.out(1, 0.6)' },
+            0.3
+          )
+          // Connection lines draw between engineers
+          .fromTo('.newway-connection',
+            { opacity: 0 },
+            { opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power2.out' },
+            0.8
+          )
+          // AI connector lines appear
+          .fromTo('.newway-ai-line',
+            { opacity: 0 },
+            { opacity: 0.7, duration: 0.3, stagger: 0.04 },
+            1.0
+          )
+          // AI diamonds snap into place with aggressive overshoot
+          .fromTo('.newway-ai-node',
+            { opacity: 0, scale: 0, transformOrigin: 'center' },
+            { opacity: 1, scale: 1, duration: 0.4, stagger: 0.06, ease: 'back.out(2.0)' },
+            1.1
+          )
+
+        // AI node pulse animation (ambient, starts at 1.6s)
+        compTl.add(() => {
+          gsap.to('.newway-ai-node', {
+            opacity: 0.6,
+            duration: 1,
+            stagger: 0.3,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          })
+        }, 1.6)
+
+        // Phase 2 — Bullet Points: "Bish Bish Bish Bish" (1.6s → 2.5s)
+        // Left column (legacy red X items) — slide from left with blur
+        compTl.fromTo('.legacy-item',
+          { opacity: 0, x: -30, filter: 'blur(4px)' },
+          { opacity: 1, x: 0, filter: 'blur(0px)', duration: 0.45, stagger: 0.10, ease: 'back.out(1.7)' },
+          1.6
+        )
+        // Right column (new way green check items) — slide from right with blur
+        compTl.fromTo('.newway-item',
+          { opacity: 0, x: 30, filter: 'blur(4px)' },
+          { opacity: 1, x: 0, filter: 'blur(0px)', duration: 0.45, stagger: 0.10, ease: 'back.out(1.7)' },
+          1.75 // 0.15s offset from left column = zipper pattern
+        )
+
+        // Phase 3 — Ambient glow on New Way card
+        compTl.add(() => {
+          gsap.to('.new-way-card', {
+            boxShadow: '0 0 60px rgba(59,130,246,0.15)',
+            duration: 1.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          })
+        }, 2.5)
+
+        // Continuous loop animations after timeline completes
+        compTl.eventCallback('onComplete', () => {
+          // Legacy SVG — "Bureaucratic Chaos"
+          // Tier 4 juniors: aggressive flickering (overwhelmed)
+          gsap.to('.legacy-tier4', {
+            opacity: 0.3,
+            duration: 0.8,
+            stagger: { each: 0.1, repeat: -1, yoyo: true },
+            ease: 'power1.inOut'
+          })
+          // Tier 3 PMs: visible wobble (stressed)
+          gsap.to('.legacy-tier3', {
+            scale: 1.15,
+            rotation: 5,
+            duration: 1.2,
+            stagger: { each: 0.2, repeat: -1, yoyo: true },
+            ease: 'sine.inOut',
+            transformOrigin: 'center'
+          })
+          // Tier 2 managers: slow drift (disconnected)
+          gsap.to('.legacy-tier2', {
+            y: '+=4',
+            x: '+=2',
+            duration: 2,
+            stagger: { each: 0.5, repeat: -1, yoyo: true },
+            ease: 'sine.inOut',
+            transformOrigin: 'center'
+          })
+          // Company circle: heavy breathing pulse
+          gsap.to('.legacy-company circle', {
+            scale: 1.04,
+            duration: 2.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            transformOrigin: '55px 70px'
+          })
+          // Legacy arrows: fade in and out (unreliable connection)
+          gsap.to('.legacy-arrow', {
+            opacity: 0.3,
+            duration: 1.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          })
+
+          // New Way SVG — "Network Alive & Thriving"
+          // Connection lines: fast data flowing
+          gsap.to('.newway-connection', {
+            strokeDashoffset: -24,
+            duration: 1.2,
+            repeat: -1,
+            ease: 'none'
+          })
+          // Engineer circles: orbital float
+          gsap.to('.newway-engineer', {
+            y: '+=6',
+            duration: 1.8,
+            stagger: { each: 0.3, repeat: -1, yoyo: true },
+            ease: 'sine.inOut'
+          })
+          // AI diamonds: energetic pulse + rotation
+          gsap.to('.newway-ai-node', {
+            scale: 1.2,
+            rotation: 10,
+            duration: 1,
+            stagger: { each: 0.15, repeat: -1, yoyo: true },
+            ease: 'sine.inOut',
+            transformOrigin: 'center'
+          })
+          // AI lines: shimmer effect
+          gsap.to('.newway-ai-line', {
+            opacity: 1,
+            duration: 0.8,
+            stagger: { each: 0.1, repeat: -1, yoyo: true },
+            ease: 'power1.inOut'
+          })
+        })
+      }
 
       // Resource cards stagger
       const resourceCards = document.querySelectorAll('.resource-card')
@@ -226,27 +420,6 @@ export default function Home() {
         )
       }
 
-      // Mockup bars animation
-      const mockupBars = document.querySelectorAll('.mockup-card-bar-fill')
-      mockupBars.forEach((bar) => {
-        const htmlBar = bar as HTMLElement
-        const targetWidth = htmlBar.style.width
-        htmlBar.style.width = '0%'
-
-        ScrollTrigger.create({
-          trigger: bar,
-          start: 'top 85%',
-          once: true,
-          onEnter: () => {
-            gsap.to(bar, {
-              width: targetWidth,
-              duration: 1.2,
-              ease: 'power2.out',
-              delay: 0.3
-            })
-          }
-        })
-      })
     }
 
     initAnimations()
@@ -264,9 +437,6 @@ export default function Home() {
     <>
       {/* Intro Animation - stays mounted to provide dither background */}
       <IntroAnimation onComplete={handleIntroComplete} />
-
-      {/* Pixel Vine — scroll-driven dither particles flowing down the page */}
-      {introComplete && <PixelVine />}
 
       {/* Navigation */}
       <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
@@ -316,7 +486,7 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TextScramble tag="h1" text="Turn your company a leader in the age of AI" trigger="load" delay={300} duration={1400} className="hero-dark-title" triggerWhen={introComplete} />
+            <TextScramble as="h1" className="hero-dark-title" trigger={introComplete} duration={3.2} speed={0.055} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TextScramble>
             <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
             <div className="hero-dark-actions">
               <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
@@ -330,70 +500,73 @@ export default function Home() {
       </section>
 
       {/* Comparison Section */}
-      <section className="section section-offwhite" id="comparison">
+      <section className="section grid-section" id="comparison">
+        <div className="grid-container">
         <div className="container">
-          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
-            <TextScramble tag="h2" text="We Rebuilt Consulting From Scratch" trigger="inView" delay={200} duration={1000} />
+          <div ref={comparisonRef} className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
+            <TextScramble as="h2" trigger={comparisonInView} duration={2} speed={0.055} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>We Rebuilt Consulting From Scratch</TextScramble>
           </div>
 
           <div className="comparison-grid">
             {/* Old Approach */}
-            <div className="comparison-card old fade-up">
+            <div className="comparison-card old" data-comparison="legacy">
               <h3 className="comparison-card-title">Legacy Model</h3>
 
-              {/* Visual: Bloated org hierarchy */}
+              {/* Visual: Bloated org hierarchy — animated via GSAP */}
               <div className="comparison-visual">
-                <svg width="320" height="140" viewBox="0 0 320 140" fill="none">
-                  {/* Your Company - on the left */}
-                  <circle cx="55" cy="70" r="50" fill="#9ca3af" stroke="#6b7280" strokeWidth="2"/>
-                  <text x="55" y="64" textAnchor="middle" fontSize="14" fill="white" fontWeight="600">YOUR</text>
-                  <text x="55" y="82" textAnchor="middle" fontSize="14" fill="white" fontWeight="600">CO.</text>
+                <svg width="320" height="140" viewBox="0 0 320 140" fill="none" className="legacy-svg">
+                  {/* Your Company circle */}
+                  <g className="legacy-company" style={{ opacity: 0.3 }}>
+                    <circle cx="55" cy="70" r="50" fill="#9ca3af" stroke="#6b7280" strokeWidth="2"/>
+                    <text x="55" y="64" textAnchor="middle" fontSize="14" fill="white" fontWeight="600">YOUR</text>
+                    <text x="55" y="82" textAnchor="middle" fontSize="14" fill="white" fontWeight="600">CO.</text>
+                  </g>
 
-                  {/* Arrow pointing to hierarchy */}
-                  <line x1="110" y1="70" x2="145" y2="70" stroke="#ccc" strokeWidth="1.5" strokeDasharray="4,3"/>
-                  <polygon points="150,70 144,66 144,74" fill="#ccc"/>
+                  {/* Arrow */}
+                  <line className="legacy-arrow" x1="110" y1="70" x2="145" y2="70" stroke="#ccc" strokeWidth="1.5" strokeDasharray="4,3" style={{ opacity: 0 }}/>
+                  <polygon className="legacy-arrow" points="150,70 144,66 144,74" fill="#ccc" style={{ opacity: 0 }}/>
 
-                  {/* Top level - Partner */}
-                  <circle cx="220" cy="20" r="10" fill="#999" stroke="#666" strokeWidth="1"/>
+                  {/* Tier 1 - Partner */}
+                  <circle className="legacy-tier1" cx="220" cy="20" r="10" fill="#999" stroke="#666" strokeWidth="1" style={{ opacity: 0.2 }}/>
 
-                  {/* Second level - Senior Managers */}
-                  <line x1="220" y1="30" x2="180" y2="44" stroke="#ccc" strokeWidth="1"/>
-                  <line x1="220" y1="30" x2="260" y2="44" stroke="#ccc" strokeWidth="1"/>
-                  <circle cx="180" cy="52" r="8" fill="#aaa" stroke="#888" strokeWidth="1"/>
-                  <circle cx="260" cy="52" r="8" fill="#aaa" stroke="#888" strokeWidth="1"/>
+                  {/* Tier 2 lines + managers */}
+                  <line className="legacy-tier2-line" x1="220" y1="30" x2="180" y2="44" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier2-line" x1="220" y1="30" x2="260" y2="44" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier2" cx="180" cy="52" r="8" fill="#aaa" stroke="#888" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier2" cx="260" cy="52" r="8" fill="#aaa" stroke="#888" strokeWidth="1" style={{ opacity: 0 }}/>
 
-                  {/* Third level - Project Managers */}
-                  <line x1="180" y1="60" x2="160" y2="74" stroke="#ccc" strokeWidth="1"/>
-                  <line x1="180" y1="60" x2="195" y2="74" stroke="#ccc" strokeWidth="1"/>
-                  <line x1="260" y1="60" x2="245" y2="74" stroke="#ccc" strokeWidth="1"/>
-                  <line x1="260" y1="60" x2="280" y2="74" stroke="#ccc" strokeWidth="1"/>
-                  <circle cx="160" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1"/>
-                  <circle cx="195" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1"/>
-                  <circle cx="245" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1"/>
-                  <circle cx="280" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1"/>
+                  {/* Tier 3 lines + PMs */}
+                  <line className="legacy-tier3-line" x1="180" y1="60" x2="160" y2="74" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier3-line" x1="180" y1="60" x2="195" y2="74" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier3-line" x1="260" y1="60" x2="245" y2="74" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier3-line" x1="260" y1="60" x2="280" y2="74" stroke="#ccc" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier3" cx="160" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier3" cx="195" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier3" cx="245" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier3" cx="280" cy="80" r="6" fill="#bbb" stroke="#999" strokeWidth="1" style={{ opacity: 0 }}/>
 
-                  {/* Bottom level - Analysts/Juniors */}
-                  <line x1="160" y1="86" x2="152" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="160" y1="86" x2="168" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="195" y1="86" x2="187" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="195" y1="86" x2="203" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="245" y1="86" x2="237" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="245" y1="86" x2="253" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="280" y1="86" x2="272" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <line x1="280" y1="86" x2="288" y2="98" stroke="#ddd" strokeWidth="1"/>
-                  <circle cx="152" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="168" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="187" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="203" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="237" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="253" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="272" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
-                  <circle cx="288" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1"/>
+                  {/* Tier 4 lines + juniors */}
+                  <line className="legacy-tier4-line" x1="160" y1="86" x2="152" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="160" y1="86" x2="168" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="195" y1="86" x2="187" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="195" y1="86" x2="203" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="245" y1="86" x2="237" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="245" y1="86" x2="253" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="280" y1="86" x2="272" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <line className="legacy-tier4-line" x1="280" y1="86" x2="288" y2="98" stroke="#ddd" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="152" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="168" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="187" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="203" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="237" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="253" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="272" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
+                  <circle className="legacy-tier4" cx="288" cy="104" r="5" fill="#ccc" stroke="#aaa" strokeWidth="1" style={{ opacity: 0 }}/>
                 </svg>
               </div>
 
-              <div className="comparison-list">
-                <div className="comparison-item">
+              <div className="comparison-list legacy-list">
+                <div className="comparison-item legacy-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon negative">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 4L4 12M4 4l8 8"/>
@@ -401,7 +574,7 @@ export default function Home() {
                   </span>
                   <span>Large teams with layers of project managers</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item legacy-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon negative">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 4L4 12M4 4l8 8"/>
@@ -409,7 +582,7 @@ export default function Home() {
                   </span>
                   <span>Bloated overhead eating into your budget</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item legacy-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon negative">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 4L4 12M4 4l8 8"/>
@@ -417,7 +590,7 @@ export default function Home() {
                   </span>
                   <span>Slow delivery, endless meetings</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item legacy-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon negative">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 4L4 12M4 4l8 8"/>
@@ -429,60 +602,62 @@ export default function Home() {
             </div>
 
             {/* New Approach */}
-            <div className="comparison-card fade-up">
+            <div className="comparison-card new-way-card" data-comparison="newway">
               <h3 className="comparison-card-title">The New Way</h3>
 
-              {/* Visual: Triangle team + AI agents per person */}
+              {/* Visual: Triangle team + AI agents — animated via GSAP */}
               <div className="comparison-visual">
-                <svg width="240" height="140" viewBox="0 0 240 140" fill="none">
+                <svg width="240" height="140" viewBox="0 0 240 140" fill="none" className="newway-svg">
                   {/* Connection lines between team members */}
-                  <line x1="120" y1="45" x2="70" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3"/>
-                  <line x1="120" y1="45" x2="170" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3"/>
-                  <line x1="70" y1="95" x2="170" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3"/>
+                  <line className="newway-connection" x1="120" y1="45" x2="70" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3" style={{ opacity: 0.15 }}/>
+                  <line className="newway-connection" x1="120" y1="45" x2="170" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3" style={{ opacity: 0.15 }}/>
+                  <line className="newway-connection" x1="70" y1="95" x2="170" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeDasharray="3,3" style={{ opacity: 0.15 }}/>
 
-                  {/* Top engineer - with 2 AI agents */}
-                  <circle cx="120" cy="45" r="14" fill="#3b82f6" stroke="#2563eb" strokeWidth="2"/>
-                  <line x1="108" y1="38" x2="88" y2="25" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <line x1="132" y1="38" x2="152" y2="25" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <g className="ai-node">
+                  {/* Top engineer */}
+                  <circle className="newway-engineer" cx="120" cy="45" r="14" fill="#3b82f6" stroke="#2563eb" strokeWidth="2" style={{ opacity: 0.3 }}/>
+                  {/* AI agent connectors */}
+                  <line className="newway-ai-line" x1="108" y1="38" x2="88" y2="25" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  <line className="newway-ai-line" x1="132" y1="38" x2="152" y2="25" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  {/* AI agent diamonds */}
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="75" y="12" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 82 19)"/>
                     <text x="82" y="22" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
-                  <g className="ai-node">
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="151" y="12" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 158 19)"/>
                     <text x="158" y="22" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
 
-                  {/* Bottom-left engineer - with 2 AI agents */}
-                  <circle cx="70" cy="95" r="12" fill="#3b82f6" stroke="#2563eb" strokeWidth="2"/>
-                  <line x1="60" y1="88" x2="40" y2="70" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <line x1="62" y1="105" x2="42" y2="120" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <g className="ai-node">
+                  {/* Bottom-left engineer */}
+                  <circle className="newway-engineer" cx="70" cy="95" r="12" fill="#3b82f6" stroke="#2563eb" strokeWidth="2" style={{ opacity: 0.3 }}/>
+                  <line className="newway-ai-line" x1="60" y1="88" x2="40" y2="70" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  <line className="newway-ai-line" x1="62" y1="105" x2="42" y2="120" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="27" y="57" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 34 64)"/>
                     <text x="34" y="67" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
-                  <g className="ai-node">
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="29" y="110" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 36 117)"/>
                     <text x="36" y="120" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
 
-                  {/* Bottom-right engineer - with 2 AI agents */}
-                  <circle cx="170" cy="95" r="12" fill="#3b82f6" stroke="#2563eb" strokeWidth="2"/>
-                  <line x1="180" y1="88" x2="200" y2="70" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <line x1="178" y1="105" x2="198" y2="120" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" opacity="0.7"/>
-                  <g className="ai-node">
+                  {/* Bottom-right engineer */}
+                  <circle className="newway-engineer" cx="170" cy="95" r="12" fill="#3b82f6" stroke="#2563eb" strokeWidth="2" style={{ opacity: 0.3 }}/>
+                  <line className="newway-ai-line" x1="180" y1="88" x2="200" y2="70" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  <line className="newway-ai-line" x1="178" y1="105" x2="198" y2="120" stroke="#c084fc" strokeWidth="1" strokeDasharray="2,2" style={{ opacity: 0 }}/>
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="197" y="57" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 204 64)"/>
                     <text x="204" y="67" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
-                  <g className="ai-node">
+                  <g className="newway-ai-node" style={{ opacity: 0 }}>
                     <rect x="195" y="110" width="14" height="14" rx="2" fill="#a855f7" stroke="#9333ea" strokeWidth="1.5" transform="rotate(45 202 117)"/>
                     <text x="202" y="120" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">AI</text>
                   </g>
                 </svg>
               </div>
 
-              <div className="comparison-list">
-                <div className="comparison-item">
+              <div className="comparison-list newway-list">
+                <div className="comparison-item newway-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon positive">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 4L6 11L3 8"/>
@@ -490,7 +665,7 @@ export default function Home() {
                   </span>
                   <span>Lean team of senior AI engineers</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item newway-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon positive">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 4L6 11L3 8"/>
@@ -498,7 +673,7 @@ export default function Home() {
                   </span>
                   <span>AI agents that multiply our output 10x</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item newway-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon positive">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 4L6 11L3 8"/>
@@ -506,7 +681,7 @@ export default function Home() {
                   </span>
                   <span>Ship fast, iterate faster</span>
                 </div>
-                <div className="comparison-item">
+                <div className="comparison-item newway-item" style={{ opacity: 0 }}>
                   <span className="comparison-item-icon positive">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 4L6 11L3 8"/>
@@ -518,6 +693,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* Services */}
@@ -525,55 +701,55 @@ export default function Home() {
         <div className="grid-container">
           <div className="container">
             <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
-              <TextScramble tag="h2" text="Wherever you are with AI, we meet you there" trigger="inView" duration={1000} />
+              <h2>Wherever you are with AI, we meet you there</h2>
             </div>
 
             <div className="services-grid-3col">
-              {/* Service 1: AI Expert */}
               <div className="service-tile fade-up">
-                <pre className="service-ascii-icon">{`
-  ┌─────────┐
-  │ ◉  ◉  ◉ │
-  │ ╠══╬══╣ │
-  │ ║ AI  ║ │
-  │ ╚═════╝ │
-  └─────────┘
-                `}</pre>
+                <ServiceIcon icon="expert" className="service-icon-slot" />
                 <span className="service-number">01</span>
                 <h3>AI Expert</h3>
                 <p>On-demand access to senior AI engineers and strategists. We embed within your team to architect, build, and ship production AI — from LLM fine-tuning to agent orchestration.</p>
                 <a href="#" className="feature-row-link">Learn more &rarr;</a>
               </div>
 
-              {/* Service 2: AI Builds */}
               <div className="service-tile fade-up">
-                <pre className="service-ascii-icon">{`
-  ┌─────────┐
-  │ ▓▓▓░░░░ │
-  │ ████▓▓░ │
-  │ ███████ │
-  │ ▓▓▓▓▓▓▓ │
-  └─────────┘
-                `}</pre>
+                <ServiceIcon icon="builds" className="service-icon-slot" />
                 <span className="service-number">02</span>
                 <h3>AI Builds</h3>
                 <p>Full-stack AI product development from zero to production. Custom models, data pipelines, APIs, and interfaces — delivered as working software with ongoing support.</p>
                 <a href="#" className="feature-row-link">Learn more &rarr;</a>
               </div>
 
-              {/* Service 3: AI Transformation */}
               <div className="service-tile fade-up">
-                <pre className="service-ascii-icon">{`
-  ┌─────────┐
-  │ ○───→ ● │
-  │ │     ↓ │
-  │ ◇ ←── ◆ │
-  │ ↓       │
-  └─────────┘
-                `}</pre>
+                <ServiceIcon icon="transform" className="service-icon-slot" />
                 <span className="service-number">03</span>
                 <h3>AI Transformation</h3>
                 <p>Strategic advisory for enterprise AI adoption. We assess, plan, and guide your organization through digital transformation — from roadmapping to change management.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
+              </div>
+
+              <div className="service-tile fade-up">
+                <ServiceIcon icon="audit" className="service-icon-slot" />
+                <span className="service-number">04</span>
+                <h3>AI Audit</h3>
+                <p>Deep-dive assessment of your AI readiness, current systems, and opportunities. We identify gaps, risks, and quick wins — delivering a prioritised roadmap in weeks, not months.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
+              </div>
+
+              <div className="service-tile fade-up">
+                <ServiceIcon icon="surgery" className="service-icon-slot" />
+                <span className="service-number">05</span>
+                <h3>Project Surgery</h3>
+                <p>When AI projects stall, we diagnose and fix. Our team parachutes in to rescue troubled implementations — refactoring models, fixing pipelines, and getting your project back on track.</p>
+                <a href="#" className="feature-row-link">Learn more &rarr;</a>
+              </div>
+
+              <div className="service-tile fade-up">
+                <ServiceIcon icon="ideation" className="service-icon-slot" />
+                <span className="service-number">06</span>
+                <h3>Ideation Sessions</h3>
+                <p>Structured workshops that turn business challenges into AI-powered solutions. We facilitate brainstorms with your team, prototype concepts live, and leave you with a concrete action plan.</p>
                 <a href="#" className="feature-row-link">Learn more &rarr;</a>
               </div>
             </div>
@@ -583,29 +759,9 @@ export default function Home() {
 
       {/* Case Studies */}
       <section className="section section-offwhite" id="case-studies">
-        <div className="grid-container">
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-            <TextScramble tag="h2" text="Measurable impact across every engagement" trigger="inView" duration={1000} />
-          </div>
-
-          <div className="metrics-grid">
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="50" data-suffix="+">0</div>
-              <div className="metric-label">Enterprise clients across 12 industries</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="3.2" data-suffix="x" data-decimal="true">0</div>
-              <div className="metric-label">Average ROI within first 12 months</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="47" data-suffix="%">0</div>
-              <div className="metric-label">Reduction in operational costs through AI automation</div>
-            </div>
-            <div className="metric-card fade-up">
-              <div className="metric-value" data-count="99.9" data-suffix="%" data-decimal="true">0</div>
-              <div className="metric-label">Platform uptime SLA</div>
-            </div>
+            <h2>What our clients say</h2>
           </div>
 
           <div className="testimonial-carousel fade-up">
@@ -661,109 +817,24 @@ export default function Home() {
             </div>
           </div>
         </div>
-        </div>
       </section>
 
       {/* Team */}
-      <section className="section grid-section" id="team">
+      <section className="section" id="team" style={{ background: 'var(--bg-warm)' }}>
         <div className="container">
-          <div className="platform-content">
-            <div className="platform-text">
-              <TextScramble tag="h2" text="The people behind Progression Labs" trigger="inView" duration={1000} className="fade-up" />
-              <p className="fade-up">Technology consultation, computer technology consultancy, and AI-powered analytics — unified in a single platform. Monitor, deploy, and scale your AI systems with confidence.</p>
-
-              <div className="platform-features">
-                <div className="platform-feature slide-left">
-                  <div className="platform-feature-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/><circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1.5"/><line x1="7" y1="7" x2="9" y2="9" stroke="currentColor" strokeWidth="1.5"/></svg>
-                  </div>
-                  <div>
-                    <h4>AI Agent Orchestration</h4>
-                    <p>Design, deploy, and monitor AI agents across your organization with full observability and control.</p>
-                  </div>
-                </div>
-
-                <div className="platform-feature slide-left">
-                  <div className="platform-feature-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  </div>
-                  <div>
-                    <h4>Data Pipeline Management</h4>
-                    <p>Automated data processing, machine learning model management, and continuous training pipelines.</p>
-                  </div>
-                </div>
-
-                <div className="platform-feature slide-left">
-                  <div className="platform-feature-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><polyline points="4,10 7,6 10,8 13,4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                  <div>
-                    <h4>Analytics Dashboard</h4>
-                    <p>Business analytics, performance monitoring, and real-time reporting for all your AI operations.</p>
-                  </div>
-                </div>
-
-                <div className="platform-feature slide-left">
-                  <div className="platform-feature-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="9" y="5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/><line x1="7" y1="8" x2="9" y2="8" stroke="currentColor" strokeWidth="1.5"/></svg>
-                  </div>
-                  <div>
-                    <h4>Integration Hub</h4>
-                    <p>Connect to 200+ enterprise tools and data sources. Seamless interoperability with your existing stack.</p>
-                  </div>
-                </div>
-              </div>
-
-              <a href="#login" className="platform-login-link fade-up">Log in to your dashboard &rarr;</a>
-            </div>
-
-            {/* Platform UI Mockup */}
-            <div className="platform-visual slide-right">
-              <div className="platform-mockup">
-                <div className="mockup-header">
-                  <div className="mockup-dot active"></div>
-                  <div className="mockup-dot"></div>
-                  <div className="mockup-dot"></div>
-                  <span className="mockup-title">Progression Platform</span>
-                </div>
-                <div className="mockup-grid">
-                  <div className="mockup-card">
-                    <div className="mockup-card-label">Active Agents</div>
-                    <div className="mockup-card-value">24</div>
-                    <div className="mockup-card-bar"><div className="mockup-card-bar-fill salmon" style={{ width: '78%' }}></div></div>
-                  </div>
-                  <div className="mockup-card">
-                    <div className="mockup-card-label">Accuracy</div>
-                    <div className="mockup-card-value">97.3%</div>
-                    <div className="mockup-card-bar"><div className="mockup-card-bar-fill orchid" style={{ width: '97%' }}></div></div>
-                  </div>
-                  <div className="mockup-card">
-                    <div className="mockup-card-label">API Calls</div>
-                    <div className="mockup-card-value">1.2M</div>
-                    <div className="mockup-card-bar"><div className="mockup-card-bar-fill blue" style={{ width: '65%' }}></div></div>
-                  </div>
-                  <div className="mockup-card">
-                    <div className="mockup-card-label">Cost Saved</div>
-                    <div className="mockup-card-value">$340K</div>
-                    <div className="mockup-card-bar"><div className="mockup-card-bar-fill black" style={{ width: '85%' }}></div></div>
-                  </div>
-                  <div className="mockup-sidebar">
-                    <span className="mockup-tag">NLP Pipeline</span>
-                    <span className="mockup-tag blue">Vision API</span>
-                    <span className="mockup-tag salmon">Forecasting</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="section-header fade-up">
+            <h2>The people behind Progression Labs</h2>
+            <p className="team-section-subtitle">A lean team of senior engineers, researchers, and strategists.</p>
           </div>
         </div>
+        <TeamCarousel />
       </section>
 
       {/* Blog */}
-      <section className="section grid-section" id="blog">
+      <section className="section section-offwhite" id="blog">
         <div className="container">
           <div className="section-header fade-up">
-            <TextScramble tag="h2" text="Latest thinking from our team" trigger="inView" duration={1000} />
+            <h2>Latest thinking from our team</h2>
           </div>
 
           <div className="resources-grid">
@@ -792,7 +863,7 @@ export default function Home() {
       <section className="section cta-section" id="contact">
         <div className="container">
           <div className="fade-up">
-            <TextScramble tag="h2" text="Ready to transform your business with AI?" trigger="inView" duration={1000} />
+            <h2>Ready to transform your business with AI?</h2>
             <p>Whether you need strategic business consultancy, a managed AI platform, or custom technology solutions — our team of experts is ready to help you build AI systems that deliver real results.</p>
             <a href="mailto:hello@progressionlabs.com" className="cta-email">hello@progressionlabs.com</a>
           </div>

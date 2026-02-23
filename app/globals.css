@@ -219,15 +219,162 @@ p {
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
+  transition: background 0.3s ease;
 }
 
-.service-ascii-icon {
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.3;
-  color: var(--charcoal);
-  opacity: 0.6;
-  white-space: pre;
+.service-tile:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.service-tile:hover .service-icon-animated {
+  color: #60a5fa;
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.3));
+  transition: color 0.3s ease, filter 0.3s ease;
+}
+
+/* --- Animated Service Icons --- */
+.service-icon-animated {
+  width: 56px;
+  height: 56px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.service-icon-animated svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+}
+
+/* Flow lines: dash offset animation for "data flowing" effect */
+.service-icon-animated.is-visible .si-flow {
+  animation: si-dash-flow 2.5s linear infinite;
+}
+
+/* Pulse: gentle scale + opacity breathing */
+.service-icon-animated.is-visible .si-pulse {
+  animation: si-pulse 2s ease-in-out infinite;
+}
+
+/* Nodes: subtle scale pulse */
+.service-icon-animated.is-visible .si-node {
+  animation: si-node-pulse 3s ease-in-out infinite;
+}
+.service-icon-animated.is-visible .si-node:nth-child(2) { animation-delay: 0.5s; }
+.service-icon-animated.is-visible .si-node:nth-child(3) { animation-delay: 1s; }
+.service-icon-animated.is-visible .si-node:nth-child(4) { animation-delay: 1.5s; }
+
+/* Orbit: dash flow for circular arrows */
+.service-icon-animated.is-visible .si-orbit {
+  animation: si-dash-flow 3s linear infinite;
+}
+
+/* Flames: flickering opacity */
+.service-icon-animated.is-visible .si-flame {
+  animation: si-flicker 0.8s ease-in-out infinite alternate;
+}
+.service-icon-animated.is-visible .si-flame-2 { animation-delay: 0.3s; }
+
+/* Particles: float downward and fade */
+.service-icon-animated.is-visible .si-particle {
+  animation: si-particle-fall 1.5s ease-out infinite;
+}
+.service-icon-animated.is-visible .si-particle-2 { animation-delay: 0.5s; }
+.service-icon-animated.is-visible .si-particle-3 { animation-delay: 1s; }
+
+/* Lens: gentle hover float */
+.service-icon-animated.is-visible .si-lens {
+  animation: si-lens-scan 3s ease-in-out infinite;
+  transform-origin: center;
+}
+.service-icon-animated.is-visible .si-lens-handle {
+  animation: si-lens-scan 3s ease-in-out infinite;
+  transform-origin: center;
+}
+.service-icon-animated.is-visible .si-check {
+  animation: si-check-appear 3s ease-in-out infinite;
+}
+
+/* Gear: slow rotation */
+.service-icon-animated.is-visible .si-gear {
+  animation: si-gear-spin 6s linear infinite;
+  transform-origin: 18px 26px;
+}
+
+/* Sparks: twinkle */
+.service-icon-animated.is-visible .si-spark {
+  animation: si-twinkle 1.2s ease-in-out infinite alternate;
+}
+.service-icon-animated.is-visible .si-spark:nth-child(2) { animation-delay: 0.4s; }
+.service-icon-animated.is-visible .si-spark:nth-child(3) { animation-delay: 0.8s; }
+
+/* Rays: pulsing outward */
+.service-icon-animated.is-visible .si-ray {
+  animation: si-ray-pulse 2s ease-in-out infinite;
+}
+.service-icon-animated.is-visible .si-ray:nth-child(odd) { animation-delay: 0.3s; }
+
+/* Glow: breathing */
+.service-icon-animated.is-visible .si-glow {
+  animation: si-glow-breathe 2.5s ease-in-out infinite;
+}
+
+/* --- Keyframes --- */
+@keyframes si-dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+@keyframes si-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.3); }
+}
+
+@keyframes si-node-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes si-flicker {
+  0% { opacity: 0.2; transform: scaleY(0.9); }
+  100% { opacity: 0.5; transform: scaleY(1.1); }
+}
+
+@keyframes si-particle-fall {
+  0% { opacity: 0.3; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes si-lens-scan {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, -2px); }
+}
+
+@keyframes si-check-appear {
+  0%, 30% { opacity: 0; }
+  50%, 80% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+@keyframes si-gear-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes si-twinkle {
+  0% { opacity: 0.1; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes si-ray-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes si-glow-breathe {
+  0%, 100% { opacity: 0.04; transform: scale(1); }
+  50% { opacity: 0.12; transform: scale(1.15); }
+}
+
+.service-icon-slot {
   margin-bottom: 8px;
 }
 
@@ -260,6 +407,12 @@ p {
 
 .service-tile .feature-row-link:hover {
   color: #93c5fd;
+}
+
+@media (max-width: 1024px) {
+  .services-grid-3col {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -891,10 +1044,10 @@ p {
 
 .hero-dark-title {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: clamp(36px, 4.8vw, 68px);
+  font-size: clamp(28px, 3.6vw, 52px);
   font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 1.0;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   color: var(--charcoal);
   margin-bottom: 24px;
 }
@@ -1476,12 +1629,12 @@ p {
 .testimonial-video {
   position: relative;
   width: 100%;
-  max-width: 1400px;
+  max-width: 800px;
   margin: 0 auto 32px;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.5);
+  background: #000;
 }
 
 .testimonial-video iframe {
@@ -2022,16 +2175,24 @@ p {
   width: 100vw;
   min-height: 100vh;
   overflow: hidden;
-  background: #000000;
+  background:
+    radial-gradient(ellipse 80% 70% at 65% 50%,
+      rgba(10, 40, 80, 0.25) 0%,
+      rgba(5, 20, 40, 0.15) 40%,
+      transparent 70%
+    ),
+    #000000;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: calc(var(--nav-height) + 60px) 40px 60px;
 }
 
+/* Subtle film grain overlay — vintage noise texture */
+
 .hero-fullscreen-inner {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.9fr 1.1fr;
   align-items: center;
   gap: 40px;
   width: 100%;
@@ -2109,6 +2270,7 @@ p {
   width: 100%;
   height: 100%;
   min-height: 300px;
+  max-width: none;
 }
 
 .hero-image img {
@@ -2321,6 +2483,33 @@ p {
 .section-offwhite {
   background-color: #f5f5f0;
   color: #1a1a1a;
+  overflow: visible;
+}
+
+/* Soft fade at top of off-white sections */
+.section-offwhite::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, #f5f5f0);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Soft fade at bottom of off-white sections */
+.section-offwhite::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to top, transparent, #f5f5f0);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .section-offwhite .label {
@@ -2344,11 +2533,14 @@ p {
 }
 
 .section-offwhite .testimonial-card blockquote {
-  color: #1a1a1a;
+  color: #111111 !important;
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.75;
 }
 
 .section-offwhite .testimonial-card cite {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.6) !important;
+  font-size: 16px;
 }
 
 .section-offwhite .testimonial-dot {
@@ -2375,6 +2567,22 @@ p {
   border-color: rgba(0, 0, 0, 0.2);
 }
 
+/* Blog cards on offwhite background */
+.section-offwhite .resource-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.section-offwhite .resource-card:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.section-offwhite .resource-card h4 {
+  color: #1a1a1a;
+}
+.section-offwhite .resource-meta {
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .comparison-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2384,10 +2592,10 @@ p {
 }
 
 .comparison-card {
-  background: #ffffff;
+  background: var(--bg-cream);
   border-radius: var(--radius-md);
   padding: 40px 32px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -2429,14 +2637,14 @@ p {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--text-tertiary);
 }
 
 .comparison-card h3 {
   font-size: 24px;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -2444,7 +2652,7 @@ p {
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
   text-align: center;
 }
@@ -2461,7 +2669,7 @@ p {
   gap: 12px;
   font-size: 15px;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
 }
 
 .comparison-item-icon {
@@ -2483,7 +2691,7 @@ p {
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -2491,7 +2699,7 @@ p {
 /* Comparison Visual Diagrams */
 .comparison-visual {
   padding: 32px 24px;
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -2504,22 +2712,17 @@ p {
   height: auto;
 }
 
-/* Subtle pulse animation for AI nodes */
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+/* AI node pulse — now driven by GSAP, remove CSS animation */
+
+/* New Way card glow base */
+.new-way-card {
+  box-shadow: 0 0 30px rgba(59,130,246,0.1);
+  transition: box-shadow 0.3s ease;
 }
 
-.comparison-visual .ai-node {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.comparison-visual .ai-node:nth-child(2) {
-  animation-delay: 0.3s;
-}
-
-.comparison-visual .ai-node:nth-child(3) {
-  animation-delay: 0.6s;
+/* Comparison items — will-change for GPU-composited blur transition */
+.comparison-item {
+  will-change: transform, opacity, filter;
 }
 
 @media (max-width: 768px) {
@@ -2540,4 +2743,80 @@ p {
     min-height: 120px;
     padding: 24px 16px;
   }
+}
+
+/* --- Team Carousel --- */
+.team-carousel-wrapper {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.team-carousel {
+  overflow: hidden;
+}
+
+.team-carousel-container {
+  display: flex;
+  gap: 32px;
+  will-change: transform;
+}
+
+.team-card {
+  flex: 0 0 280px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: grab;
+  transform: translateZ(0);
+}
+
+.team-card:hover {
+  transform: translateY(-4px) translateZ(0);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.team-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.team-initials {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.02em;
+}
+
+.team-card-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  text-align: center;
+}
+
+.team-card-role {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+}
+
+.team-section-subtitle {
+  font-size: clamp(16px, 1.2vw, 19px);
+  color: var(--text-secondary);
+  max-width: 500px;
+  margin-bottom: 48px;
 }

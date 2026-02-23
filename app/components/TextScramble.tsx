@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
 // Military/tech cipher character pool
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const CYAN = '#00E5FF'
-const CYAN_GLOW = '0 0 8px rgba(0, 229, 255, 0.6), 0 0 20px rgba(0, 229, 255, 0.15)'
-const TAIL = 5 // scramble tail length (3-6 chars at leading edge)
+const CYAN_GLOW = '0 0 6px rgba(0, 229, 255, 0.4), 0 0 20px rgba(0, 229, 255, 0.15)'
+const SCRAMBLE_MS = 55
+const RESOLVE_PULSE_MS = 150
 
 interface TextScrambleProps {
   text: string
@@ -33,6 +34,7 @@ export default function TextScramble({
   const [phase, setPhase] = useState<'idle' | 'animating' | 'done'>('idle')
   const hasTriggeredRef = useRef(false)
   const frameRef = useRef<number>(0)
+  const resolveTimesRef = useRef<number[]>([])
 
   const displayText = text.toUpperCase()
 
@@ -72,24 +74,34 @@ export default function TextScramble({
     return () => observer.disconnect()
   }, [mounted, trigger, delay, startAnimation])
 
-  // Animation loop — progressive typewriter scramble
+  // Animation loop — "Storm Resolve" stochastic crystallization
   useEffect(() => {
     if (phase !== 'animating') return
 
+    // Pre-compute resolve times for each character
+    // Left-biased stochastic: charIndex position adds a small linear bias
+    let charIndex = 0
+    const totalNonSpace = displayText.split('').filter(c => c !== ' ').length
+    const resolveTimes: number[] = []
+    for (let i = 0; i < displayText.length; i++) {
+      if (displayText[i] === ' ') {
+        resolveTimes.push(0) // spaces don't need resolve times
+      } else {
+        const rt = 0.1 * duration
+          + Math.random() * 0.7 * duration
+          + 0.15 * (charIndex / Math.max(totalNonSpace, 1)) * duration
+        resolveTimes.push(rt)
+        charIndex++
+      }
+    }
+    resolveTimesRef.current = resolveTimes
+
     let start = 0
     let lastScrambleTime = 0
-    const SCRAMBLE_MS = 40
-    // leadPos travels from 0 to text.length + TAIL
-    // so the scramble tail fully exits the right side
-    const totalTravel = displayText.length + TAIL
 
     const tick = (ts: number) => {
       if (!start) start = ts
       const elapsed = ts - start
-      const t = Math.min(elapsed / duration, 1)
-
-      // Linear left-to-right leading edge position
-      const leadPos = t * totalTravel
       const shouldCycle = elapsed - lastScrambleTime >= SCRAMBLE_MS
 
       for (let i = 0; i < displayText.length; i++) {
@@ -98,34 +110,40 @@ export default function TextScramble({
         const char = displayText[i]
 
         if (char === ' ') {
-          // Spaces: visible once the lead has passed, invisible otherwise
-          span.style.opacity = i < leadPos ? '1' : '0'
+          span.style.opacity = '1'
           continue
         }
 
-        if (i < leadPos - TAIL) {
-          // STATE C — LOCKED: correct character, inherit color, fully visible
+        const rt = resolveTimes[i]
+
+        if (elapsed >= rt) {
+          // RESOLVED: show correct character
           span.textContent = char
           span.style.color = 'inherit'
-          span.style.textShadow = 'none'
           span.style.opacity = '1'
-        } else if (i < leadPos) {
-          // STATE B — SCRAMBLING: random character, cyan, visible
+
+          // Brief brightness pulse for ~150ms after resolving
+          const timeSinceResolve = elapsed - rt
+          if (timeSinceResolve < RESOLVE_PULSE_MS) {
+            const pulseAlpha = 0.5 * (1 - timeSinceResolve / RESOLVE_PULSE_MS)
+            span.style.textShadow = `0 0 6px rgba(255, 255, 255, ${pulseAlpha})`
+          } else {
+            span.style.textShadow = 'none'
+          }
+        } else {
+          // SCRAMBLING: random char cycling, cyan glow, fully visible
           span.style.opacity = '1'
           span.style.color = CYAN
           span.style.textShadow = CYAN_GLOW
           if (shouldCycle) {
             span.textContent = CHARS[Math.floor(Math.random() * CHARS.length)]
           }
-        } else {
-          // STATE A — FUTURE: completely invisible
-          span.style.opacity = '0'
         }
       }
 
       if (shouldCycle) lastScrambleTime = elapsed
 
-      if (t >= 1) {
+      if (elapsed >= duration) {
         // Final pass: lock every character to correct state
         for (let i = 0; i < displayText.length; i++) {
           const span = spanRefs.current[i]
@@ -167,7 +185,7 @@ export default function TextScramble({
     )
   }
 
-  // Animating: per-character spans — all start invisible, revealed progressively
+  // Animating: per-character spans — all start visible as scrambled chars
   return (
     <Tag
       ref={containerRef as React.Ref<HTMLHeadingElement>}
@@ -178,7 +196,7 @@ export default function TextScramble({
       {/* Hidden spacer — locks layout to final uppercase text dimensions */}
       <span style={{ visibility: 'hidden' }} aria-hidden="true">{text}</span>
 
-      {/* Per-character cipher overlay — starts fully invisible */}
+      {/* Per-character cipher overlay — starts fully visible as scrambled */}
       <span
         style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
         aria-label={text}
@@ -187,7 +205,7 @@ export default function TextScramble({
           <span
             key={i}
             ref={el => { spanRefs.current[i] = el }}
-            style={{ opacity: 0 }}
+            style={{ opacity: 1 }}
           >
             {char === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]}
           </span>

@@ -747,6 +747,53 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     }
 
     // Draw dither animating from horse to horizontal line, then down sides
+    // Sparse ambient dither across the full canvas for background texture
+    const drawAmbientDither = (width: number, height: number, time: number) => {
+      const blockSize = 8
+      const cols = Math.floor(width / blockSize)
+      const rows = Math.floor(height / blockSize)
+      const density = 0.05
+
+      const chars = '░▒▓█▪▫'
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const seed = (x * 7919 + y * 104729 + Math.floor(time * 0.001) * 31) % 1000
+          if (seed > density * 1000) continue
+
+          const edgeX = Math.min(x / cols, (cols - x) / cols) * 2
+          const edgeY = Math.min(y / rows, (rows - y) / rows) * 2
+          const edgeFade = Math.min(edgeX, edgeY)
+          const baseOpacity = 0.03 + (seed % 4) * 0.01
+          const opacity = baseOpacity * Math.min(edgeFade * 3, 1)
+
+          if (opacity < 0.01) continue
+
+          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`
+          ctx.font = `${blockSize}px monospace`
+          ctx.fillText(chars[seed % chars.length], x * blockSize, y * blockSize + blockSize)
+        }
+      }
+    }
+
+    // Faint grid overlay matching the 60px CSS grid pattern
+    const drawGridOverlay = (width: number, height: number) => {
+      const spacing = 60
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)'
+      ctx.lineWidth = 0.5
+
+      ctx.beginPath()
+      for (let x = spacing; x < width; x += spacing) {
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, height)
+      }
+      for (let y = spacing; y < height; y += spacing) {
+        ctx.moveTo(0, y)
+        ctx.lineTo(width, y)
+      }
+      ctx.stroke()
+    }
+
     const drawScrollDither = () => {
       const heroImage = document.querySelector('.hero-image video.active') as HTMLElement
       const servicesSection = document.querySelector('#services') as HTMLElement
