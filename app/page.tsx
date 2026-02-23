@@ -7,6 +7,7 @@ import IntroAnimation from './components/IntroAnimation'
 import { TextScramble } from '@/components/motion-primitives/text-scramble'
 import TeamCarousel from './components/TeamCarousel'
 import ServiceIcon from './components/AsciiIcon'
+import GlitchImage, { type GlitchImageHandle } from './components/GlitchImage'
 
 const testimonials = [
   {
@@ -36,6 +37,19 @@ export default function Home() {
   const [introComplete, setIntroComplete] = useState(false)
   const [comparisonInView, setComparisonInView] = useState(false)
   const comparisonRef = useRef<HTMLDivElement>(null)
+
+  // Service tile pixel reveal refs
+  const serviceGlitchRefs = useRef<(GlitchImageHandle | null)[]>([])
+  const serviceTileRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const serviceImages = [
+    '/services/ai-expert.jpg',
+    '/services/ai-builds.jpg',
+    '/services/ai-transformation.jpg',
+    '/services/ai-audit.jpg',
+    '/services/project-surgery.jpg',
+    '/services/ideation-sessions.jpg',
+  ]
 
   // Trigger comparison TextScramble when scrolled into view
   useEffect(() => {
@@ -135,24 +149,58 @@ export default function Home() {
         )
       })
 
-      // Service tiles stagger
+      // Service tiles — pixel reveal + text slider choreography
       const serviceTiles = document.querySelectorAll('.service-tile')
       if (serviceTiles.length) {
-        gsap.fromTo(serviceTiles,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            stagger: 0.15,
-            ease: 'back.out(1.2)',
+        serviceTiles.forEach((tile, i) => {
+          const textEl = tile.querySelector('.service-tile-text')
+          const sliderEl = tile.querySelector('.service-tile-slider')
+          const glitchHandle = serviceGlitchRefs.current[i]
+
+          const tl = gsap.timeline({
             scrollTrigger: {
-              trigger: serviceTiles[0],
+              trigger: tile,
               start: 'top 85%',
               toggleActions: 'play none none none'
-            }
+            },
+            delay: i * 0.15 // stagger between tiles
+          })
+
+          // 1. Fade tile in
+          tl.fromTo(tile,
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+            0
+          )
+
+          // 2. Pixel reveal the image (if glitch ref exists)
+          if (glitchHandle) {
+            tl.fromTo(glitchHandle, { progress: 0 }, {
+              progress: 1,
+              duration: 1.5,
+              ease: 'power2.inOut'
+            }, 0.2)
           }
-        )
+
+          // 3. Text clip-path wipe reveal
+          if (textEl) {
+            tl.fromTo(textEl,
+              { clipPath: 'inset(0 0 0 100%)' },
+              { clipPath: 'inset(0 0 0 0%)', duration: 1, ease: 'power3.inOut' },
+              0.3
+            )
+          }
+
+          // 4. Blue slider travels with text leading edge, then disappears
+          if (sliderEl) {
+            tl.fromTo(sliderEl,
+              { left: '0%', opacity: 1 },
+              { left: '100%', opacity: 1, duration: 1, ease: 'power3.inOut' },
+              0.3
+            )
+            tl.to(sliderEl, { opacity: 0, duration: 0.2 }, '-=0.1')
+          }
+        })
       }
 
       // Slide animations — bouncy
@@ -420,6 +468,8 @@ export default function Home() {
         )
       }
 
+      // Testimonial section removed pixel reveal — kept simple
+
     }
 
     initAnimations()
@@ -486,7 +536,7 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TextScramble as="h1" className="hero-dark-title" trigger={introComplete} duration={3.2} speed={0.055} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TextScramble>
+            <TextScramble as="h1" className="hero-dark-title" trigger={introComplete} duration={3.2} speed={0.025} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TextScramble>
             <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
             <div className="hero-dark-actions">
               <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
@@ -504,7 +554,7 @@ export default function Home() {
         <div className="grid-container">
         <div className="container">
           <div ref={comparisonRef} className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
-            <TextScramble as="h2" trigger={comparisonInView} duration={2} speed={0.055} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>We Rebuilt Consulting From Scratch</TextScramble>
+            <TextScramble as="h2" trigger={comparisonInView} duration={2} speed={0.025} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>We Rebuilt Consulting From Scratch</TextScramble>
           </div>
 
           <div className="comparison-grid">
@@ -705,53 +755,38 @@ export default function Home() {
             </div>
 
             <div className="services-grid-3col">
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="expert" className="service-icon-slot" />
-                <span className="service-number">01</span>
-                <h3>AI Expert</h3>
-                <p>On-demand access to senior AI engineers and strategists. We embed within your team to architect, build, and ship production AI — from LLM fine-tuning to agent orchestration.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
-
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="builds" className="service-icon-slot" />
-                <span className="service-number">02</span>
-                <h3>AI Builds</h3>
-                <p>Full-stack AI product development from zero to production. Custom models, data pipelines, APIs, and interfaces — delivered as working software with ongoing support.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
-
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="transform" className="service-icon-slot" />
-                <span className="service-number">03</span>
-                <h3>AI Transformation</h3>
-                <p>Strategic advisory for enterprise AI adoption. We assess, plan, and guide your organization through digital transformation — from roadmapping to change management.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
-
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="audit" className="service-icon-slot" />
-                <span className="service-number">04</span>
-                <h3>AI Audit</h3>
-                <p>Deep-dive assessment of your AI readiness, current systems, and opportunities. We identify gaps, risks, and quick wins — delivering a prioritised roadmap in weeks, not months.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
-
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="surgery" className="service-icon-slot" />
-                <span className="service-number">05</span>
-                <h3>Project Surgery</h3>
-                <p>When AI projects stall, we diagnose and fix. Our team parachutes in to rescue troubled implementations — refactoring models, fixing pipelines, and getting your project back on track.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
-
-              <div className="service-tile fade-up">
-                <ServiceIcon icon="ideation" className="service-icon-slot" />
-                <span className="service-number">06</span>
-                <h3>Ideation Sessions</h3>
-                <p>Structured workshops that turn business challenges into AI-powered solutions. We facilitate brainstorms with your team, prototype concepts live, and leave you with a concrete action plan.</p>
-                <a href="#" className="feature-row-link">Learn more &rarr;</a>
-              </div>
+              {[
+                { icon: 'expert' as const, num: '01', title: 'AI Expert', desc: 'On-demand access to senior AI engineers and strategists. We embed within your team to architect, build, and ship production AI — from LLM fine-tuning to agent orchestration.' },
+                { icon: 'builds' as const, num: '02', title: 'AI Builds', desc: 'Full-stack AI product development from zero to production. Custom models, data pipelines, APIs, and interfaces — delivered as working software with ongoing support.' },
+                { icon: 'transform' as const, num: '03', title: 'AI Transformation', desc: 'Strategic advisory for enterprise AI adoption. We assess, plan, and guide your organization through digital transformation — from roadmapping to change management.' },
+                { icon: 'audit' as const, num: '04', title: 'AI Audit', desc: 'Deep-dive assessment of your AI readiness, current systems, and opportunities. We identify gaps, risks, and quick wins — delivering a prioritised roadmap in weeks, not months.' },
+                { icon: 'surgery' as const, num: '05', title: 'Project Surgery', desc: 'When AI projects stall, we diagnose and fix. Our team parachutes in to rescue troubled implementations — refactoring models, fixing pipelines, and getting your project back on track.' },
+                { icon: 'ideation' as const, num: '06', title: 'Ideation Sessions', desc: 'Structured workshops that turn business challenges into AI-powered solutions. We facilitate brainstorms with your team, prototype concepts live, and leave you with a concrete action plan.' },
+              ].map((service, i) => (
+                <div
+                  key={service.num}
+                  className="service-tile"
+                  ref={(el) => { serviceTileRefs.current[i] = el }}
+                  style={{ opacity: 0 }}
+                >
+                  <div className="service-tile-image">
+                    <GlitchImage
+                      ref={(el) => { serviceGlitchRefs.current[i] = el }}
+                      imageUrl={serviceImages[i]}
+                    />
+                  </div>
+                  <div className="service-tile-content">
+                    <div className="service-tile-text">
+                      <ServiceIcon icon={service.icon} className="service-icon-slot" />
+                      <span className="service-number">{service.num}</span>
+                      <h3>{service.title}</h3>
+                      <p>{service.desc}</p>
+                      <a href="#" className="feature-row-link">Learn more &rarr;</a>
+                    </div>
+                    <div className="service-tile-slider" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
