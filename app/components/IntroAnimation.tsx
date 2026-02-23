@@ -72,27 +72,38 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const startTime = Date.now()
     let phaseStartTime = startTime
 
-    // Load first video frame for brightness sampling
-    let horseImageData: ImageData | null = null
+    // Load flower video for brightness sampling and playback
+    let flowerImageData: ImageData | null = null
     let sampleWidth = 0
     let sampleHeight = 0
-    const sampleVideo = document.createElement('video')
-    sampleVideo.src = '/blue-flower-no-background.mp4'
-    sampleVideo.muted = true
-    sampleVideo.playsInline = true
-    sampleVideo.preload = 'auto'
-    sampleVideo.addEventListener('loadeddata', () => {
-      sampleWidth = sampleVideo.videoWidth
-      sampleHeight = sampleVideo.videoHeight
-      const offscreen = document.createElement('canvas')
-      offscreen.width = sampleWidth
-      offscreen.height = sampleHeight
-      const offCtx = offscreen.getContext('2d')
-      if (offCtx) {
-        offCtx.drawImage(sampleVideo, 0, 0)
-        horseImageData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight)
+    const flowerVideo = document.createElement('video')
+    flowerVideo.src = '/flower_open.mov'
+    flowerVideo.muted = true
+    flowerVideo.playsInline = true
+    flowerVideo.preload = 'auto'
+
+    // Offscreen canvas for sampling
+    const flowerOffscreen = document.createElement('canvas')
+    const flowerOffCtx = flowerOffscreen.getContext('2d')
+
+    flowerVideo.addEventListener('loadeddata', () => {
+      sampleWidth = flowerVideo.videoWidth
+      sampleHeight = flowerVideo.videoHeight
+      flowerOffscreen.width = sampleWidth
+      flowerOffscreen.height = sampleHeight
+      if (flowerOffCtx) {
+        flowerOffCtx.drawImage(flowerVideo, 0, 0)
+        flowerImageData = flowerOffCtx.getImageData(0, 0, sampleWidth, sampleHeight)
       }
     })
+
+    // Update flower image data each frame when video is playing
+    const updateFlowerImageData = () => {
+      if (flowerOffCtx && sampleWidth > 0) {
+        flowerOffCtx.drawImage(flowerVideo, 0, 0)
+        flowerImageData = flowerOffCtx.getImageData(0, 0, sampleWidth, sampleHeight)
+      }
+    }
 
     // Scroll tracking for horse-to-line animation
     let scrollProgress = 0
@@ -364,6 +375,18 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     // Dither effect configuration - half the size of P shape squares
     const ditherBlockSize = pixelSize / 2
+
+    // Blue to turquoise color palette (matching AsciiVideoCanvas)
+    const OCEAN_COLORS = [
+      { r: 0, g: 119, b: 190 },   // Ocean blue
+      { r: 0, g: 150, b: 199 },   // Medium blue
+      { r: 0, g: 180, b: 216 },   // Bright blue
+      { r: 72, g: 202, b: 228 },  // Cyan
+      { r: 144, g: 224, b: 239 }, // Light cyan
+      { r: 173, g: 232, b: 244 }, // Pale turquoise
+      { r: 202, g: 240, b: 248 }, // Very light turquoise
+    ]
+
     const ditherColors = {
       blockColorStart: '#ffffff',
       blockColorEnd: '#999999',
@@ -373,6 +396,27 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     const ASCII_CHARS = ['@', '#', '$', '%', '&', '*', '+', '=', '-', ':', '.', '/', '\\', '|', '!', '?', 'X', 'O', '0', '1']
     const circleProbability = 0.36
     const asciiProbability = 0.8
+
+    // Get ocean color based on brightness (for flower ASCII)
+    const getOceanColor = (brightness: number): { r: number; g: number; b: number } => {
+      const threshold = 0.35
+      if (brightness < threshold) return { r: 0, g: 0, b: 0 } // Will be skipped
+
+      const normalizedBrightness = (brightness - threshold) / (1 - threshold)
+      const t = Math.max(0, Math.min(1, normalizedBrightness))
+
+      const index = Math.min(Math.floor(t * (OCEAN_COLORS.length - 1)), OCEAN_COLORS.length - 2)
+      const nextIndex = index + 1
+      const localT = (t * (OCEAN_COLORS.length - 1)) - index
+      const c1 = OCEAN_COLORS[index]
+      const c2 = OCEAN_COLORS[nextIndex]
+
+      return {
+        r: Math.round(c1.r + (c2.r - c1.r) * localT),
+        g: Math.round(c1.g + (c2.g - c1.g) * localT),
+        b: Math.round(c1.b + (c2.b - c1.b) * localT),
+      }
+    }
 
     // Pre-generate random values for each block position (seeded by position)
     const getBlockRandom = (x: number, y: number, seed: number = 0): number => {
@@ -474,9 +518,20 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               const randomOffset = (getBlockRandom(x, y, 4) - 0.5) * 0.6
               const t = Math.max(0, Math.min(1, baseT + randomOffset))
 
+              // Use ocean colors (same as flower ASCII)
+              const colorIndex = Math.min(Math.floor(t * (OCEAN_COLORS.length - 1)), OCEAN_COLORS.length - 2)
+              const nextIndex = colorIndex + 1
+              const localT = (t * (OCEAN_COLORS.length - 1)) - colorIndex
+              const c1 = OCEAN_COLORS[colorIndex]
+              const c2 = OCEAN_COLORS[nextIndex]
+              const color = {
+                r: Math.round(c1.r + (c2.r - c1.r) * localT),
+                g: Math.round(c1.g + (c2.g - c1.g) * localT),
+                b: Math.round(c1.b + (c2.b - c1.b) * localT),
+              }
+
               // Draw block background
-              const blockColor = lerpColor(ditherColors.blockColorStart, ditherColors.blockColorEnd, t)
-              ctx.fillStyle = blockColor
+              ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`
               ctx.globalAlpha = Math.min(1, blockProgress * 2)
               ctx.fillRect(x, y, ditherBlockSize, ditherBlockSize)
 
@@ -485,30 +540,30 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
               const rand2 = getBlockRandom(x, y, 2)
               const rand3 = getBlockRandom(x, y, 3)
 
-              // Determine what to draw: circle, ASCII, or nothing
-              const circleColor = blendWithBlack(
-                parseInt(blockColor.match(/\d+/g)![0]),
-                parseInt(blockColor.match(/\d+/g)![1]),
-                parseInt(blockColor.match(/\d+/g)![2])
-              )
+              // Symbol color - lighter version (same as flower)
+              const symbolColor = {
+                r: Math.min(255, color.r + 80),
+                g: Math.min(255, color.g + 80),
+                b: Math.min(255, color.b + 80),
+              }
 
-              if (rand1 < circleProbability) {
-                // Draw circle
-                ctx.fillStyle = circleColor
-                ctx.beginPath()
-                ctx.arc(x + ditherBlockSize / 2, y + ditherBlockSize / 2, ditherBlockSize / 2 - 1, 0, Math.PI * 2)
-                ctx.fill()
-              } else if (rand2 < asciiProbability) {
-                // Draw ASCII character
-                const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
-                const char = ASCII_CHARS[charIndex]
-                ctx.fillStyle = circleColor
-                ctx.font = `${ditherBlockSize * 0.9}px monospace`
+              if (rand1 < 0.35) {
+                ctx.fillStyle = `rgb(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b})`
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
-                ctx.fillText(char, x + ditherBlockSize / 2, y + ditherBlockSize / 2)
+
+                if (rand2 < 0.5) {
+                  // Random ASCII character
+                  const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+                  ctx.font = `bold ${ditherBlockSize * 0.7}px monospace`
+                  ctx.fillText(ASCII_CHARS[charIndex], x + ditherBlockSize / 2, y + ditherBlockSize / 2)
+                } else {
+                  // Full circle (diameter = block size)
+                  ctx.beginPath()
+                  ctx.arc(x + ditherBlockSize / 2, y + ditherBlockSize / 2, (ditherBlockSize - 2) / 2, 0, Math.PI * 2)
+                  ctx.fill()
+                }
               }
-              // else: leave just the block color
 
               ctx.globalAlpha = 1
             }
@@ -578,7 +633,7 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
       // Helper to sample brightness from horse image
       const sampleBrightness = (screenX: number, screenY: number): number => {
-        if (!horseImageData || !heroRect || !sampleWidth) return 0.5
+        if (!flowerImageData || !heroRect || !sampleWidth) return 0.5
 
         // Convert screen position to image coordinates
         const imgX = Math.floor(((screenX - heroRect.left) / heroRect.width) * sampleWidth)
@@ -590,9 +645,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
         // Get pixel from image data
         const idx = (clampedY * sampleWidth + clampedX) * 4
-        const r = horseImageData.data[idx]
-        const g = horseImageData.data[idx + 1]
-        const b = horseImageData.data[idx + 2]
+        const r = flowerImageData.data[idx]
+        const g = flowerImageData.data[idx + 1]
+        const b = flowerImageData.data[idx + 2]
 
         // Convert to grayscale brightness (0-1)
         return (r * 0.299 + g * 0.587 + b * 0.114) / 255
@@ -679,15 +734,15 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
     // Helper to sample horse brightness
     const sampleHorseBrightnessFn = (screenX: number, screenY: number, rect: DOMRect): number => {
-      if (!horseImageData || !sampleWidth) return 0.5
+      if (!flowerImageData || !sampleWidth) return 0.5
       const imgX = Math.floor(((screenX - rect.left) / rect.width) * sampleWidth)
       const imgY = Math.floor(((screenY - rect.top) / rect.height) * sampleHeight)
       const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
       const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
       const idx = (clampedY * sampleWidth + clampedX) * 4
-      const r = horseImageData.data[idx]
-      const g = horseImageData.data[idx + 1]
-      const b = horseImageData.data[idx + 2]
+      const r = flowerImageData.data[idx]
+      const g = flowerImageData.data[idx + 1]
+      const b = flowerImageData.data[idx + 2]
       return (r * 0.299 + g * 0.587 + b * 0.114) / 255
     }
 
@@ -947,22 +1002,159 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
       }
 
-      // CONVERGING - dither blocks flow from logo to target rectangle
+      // CONVERGING - P logo blocks flow to flower video positions
       if (phase === 'expanding') {
         const expandElapsed = Date.now() - phaseStartTime
-        const expandDuration = 1000 // 1 second to converge
+        const expandDuration = 1200 // 1.2 seconds to converge
+
+        // Start flower video at beginning of expanding phase
+        if (expandElapsed < 50 && flowerVideo.paused) {
+          flowerVideo.play().catch(() => {})
+        }
+
+        // Update flower image data for current frame
+        updateFlowerImageData()
 
         // Progress from 0 to 1
         const expandProgress = Math.min(1, expandElapsed / expandDuration)
 
-        // Fade out dither in the last 40% so blocks dissolve before reaching the video
-        const fadeStart = 0.6
-        const fadeAlpha = expandProgress > fadeStart
-          ? 1 - (expandProgress - fadeStart) / (1 - fadeStart)
-          : 1
-        ctx.globalAlpha = fadeAlpha
-        drawConvergingDither(expandProgress)
+        // Draw the flower video (grayscale) - fade in
+        const videoFadeIn = Math.min(1, expandProgress * 2)
+        ctx.globalAlpha = videoFadeIn
+
+        // Get hero image area position
+        const heroArea = document.querySelector('.hero-image') as HTMLElement
+        let flowerX = canvas.width / 2
+        let flowerY = canvas.height / 2
+        let flowerW = canvas.width * 0.5
+        let flowerH = canvas.height * 0.8
+
+        if (heroArea) {
+          const rect = heroArea.getBoundingClientRect()
+          flowerX = rect.left
+          flowerY = rect.top
+          flowerW = rect.width
+          flowerH = rect.height
+        }
+
+        // Maintain aspect ratio
+        const videoAspect = flowerVideo.videoWidth / flowerVideo.videoHeight || 1
+        const areaAspect = flowerW / flowerH
+        let drawW, drawH, drawX, drawY
+
+        if (videoAspect > areaAspect) {
+          drawW = flowerW
+          drawH = drawW / videoAspect
+          drawX = flowerX
+          drawY = flowerY + (flowerH - drawH) / 2
+        } else {
+          drawH = flowerH
+          drawW = drawH * videoAspect
+          drawX = flowerX + (flowerW - drawW) / 2
+          drawY = flowerY
+        }
+
+        // Draw grayscale flower video
+        ctx.filter = 'grayscale(100%)'
+        ctx.drawImage(flowerVideo, drawX, drawY, drawW, drawH)
+        ctx.filter = 'none'
         ctx.globalAlpha = 1
+
+        // Calculate flower ASCII block positions
+        const flowerBlockSize = 20
+        const flowerCols = Math.ceil(drawW / flowerBlockSize)
+        const flowerRows = Math.ceil(drawH / flowerBlockSize)
+
+        // Sample brightness and collect visible blocks
+        const flowerBlocks: { x: number; y: number; brightness: number }[] = []
+        for (let row = 0; row < flowerRows; row++) {
+          for (let col = 0; col < flowerCols; col++) {
+            const screenX = drawX + col * flowerBlockSize
+            const screenY = drawY + row * flowerBlockSize
+
+            // Sample brightness from flower image
+            if (flowerImageData && sampleWidth > 0) {
+              const imgX = Math.floor(((screenX - drawX + flowerBlockSize / 2) / drawW) * sampleWidth)
+              const imgY = Math.floor(((screenY - drawY + flowerBlockSize / 2) / drawH) * sampleHeight)
+              const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
+              const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
+              const idx = (clampedY * sampleWidth + clampedX) * 4
+              const r = flowerImageData.data[idx]
+              const g = flowerImageData.data[idx + 1]
+              const b = flowerImageData.data[idx + 2]
+              const a = flowerImageData.data[idx + 3]
+
+              if (a > 10) {
+                const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255
+                if (brightness >= 0.35) {
+                  flowerBlocks.push({ x: screenX, y: screenY, brightness })
+                }
+              }
+            }
+          }
+        }
+
+        // Animate P logo blocks to flower positions
+        const numLogoBlocks = logoBlocks.length
+        const numFlowerBlocks = flowerBlocks.length
+
+        for (let i = 0; i < Math.max(numLogoBlocks, numFlowerBlocks); i++) {
+          const logoBlock = logoBlocks[i % numLogoBlocks]
+          const flowerBlock = flowerBlocks[i % Math.max(1, numFlowerBlocks)]
+
+          if (!flowerBlock) continue
+
+          // Staggered animation delay
+          const delay = getBlockRandom(i, i * 7, 20) * 0.4
+          const blockProgress = Math.max(0, Math.min(1, (expandProgress - delay) / (1 - delay)))
+
+          if (blockProgress > 0) {
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - blockProgress, 3)
+
+            // Interpolate position
+            const currentX = logoBlock.x + (flowerBlock.x - logoBlock.x) * eased
+            const currentY = logoBlock.y + (flowerBlock.y - logoBlock.y) * eased
+
+            // Interpolate block size
+            const currentBlockSize = ditherBlockSize + (flowerBlockSize - ditherBlockSize) * eased
+
+            // Get color based on final brightness
+            const color = getOceanColor(flowerBlock.brightness)
+            if (color.r === 0 && color.g === 0 && color.b === 0) continue
+
+            // Draw block
+            ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`
+            ctx.fillRect(currentX, currentY, currentBlockSize - 1, currentBlockSize - 1)
+
+            // Draw symbol (35% chance)
+            const rand = getBlockRandom(flowerBlock.x, flowerBlock.y, 1)
+            const rand2 = getBlockRandom(flowerBlock.x, flowerBlock.y, 2)
+            const rand3 = getBlockRandom(flowerBlock.x, flowerBlock.y, 3)
+            if (rand < 0.35) {
+              const symbolColor = {
+                r: Math.min(255, color.r + 80),
+                g: Math.min(255, color.g + 80),
+                b: Math.min(255, color.b + 80),
+              }
+              ctx.fillStyle = `rgb(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b})`
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+
+              if (rand2 < 0.5) {
+                // Random ASCII character
+                const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+                ctx.font = `bold ${currentBlockSize * 0.7}px monospace`
+                ctx.fillText(ASCII_CHARS[charIndex], currentX + currentBlockSize / 2, currentY + currentBlockSize / 2)
+              } else {
+                // Full circle (diameter = block size)
+                ctx.beginPath()
+                ctx.arc(currentX + currentBlockSize / 2, currentY + currentBlockSize / 2, (currentBlockSize - 2) / 2, 0, Math.PI * 2)
+                ctx.fill()
+              }
+            }
+          }
+        }
 
         if (expandProgress >= 1) {
           phase = 'static'
@@ -971,8 +1163,109 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         }
       }
 
-      // STATIC - draw dither at scroll-interpolated position between horse and flower
+      // STATIC - continue drawing flower with ASCII overlay
       if (phase === 'static') {
+        // Update flower image data
+        updateFlowerImageData()
+
+        // Get hero image area position
+        const heroArea = document.querySelector('.hero-image') as HTMLElement
+        if (!heroArea) {
+          animationFrame = requestAnimationFrame(render)
+          return
+        }
+
+        const rect = heroArea.getBoundingClientRect()
+        const flowerX = rect.left
+        const flowerY = rect.top
+        const flowerW = rect.width
+        const flowerH = rect.height
+
+        // Maintain aspect ratio
+        const videoAspect = flowerVideo.videoWidth / flowerVideo.videoHeight || 1
+        const areaAspect = flowerW / flowerH
+        let drawW, drawH, drawX, drawY
+
+        if (videoAspect > areaAspect) {
+          drawW = flowerW
+          drawH = drawW / videoAspect
+          drawX = flowerX
+          drawY = flowerY + (flowerH - drawH) / 2
+        } else {
+          drawH = flowerH
+          drawW = drawH * videoAspect
+          drawX = flowerX + (flowerW - drawW) / 2
+          drawY = flowerY
+        }
+
+        // Draw grayscale flower video
+        ctx.filter = 'grayscale(100%)'
+        ctx.drawImage(flowerVideo, drawX, drawY, drawW, drawH)
+        ctx.filter = 'none'
+
+        // Draw ASCII overlay
+        const flowerBlockSize = 20
+        const flowerCols = Math.ceil(drawW / flowerBlockSize)
+        const flowerRows = Math.ceil(drawH / flowerBlockSize)
+
+        for (let row = 0; row < flowerRows; row++) {
+          for (let col = 0; col < flowerCols; col++) {
+            const screenX = drawX + col * flowerBlockSize
+            const screenY = drawY + row * flowerBlockSize
+
+            if (flowerImageData && sampleWidth > 0) {
+              const imgX = Math.floor(((screenX - drawX + flowerBlockSize / 2) / drawW) * sampleWidth)
+              const imgY = Math.floor(((screenY - drawY + flowerBlockSize / 2) / drawH) * sampleHeight)
+              const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
+              const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
+              const idx = (clampedY * sampleWidth + clampedX) * 4
+              const r = flowerImageData.data[idx]
+              const g = flowerImageData.data[idx + 1]
+              const b = flowerImageData.data[idx + 2]
+              const a = flowerImageData.data[idx + 3]
+
+              if (a < 10) continue
+
+              const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255
+              if (brightness < 0.35) continue
+
+              const color = getOceanColor(brightness)
+              if (color.r === 0 && color.g === 0 && color.b === 0) continue
+
+              ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`
+              ctx.fillRect(screenX, screenY, flowerBlockSize - 1, flowerBlockSize - 1)
+
+              // Draw symbol - use col/row for consistent randomness when scrolling
+              const rand = getBlockRandom(col, row, 1)
+              const rand2 = getBlockRandom(col, row, 2)
+              const rand3 = getBlockRandom(col, row, 3)
+              if (rand < 0.35) {
+                const symbolColor = {
+                  r: Math.min(255, color.r + 80),
+                  g: Math.min(255, color.g + 80),
+                  b: Math.min(255, color.b + 80),
+                }
+                ctx.fillStyle = `rgb(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b})`
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+
+                if (rand2 < 0.5) {
+                  // Random ASCII character
+                  const charIndex = Math.floor(rand3 * ASCII_CHARS.length)
+                  ctx.font = `bold ${flowerBlockSize * 0.7}px monospace`
+                  ctx.fillText(ASCII_CHARS[charIndex], screenX + flowerBlockSize / 2, screenY + flowerBlockSize / 2)
+                } else {
+                  // Full circle (diameter = block size)
+                  ctx.beginPath()
+                  ctx.arc(screenX + flowerBlockSize / 2, screenY + flowerBlockSize / 2, (flowerBlockSize - 2) / 2, 0, Math.PI * 2)
+                  ctx.fill()
+                }
+              }
+            }
+          }
+        }
+
+        // Also draw scroll dither if needed
         drawScrollDither()
       }
 

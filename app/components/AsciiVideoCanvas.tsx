@@ -7,20 +7,16 @@ interface AsciiVideoCanvasProps {
   videoSrc: string
 }
 
-// Ocean color palette - blue to turquoise with butter/cream tones for bright areas
+// Ocean color palette - blue to turquoise (mapped to video brightness)
 const OCEAN_COLORS = [
-  { r: 0, g: 119, b: 182 },   // Ocean blue (dark areas)
-  { r: 0, g: 150, b: 180 },   // Teal blue
-  { r: 50, g: 180, b: 180 },  // Blue-green
-  { r: 80, g: 200, b: 180 },  // Sea green
-  { r: 120, g: 210, b: 170 }, // Light green
-  { r: 180, g: 220, b: 150 }, // Yellow-green
-  { r: 220, g: 230, b: 180 }, // Butter/cream
-  { r: 245, g: 245, b: 220 }, // Light cream (bright areas)
+  { r: 0, g: 119, b: 190 },   // Ocean blue (darkest visible areas)
+  { r: 0, g: 150, b: 199 },   // Medium blue
+  { r: 0, g: 180, b: 216 },   // Bright blue
+  { r: 72, g: 202, b: 228 },  // Cyan
+  { r: 144, g: 224, b: 239 }, // Light cyan
+  { r: 173, g: 232, b: 244 }, // Pale turquoise
+  { r: 202, g: 240, b: 248 }, // Very light turquoise (brightest areas)
 ]
-
-// Simple symbols that look good at larger sizes
-const SYMBOLS = ['+', '•', '○', '◦', '·']
 
 export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -36,8 +32,11 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Larger block size for chunky pixel look
-    const blockSize = 24
+    // Block size for ASCII overlay
+    const blockSize = 28
+
+    // Brightness threshold - only show blocks above this
+    const brightnessThreshold = 0.35
 
     // Offscreen canvas for sampling video
     const offscreen = document.createElement('canvas')
@@ -56,13 +55,15 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
 
     // Get ocean color based on brightness (0-1)
     const getOceanColor = (brightness: number): { r: number; g: number; b: number } => {
-      // Map brightness to color index (bright = cream/butter, dark = blue)
-      const t = brightness
-      const index = Math.min(Math.floor(t * OCEAN_COLORS.length), OCEAN_COLORS.length - 1)
-      const nextIndex = Math.min(index + 1, OCEAN_COLORS.length - 1)
+      // Normalize brightness above threshold to 0-1 range
+      const normalizedBrightness = (brightness - brightnessThreshold) / (1 - brightnessThreshold)
+      const t = Math.max(0, Math.min(1, normalizedBrightness))
+
+      const index = Math.min(Math.floor(t * (OCEAN_COLORS.length - 1)), OCEAN_COLORS.length - 2)
+      const nextIndex = index + 1
 
       // Interpolate between two nearest colors
-      const localT = (t * OCEAN_COLORS.length) - index
+      const localT = (t * (OCEAN_COLORS.length - 1)) - index
       const c1 = OCEAN_COLORS[index]
       const c2 = OCEAN_COLORS[nextIndex]
 
@@ -97,29 +98,36 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
         return
       }
 
-      // Clear canvas
+      // Clear canvas with black
       ctx.fillStyle = '#000000'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // Calculate video dimensions to maintain aspect ratio
+      // Calculate video dimensions to maintain aspect ratio (contain)
       const videoAspect = video.videoWidth / video.videoHeight || 1
       const canvasAspect = canvas.width / canvas.height
 
       let drawWidth, drawHeight, offsetX, offsetY
 
       if (videoAspect > canvasAspect) {
-        drawHeight = canvas.height
-        drawWidth = drawHeight * videoAspect
-        offsetX = (canvas.width - drawWidth) / 2
-        offsetY = 0
-      } else {
+        // Video is wider - fit to width
         drawWidth = canvas.width
         drawHeight = drawWidth / videoAspect
         offsetX = 0
         offsetY = (canvas.height - drawHeight) / 2
+      } else {
+        // Video is taller - fit to height
+        drawHeight = canvas.height
+        drawWidth = drawHeight * videoAspect
+        offsetX = (canvas.width - drawWidth) / 2
+        offsetY = 0
       }
 
-      // Sample video to offscreen canvas at lower resolution
+      // Draw the actual video frame first (grayscale)
+      ctx.filter = 'grayscale(100%)'
+      ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight)
+      ctx.filter = 'none'
+
+      // Sample video at block resolution for ASCII overlay
       const sampleWidth = Math.ceil(drawWidth / blockSize)
       const sampleHeight = Math.ceil(drawHeight / blockSize)
 
@@ -130,7 +138,7 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
       const imageData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight)
       const data = imageData.data
 
-      // Draw blocks
+      // Draw ASCII block overlay
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
@@ -148,51 +156,43 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
           // Calculate brightness
           const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255
 
-          // Skip very dark pixels (background)
-          if (brightness < 0.08) continue
+          // Only show blocks above threshold (skip dark background areas)
+          if (brightness < brightnessThreshold) continue
 
           const screenX = offsetX + x * blockSize
           const screenY = offsetY + y * blockSize
 
-          // Get ocean gradient color
+          // Get ocean gradient color based on brightness
           const color = getOceanColor(brightness)
 
           // Random values for this block
           const rand = getBlockRandom(x, y, 1)
           const rand2 = getBlockRandom(x, y, 2)
-          const rand3 = getBlockRandom(x, y, 3)
 
-          // Draw solid block background
+          // Draw solid block background (fully opaque)
           ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`
           ctx.fillRect(screenX, screenY, blockSize - 1, blockSize - 1)
 
-          // Symbol color - lighter version of block color
+          // Symbol color - lighter/whiter version
           const symbolColor = {
-            r: Math.min(255, color.r + 60),
-            g: Math.min(255, color.g + 60),
-            b: Math.min(255, color.b + 60),
+            r: Math.min(255, color.r + 80),
+            g: Math.min(255, color.g + 80),
+            b: Math.min(255, color.b + 80),
           }
 
-          // Draw symbol inside block (30% chance)
+          // Draw symbol inside block (35% chance)
           if (rand < 0.35) {
-            ctx.fillStyle = `rgba(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b}, 0.8)`
+            ctx.fillStyle = `rgb(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b})`
 
-            if (rand2 < 0.5) {
+            if (rand2 < 0.6) {
               // Draw plus sign
-              ctx.font = `bold ${blockSize * 0.7}px sans-serif`
+              ctx.font = `bold ${blockSize * 0.6}px sans-serif`
               ctx.fillText('+', screenX + blockSize / 2, screenY + blockSize / 2)
-            } else if (rand2 < 0.75) {
+            } else {
               // Draw small dot
               ctx.beginPath()
-              ctx.arc(screenX + blockSize / 2, screenY + blockSize / 2, blockSize / 6, 0, Math.PI * 2)
+              ctx.arc(screenX + blockSize / 2, screenY + blockSize / 2, blockSize / 8, 0, Math.PI * 2)
               ctx.fill()
-            } else {
-              // Draw circle outline
-              ctx.strokeStyle = `rgba(${symbolColor.r}, ${symbolColor.g}, ${symbolColor.b}, 0.6)`
-              ctx.lineWidth = 2
-              ctx.beginPath()
-              ctx.arc(screenX + blockSize / 2, screenY + blockSize / 2, blockSize / 4, 0, Math.PI * 2)
-              ctx.stroke()
             }
           }
         }
@@ -204,7 +204,7 @@ export default function AsciiVideoCanvas({ isActive, videoSrc }: AsciiVideoCanva
     // Start video and rendering when active
     if (isActive && !videoEnded) {
       video.play().catch(() => {
-        // Autoplay might be blocked, that's ok
+        // Autoplay might be blocked
       })
     }
     render()

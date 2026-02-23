@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
-import AsciiVideoCanvas from './components/AsciiVideoCanvas'
+// AsciiVideoCanvas now integrated into IntroAnimation for seamless P logo -> flower transition
 import PixelVine from './components/PixelVine'
 import TextScramble from './components/TextScramble'
 
@@ -314,15 +314,18 @@ export default function Home() {
 
       {/* Hero Section - Fullscreen */}
       <section className="hero-fullscreen" id="hero">
-        <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <TextScramble tag="h1" text="Turn your company a leader in the age of AI" trigger="load" delay={300} duration={1400} className="hero-dark-title" triggerWhen={introComplete} />
-          <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
-          <div className="hero-dark-actions">
-            <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
+        <div className="hero-fullscreen-inner">
+          <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
+            <TextScramble tag="h1" text="Turn your company a leader in the age of AI" trigger="load" delay={300} duration={1400} className="hero-dark-title" triggerWhen={introComplete} />
+            <p className="hero-dark-subtitle">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
+            <div className="hero-dark-actions">
+              <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
+            </div>
           </div>
-        </div>
-        <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-          <AsciiVideoCanvas isActive={introComplete} videoSrc="/flower_open.mov" />
+          <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
+            {/* Flower video is rendered by IntroAnimation canvas overlay */}
+            <div style={{ width: '100%', height: '100%' }} />
+          </div>
         </div>
       </section>
 
@@ -330,8 +333,7 @@ export default function Home() {
       <section className="section section-offwhite" id="comparison">
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
-            <p className="label">A Different Approach</p>
-            <TextScramble tag="h2" text="We Rebuilt Consulting From Scratch" trigger="inView" duration={1000} />
+            <TextScramble tag="h2" text="We Rebuilt Consulting From Scratch" trigger="inView" delay={200} duration={1000} />
           </div>
 
           <div className="comparison-grid">
@@ -523,7 +525,6 @@ export default function Home() {
         <div className="grid-container">
           <div className="container">
             <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
-              <p className="label">What we do</p>
               <TextScramble tag="h2" text="Wherever you are with AI, we meet you there" trigger="inView" duration={1000} />
             </div>
 
@@ -585,7 +586,6 @@ export default function Home() {
         <div className="grid-container">
         <div className="container">
           <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-            <p className="label">Case Studies</p>
             <TextScramble tag="h2" text="Measurable impact across every engagement" trigger="inView" duration={1000} />
           </div>
 
@@ -669,7 +669,6 @@ export default function Home() {
         <div className="container">
           <div className="platform-content">
             <div className="platform-text">
-              <p className="label fade-up">Our Team</p>
               <TextScramble tag="h2" text="The people behind Progression Labs" trigger="inView" duration={1000} className="fade-up" />
               <p className="fade-up">Technology consultation, computer technology consultancy, and AI-powered analytics — unified in a single platform. Monitor, deploy, and scale your AI systems with confidence.</p>
 
@@ -764,7 +763,6 @@ export default function Home() {
       <section className="section grid-section" id="blog">
         <div className="container">
           <div className="section-header fade-up">
-            <p className="label">Blog</p>
             <TextScramble tag="h2" text="Latest thinking from our team" trigger="inView" duration={1000} />
           </div>
 
@@ -794,7 +792,6 @@ export default function Home() {
       <section className="section cta-section" id="contact">
         <div className="container">
           <div className="fade-up">
-            <p className="label">Get in touch</p>
             <TextScramble tag="h2" text="Ready to transform your business with AI?" trigger="inView" duration={1000} />
             <p>Whether you need strategic business consultancy, a managed AI platform, or custom technology solutions — our team of experts is ready to help you build AI systems that deliver real results.</p>
             <a href="mailto:hello@progressionlabs.com" className="cta-email">hello@progressionlabs.com</a>
