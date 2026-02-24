@@ -1,14 +1,14 @@
 'use client'
 
 const teamMembers = [
-  { name: 'Gabor Soter', role: 'CEO & Co-founder', gradient: 'linear-gradient(135deg, #0ea5e9, #06b6d4)' },
-  { name: 'Joe O\'Meara', role: 'CTO & Co-founder', gradient: 'linear-gradient(135deg, #8b5cf6, #ec4899)' },
-  { name: 'Elena Vasquez', role: 'Senior AI Engineer', gradient: 'linear-gradient(135deg, #14b8a6, #10b981)' },
-  { name: 'Marcus Chen', role: 'Head of Product', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
-  { name: 'Sarah Okafor', role: 'ML Research Lead', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-  { name: 'David Kim', role: 'Senior Platform Engineer', gradient: 'linear-gradient(135deg, #0ea5e9, #3b82f6)' },
-  { name: 'Anna Kowalski', role: 'AI Solutions Architect', gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)' },
-  { name: 'James Mwangi', role: 'Data Engineering Lead', gradient: 'linear-gradient(135deg, #14b8a6, #0ea5e9)' },
+  { name: 'Gabor Soter', role: 'CEO & Co-founder', gradient: 'linear-gradient(135deg, #0ea5e9, #06b6d4)', imageUrl: '/team/gabor-soter.jpg' },
+  { name: 'Joe O\'Meara', role: 'CTO & Co-founder', gradient: 'linear-gradient(135deg, #8b5cf6, #ec4899)', imageUrl: '/team/joe-omeara.jpg' },
+  { name: 'Elena Vasquez', role: 'Senior AI Engineer', gradient: 'linear-gradient(135deg, #14b8a6, #10b981)', imageUrl: '/team/elena-vasquez.jpg' },
+  { name: 'Marcus Chen', role: 'Head of Product', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)', imageUrl: '/team/marcus-chen.jpg' },
+  { name: 'Sarah Okafor', role: 'ML Research Lead', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)', imageUrl: '/team/sarah-okafor.jpg' },
+  { name: 'David Kim', role: 'Senior Platform Engineer', gradient: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', imageUrl: '/team/david-kim.jpg' },
+  { name: 'Anna Kowalski', role: 'AI Solutions Architect', gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)', imageUrl: '/team/anna-kowalski.jpg' },
+  { name: 'James Mwangi', role: 'Data Engineering Lead', gradient: 'linear-gradient(135deg, #14b8a6, #0ea5e9)', imageUrl: '/team/james-mwangi.jpg' },
 ]
 
 function getInitials(name: string): string {
@@ -75,7 +75,11 @@ export default function TeamGrid() {
             className="team-avatar"
             style={{ background: member.gradient }}
           >
-            <span className="team-initials">{getInitials(member.name)}</span>
+            {member.imageUrl ? (
+              <img src={member.imageUrl} alt={member.name} className="team-card-image" />
+            ) : (
+              <span className="team-initials">{getInitials(member.name)}</span>
+            )}
           </div>
           <div className="team-card-name">{member.name}</div>
           <div className="team-card-role">{member.role}</div>

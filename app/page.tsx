@@ -157,12 +157,12 @@ export default function Home() {
         )
       })
 
-      // Service tiles — pixel reveal + text slider choreography
+      // Service tiles — L-shaped scan bar + pixel reveal choreography
       const serviceTiles = document.querySelectorAll('.service-tile')
       if (serviceTiles.length) {
         serviceTiles.forEach((tile, i) => {
           const textEl = tile.querySelector('.service-tile-text')
-          const sliderEl = tile.querySelector('.service-tile-slider')
+          const scanBar = tile.querySelector('.service-tile-scan-bar') as HTMLElement
           const glitchHandle = serviceGlitchRefs.current[i]
 
           const tl = gsap.timeline({
@@ -171,7 +171,7 @@ export default function Home() {
               start: 'top 85%',
               toggleActions: 'play none none none'
             },
-            delay: i * 0.15 // stagger between tiles
+            delay: i * 0.15
           })
 
           // 1. Fade tile in
@@ -181,32 +181,35 @@ export default function Home() {
             0
           )
 
-          // 2. Pixel reveal the image (if glitch ref exists)
+          // 2. L-shaped scan bar — Phase 1: horizontal across top edge
+          if (scanBar) {
+            tl.set(scanBar, { top: 0, left: '0%', right: 'auto', width: 3, height: 3, opacity: 1 }, 0.2)
+            tl.to(scanBar, { left: '100%', duration: 0.6, ease: 'power2.inOut' }, 0.2)
+
+            // Phase 2: snap to right edge, drop vertical
+            tl.set(scanBar, { left: 'auto', right: 0, top: '0%', width: 3, height: 0 }, 0.8)
+            tl.to(scanBar, { height: '100%', duration: 0.6, ease: 'power2.inOut' }, 0.8)
+
+            // Fade out after L-path completes
+            tl.to(scanBar, { opacity: 0, duration: 0.2 }, 1.35)
+          }
+
+          // 3. Pixel reveal fires AFTER scan bar completes
           if (glitchHandle) {
             tl.fromTo(glitchHandle, { progress: 0 }, {
               progress: 1,
-              duration: 1.5,
+              duration: 1.2,
               ease: 'power2.inOut'
-            }, 0.2)
+            }, 1.2)
           }
 
-          // 3. Text clip-path wipe reveal
+          // 4. Text clip-path wipe reveal (slightly after pixel reveal starts)
           if (textEl) {
             tl.fromTo(textEl,
               { clipPath: 'inset(0 0 0 100%)' },
               { clipPath: 'inset(0 0 0 0%)', duration: 1, ease: 'power3.inOut' },
-              0.3
+              1.3
             )
-          }
-
-          // 4. Blue slider travels with text leading edge, then disappears
-          if (sliderEl) {
-            tl.fromTo(sliderEl,
-              { left: '0%', opacity: 1 },
-              { left: '100%', opacity: 1, duration: 1, ease: 'power3.inOut' },
-              0.3
-            )
-            tl.to(sliderEl, { opacity: 0, duration: 0.2 }, '-=0.1')
           }
         })
       }
@@ -456,11 +459,11 @@ export default function Home() {
         })
       }
 
-      // === Team Grid — Pixel Dissolve Reveal ===
+      // === Team Grid — L-shaped scan bar + Pixel Dissolve Reveal ===
       const teamCards = document.querySelectorAll('.team-card')
       teamCards.forEach((card, i) => {
         const blocks = card.querySelectorAll('.pixel-block')
-        const scanEdge = card.querySelector('.team-card-scan-edge')
+        const scanEdge = card.querySelector('.team-card-scan-edge') as HTMLElement
 
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -478,24 +481,26 @@ export default function Home() {
           0
         )
 
-        // 2. Pixel dissolve — blocks are pre-sorted by threshold,
-        //    so sequential stagger produces the noisy L→R sweep
+        // 2. L-shaped scan bar — Phase 1: horizontal across top edge
+        if (scanEdge) {
+          tl.set(scanEdge, { top: 0, left: '0%', right: 'auto', width: 3, height: 3, opacity: 1 }, 0.2)
+          tl.to(scanEdge, { left: '100%', duration: 0.5, ease: 'power2.inOut' }, 0.2)
+
+          // Phase 2: snap to right edge, drop vertical
+          tl.set(scanEdge, { left: 'auto', right: 0, top: '0%', width: 3, height: 0 }, 0.7)
+          tl.to(scanEdge, { height: '100%', duration: 0.5, ease: 'power2.inOut' }, 0.7)
+
+          // Fade out after L-path completes
+          tl.to(scanEdge, { opacity: 0, duration: 0.15 }, 1.15)
+        }
+
+        // 3. Pixel dissolve — fires AFTER scan bar completes
         tl.to(blocks, {
           opacity: 0,
           duration: 0.015,
-          stagger: 1.2 / blocks.length, // spread across ~1.2s
+          stagger: 1.0 / blocks.length,
           ease: 'none'
-        }, 0.2)
-
-        // 3. Scan edge travels with dissolve front
-        if (scanEdge) {
-          tl.fromTo(scanEdge,
-            { left: '0%', opacity: 1 },
-            { left: '100%', opacity: 1, duration: 1.2, ease: 'power2.inOut' },
-            0.2
-          )
-          tl.to(scanEdge, { opacity: 0, duration: 0.15 }, '-=0.15')
-        }
+        }, 1.0)
       })
 
       // Resource cards stagger
@@ -909,7 +914,7 @@ export default function Home() {
                       <p>{service.desc}</p>
                       <a href="#" className="feature-row-link">Learn more &rarr;</a>
                     </div>
-                    <div className="service-tile-slider" />
+                    <div className="service-tile-scan-bar" />
                   </div>
                 </div>
               ))}

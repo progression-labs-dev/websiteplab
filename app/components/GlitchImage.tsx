@@ -45,8 +45,8 @@ const fragmentShader = `
     // Combined threshold: noise adds randomness to the wipe edge
     float threshold = noise * 0.4 + wipe * 0.6;
 
-    // Royal Blue scanning edge color: #4169E1
-    vec3 royalBlue = vec3(0.255, 0.412, 0.882);
+    // White scanning edge
+    vec3 scanColor = vec3(1.0, 1.0, 1.0);
 
     if (u_progress > threshold + 0.05) {
       // Fully revealed — show texture pixel (sampled at block center for pixelated look)
@@ -54,10 +54,10 @@ const fragmentShader = `
       vec4 texColor = texture2D(u_texture, blockCenter);
       gl_FragColor = texColor;
     } else if (u_progress > threshold) {
-      // Scanning edge — flash Royal Blue
+      // Scanning edge — flash white
       float edgeFactor = (u_progress - threshold) / 0.05;
       vec4 texColor = texture2D(u_texture, gridUv + 0.5 / 40.0);
-      gl_FragColor = vec4(mix(royalBlue, texColor.rgb, edgeFactor * 0.3), 1.0);
+      gl_FragColor = vec4(mix(scanColor, texColor.rgb, edgeFactor * 0.3), 1.0);
     } else {
       // Not yet revealed — transparent
       gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
