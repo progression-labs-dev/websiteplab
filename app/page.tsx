@@ -37,8 +37,18 @@ export default function Home() {
   const [activeTestimonial, setActiveTestimonial] = useState(0)
   const [introComplete, setIntroComplete] = useState(false)
   const [comparisonInView, setComparisonInView] = useState(false)
+  const [servicesInView, setServicesInView] = useState(false)
+  const [caseStudiesInView, setCaseStudiesInView] = useState(false)
+  const [teamInView, setTeamInView] = useState(false)
+  const [blogInView, setBlogInView] = useState(false)
+  const [ctaInView, setCtaInView] = useState(false)
   const [bootTime, setBootTime] = useState('')
   const comparisonRef = useRef<HTMLDivElement>(null)
+  const servicesRef = useRef<HTMLDivElement>(null)
+  const caseStudiesRef = useRef<HTMLDivElement>(null)
+  const teamRef = useRef<HTMLDivElement>(null)
+  const blogRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLDivElement>(null)
 
   // Service tile pixel reveal refs
   const serviceGlitchRefs = useRef<(GlitchImageHandle | null)[]>([])
@@ -61,16 +71,28 @@ export default function Home() {
     '/services/ideation-sessions.jpg',
   ]
 
-  // Trigger comparison TextScramble when scrolled into view
+  // Trigger terminal scrambles when sections scroll into view
   useEffect(() => {
-    const el = comparisonRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setComparisonInView(true); observer.disconnect() } },
-      { threshold: 0.2 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
+    const sections: [React.RefObject<HTMLDivElement | null>, (v: boolean) => void][] = [
+      [comparisonRef, setComparisonInView],
+      [servicesRef, setServicesInView],
+      [caseStudiesRef, setCaseStudiesInView],
+      [teamRef, setTeamInView],
+      [blogRef, setBlogInView],
+      [ctaRef, setCtaInView],
+    ]
+    const observers: IntersectionObserver[] = []
+    sections.forEach(([ref, setter]) => {
+      const el = ref.current
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) { setter(true); obs.disconnect() } },
+        { threshold: 0.2 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach(obs => obs.disconnect())
   }, [])
 
   // Memoize callback to prevent useEffect re-runs in IntroAnimation
@@ -636,15 +658,15 @@ export default function Home() {
         <div className="nav-container">
           <a href="/" className="nav-logo global-sync-reveal" aria-label="Progression Labs home">
             <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
-            <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={400}>Progression Labs</TerminalText></span>
+            <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={700}>Progression Labs</TerminalText></span>
           </a>
 
           <div className="nav-links global-sync-reveal">
-            <a href="#hero"><TerminalText trigger={introComplete} duration={400}>Home</TerminalText></a>
-            <a href="#services"><TerminalText trigger={introComplete} duration={400}>Services</TerminalText></a>
-            <a href="#case-studies"><TerminalText trigger={introComplete} duration={400}>Case Studies</TerminalText></a>
-            <a href="#team"><TerminalText trigger={introComplete} duration={400}>Team</TerminalText></a>
-            <a href="#blog"><TerminalText trigger={introComplete} duration={400}>Blog</TerminalText></a>
+            <a href="#hero"><TerminalText trigger={introComplete} duration={700}>Home</TerminalText></a>
+            <a href="#services"><TerminalText trigger={introComplete} duration={700}>Services</TerminalText></a>
+            <a href="#case-studies"><TerminalText trigger={introComplete} duration={700}>Case Studies</TerminalText></a>
+            <a href="#team"><TerminalText trigger={introComplete} duration={700}>Team</TerminalText></a>
+            <a href="#blog"><TerminalText trigger={introComplete} duration={700}>Blog</TerminalText></a>
           </div>
 
           <div className="nav-actions">
@@ -670,8 +692,8 @@ export default function Home() {
       {/* Announcement Bar */}
       <div className="announcement-bar global-sync-reveal">
         <div className="announcement-bar-content">
-          <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={500}>New: AI Agent Platform now available for enterprise</TerminalText></span>
-          <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={400}>Learn more →</TerminalText></a>
+          <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={800}>New: AI Agent Platform now available for enterprise</TerminalText></span>
+          <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={700}>Learn more →</TerminalText></a>
         </div>
       </div>
 
@@ -679,10 +701,10 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={600} style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TerminalText>
-            <p className="hero-dark-subtitle global-sync-reveal"><TerminalText trigger={introComplete} duration={600}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
+            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={900} style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TerminalText>
+            <p className="hero-dark-subtitle global-sync-reveal"><TerminalText trigger={introComplete} duration={900}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
             <div className="hero-dark-actions global-sync-reveal">
-              <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={400}>Request a brainstorm</TerminalText></a>
+              <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={700}>Request a brainstorm</TerminalText></a>
             </div>
           </div>
           <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
@@ -692,7 +714,7 @@ export default function Home() {
         </div>
         {/* Boot data — bottom right */}
         <div className="hero-boot-data global-sync-reveal">
-          <TerminalText trigger={introComplete} duration={500}>{bootTime}</TerminalText>
+          <TerminalText trigger={introComplete} duration={800}>{bootTime}</TerminalText>
         </div>
       </section>
 
@@ -897,8 +919,8 @@ export default function Home() {
       <section className="section grid-section" id="services">
         <div className="grid-container">
           <div className="container">
-            <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
-              <h2>Wherever you are with AI, we meet you there</h2>
+            <div ref={servicesRef} className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
+              <TerminalText as="h2" trigger={servicesInView} duration={900}>Wherever you are with AI, we meet you there</TerminalText>
             </div>
 
             <div className="services-grid-3col">
@@ -926,8 +948,8 @@ export default function Home() {
                     <div className="service-tile-text">
                       <ServiceIcon icon={service.icon} className="service-icon-slot" />
                       <span className="service-number">{service.num}</span>
-                      <h3>{service.title}</h3>
-                      <p>{service.desc}</p>
+                      <TerminalText as="h3" trigger={servicesInView} duration={700}>{service.title}</TerminalText>
+                      <TerminalText as="p" trigger={servicesInView} duration={800}>{service.desc}</TerminalText>
                       <a href="#" className="feature-row-link">Learn more &rarr;</a>
                     </div>
                     <div className="service-tile-scan-bar" />
@@ -942,8 +964,8 @@ export default function Home() {
       {/* Case Studies */}
       <section className="section section-offwhite" id="case-studies">
         <div className="container">
-          <div className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-            <h2>What our clients say</h2>
+          <div ref={caseStudiesRef} className="section-header fade-up" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+            <TerminalText as="h2" trigger={caseStudiesInView} duration={900}>What our clients say</TerminalText>
           </div>
 
           <div className="testimonial-carousel fade-up">
@@ -1015,9 +1037,9 @@ export default function Home() {
       {/* Team */}
       <section className="section" id="team" style={{ background: 'var(--bg-warm)' }}>
         <div className="container">
-          <div className="section-header fade-up">
-            <h2>The people behind Progression Labs</h2>
-            <p className="team-section-subtitle">A lean team of senior engineers, researchers, and strategists.</p>
+          <div ref={teamRef} className="section-header fade-up">
+            <TerminalText as="h2" trigger={teamInView} duration={900}>The people behind Progression Labs</TerminalText>
+            <TerminalText as="p" className="team-section-subtitle" trigger={teamInView} duration={800}>A lean team of senior engineers, researchers, and strategists.</TerminalText>
           </div>
         </div>
         <TeamGrid />
@@ -1026,8 +1048,8 @@ export default function Home() {
       {/* Blog */}
       <section className="section section-offwhite" id="blog">
         <div className="container">
-          <div className="section-header fade-up">
-            <h2>Latest thinking from our team</h2>
+          <div ref={blogRef} className="section-header fade-up">
+            <TerminalText as="h2" trigger={blogInView} duration={900}>Latest thinking from our team</TerminalText>
           </div>
 
           <div className="resources-grid">
@@ -1055,8 +1077,8 @@ export default function Home() {
       {/* CTA */}
       <section className="section cta-section" id="contact">
         <div className="container">
-          <div className="fade-up">
-            <h2>Ready to transform your business with AI?</h2>
+          <div ref={ctaRef} className="fade-up">
+            <TerminalText as="h2" trigger={ctaInView} duration={900}>Ready to transform your business with AI?</TerminalText>
             <p>Whether you need strategic business consultancy, a managed AI platform, or custom technology solutions — our team of experts is ready to help you build AI systems that deliver real results.</p>
             <a href="mailto:hello@progressionlabs.com" className="cta-email">hello@progressionlabs.com</a>
           </div>
