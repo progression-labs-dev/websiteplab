@@ -8,6 +8,7 @@ import { TextScramble } from '@/components/motion-primitives/text-scramble'
 import TeamGrid from './components/TeamGrid'
 import ServiceIcon from './components/AsciiIcon'
 import GlitchImage, { type GlitchImageHandle } from './components/GlitchImage'
+import TerminalText from './components/TerminalText'
 
 const testimonials = [
   {
@@ -635,15 +636,15 @@ export default function Home() {
         <div className="nav-container">
           <a href="/" className="nav-logo global-sync-reveal" aria-label="Progression Labs home">
             <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
-            <span className="nav-wordmark">Progression Labs</span>
+            <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={400}>Progression Labs</TerminalText></span>
           </a>
 
           <div className="nav-links global-sync-reveal">
-            <a href="#hero">Home</a>
-            <a href="#services">Services</a>
-            <a href="#case-studies">Case Studies</a>
-            <a href="#team">Team</a>
-            <a href="#blog">Blog</a>
+            <a href="#hero"><TerminalText trigger={introComplete} duration={400}>Home</TerminalText></a>
+            <a href="#services"><TerminalText trigger={introComplete} duration={400}>Services</TerminalText></a>
+            <a href="#case-studies"><TerminalText trigger={introComplete} duration={400}>Case Studies</TerminalText></a>
+            <a href="#team"><TerminalText trigger={introComplete} duration={400}>Team</TerminalText></a>
+            <a href="#blog"><TerminalText trigger={introComplete} duration={400}>Blog</TerminalText></a>
           </div>
 
           <div className="nav-actions">
@@ -669,8 +670,8 @@ export default function Home() {
       {/* Announcement Bar */}
       <div className="announcement-bar global-sync-reveal">
         <div className="announcement-bar-content">
-          <span className="announcement-bar-text">New: AI Agent Platform now available for enterprise</span>
-          <a href="#contact" className="announcement-bar-link">Learn more &rarr;</a>
+          <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={500}>New: AI Agent Platform now available for enterprise</TerminalText></span>
+          <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={400}>Learn more →</TerminalText></a>
         </div>
       </div>
 
@@ -678,10 +679,10 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TextScramble as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={3.2} speed={0.025} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ" style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TextScramble>
-            <p className="hero-dark-subtitle global-sync-reveal">We&#39;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</p>
+            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={600} style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TerminalText>
+            <p className="hero-dark-subtitle global-sync-reveal"><TerminalText trigger={introComplete} duration={600}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
             <div className="hero-dark-actions global-sync-reveal">
-              <a href="#contact" className="btn btn-dark">Request a brainstorm</a>
+              <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={400}>Request a brainstorm</TerminalText></a>
             </div>
           </div>
           <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
@@ -691,7 +692,7 @@ export default function Home() {
         </div>
         {/* Boot data — bottom right */}
         <div className="hero-boot-data global-sync-reveal">
-          {bootTime}
+          <TerminalText trigger={introComplete} duration={500}>{bootTime}</TerminalText>
         </div>
       </section>
 
