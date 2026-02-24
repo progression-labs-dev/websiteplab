@@ -5,7 +5,7 @@ import Image from 'next/image'
 import IntroAnimation from './components/IntroAnimation'
 // AsciiVideoCanvas now integrated into IntroAnimation for seamless P logo -> flower transition
 import { TextScramble } from '@/components/motion-primitives/text-scramble'
-import TeamCarousel from './components/TeamCarousel'
+import TeamGrid from './components/TeamGrid'
 import ServiceIcon from './components/AsciiIcon'
 import GlitchImage, { type GlitchImageHandle } from './components/GlitchImage'
 
@@ -41,6 +41,14 @@ export default function Home() {
   // Service tile pixel reveal refs
   const serviceGlitchRefs = useRef<(GlitchImageHandle | null)[]>([])
   const serviceTileRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  // Testimonial pixel reveal refs
+  const testimonialGlitchRefs = useRef<(GlitchImageHandle | null)[]>([])
+  const testimonialVideoContainerRefs = useRef<(HTMLDivElement | null)[]>([])
+  const testimonialRevealedRef = useRef(false)
+  const testimonialRevealFnRef = useRef<((index: number) => any) | null>(null)
+  const testimonialTimelineRef = useRef<any>(null)
+  const gsapRef = useRef<any>(null)
 
   const serviceImages = [
     '/services/ai-expert.jpg',
@@ -448,6 +456,48 @@ export default function Home() {
         })
       }
 
+      // === Team Grid — Pixel Dissolve Reveal ===
+      const teamCards = document.querySelectorAll('.team-card')
+      teamCards.forEach((card, i) => {
+        const blocks = card.querySelectorAll('.pixel-block')
+        const scanEdge = card.querySelector('.team-card-scan-edge')
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          },
+          delay: i * 0.2
+        })
+
+        // 1. Fade card in
+        tl.fromTo(card,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+          0
+        )
+
+        // 2. Pixel dissolve — blocks are pre-sorted by threshold,
+        //    so sequential stagger produces the noisy L→R sweep
+        tl.to(blocks, {
+          opacity: 0,
+          duration: 0.015,
+          stagger: 1.2 / blocks.length, // spread across ~1.2s
+          ease: 'none'
+        }, 0.2)
+
+        // 3. Scan edge travels with dissolve front
+        if (scanEdge) {
+          tl.fromTo(scanEdge,
+            { left: '0%', opacity: 1 },
+            { left: '100%', opacity: 1, duration: 1.2, ease: 'power2.inOut' },
+            0.2
+          )
+          tl.to(scanEdge, { opacity: 0, duration: 0.15 }, '-=0.15')
+        }
+      })
+
       // Resource cards stagger
       const resourceCards = document.querySelectorAll('.resource-card')
       if (resourceCards.length) {
@@ -468,12 +518,88 @@ export default function Home() {
         )
       }
 
-      // Testimonial section removed pixel reveal — kept simple
+      // Testimonial video — scanner bar + pixel reveal
+      gsapRef.current = gsap
+      const testimonialSection = document.querySelector('#case-studies')
+      if (testimonialSection) {
+        const playTestimonialReveal = (index: number) => {
+          // Kill any in-flight timeline to prevent overlap
+          if (testimonialTimelineRef.current) {
+            testimonialTimelineRef.current.kill()
+          }
+
+          const container = testimonialVideoContainerRefs.current[index]
+          const glitchHandle = testimonialGlitchRefs.current[index]
+          const scannerEl = container?.querySelector('.testimonial-video-scanner')
+          const overlayEl = container?.querySelector('.testimonial-video-overlay')
+          const iframeEl = container?.querySelector('iframe')
+
+          if (!container || !glitchHandle) return
+
+          // Reset state
+          if (overlayEl) gsap.set(overlayEl, { opacity: 1, pointerEvents: 'auto' })
+          if (iframeEl) gsap.set(iframeEl, { opacity: 0 })
+          glitchHandle.progress = 0
+
+          const tl = gsap.timeline()
+          testimonialTimelineRef.current = tl
+
+          // 1. Scanner bar sweeps left → right
+          if (scannerEl) {
+            tl.fromTo(scannerEl,
+              { left: '0%', opacity: 1, scaleY: 1 },
+              { left: '100%', opacity: 1, duration: 1.2, ease: 'power2.inOut' },
+              0
+            )
+            tl.to(scannerEl, { opacity: 0, duration: 0.15 }, '-=0.15')
+          }
+
+          // 2. Pixel reveal follows the scanner
+          tl.fromTo(glitchHandle,
+            { progress: 0 },
+            { progress: 1, duration: 1.4, ease: 'power2.inOut' },
+            0.1
+          )
+
+          // 3. After reveal, crossfade to interactive iframe
+          if (overlayEl && iframeEl) {
+            tl.to(iframeEl, { opacity: 1, duration: 0.3 }, '-=0.3')
+            tl.to(overlayEl, { opacity: 0, pointerEvents: 'none', duration: 0.3 }, '-=0.3')
+          }
+
+          return tl
+        }
+
+        // Store on ref for carousel useEffect
+        testimonialRevealFnRef.current = playTestimonialReveal
+
+        // Scroll-triggered initial reveal
+        ScrollTrigger.create({
+          trigger: testimonialSection,
+          start: 'top 75%',
+          once: true,
+          onEnter: () => {
+            testimonialRevealedRef.current = true
+            playTestimonialReveal(0)
+          }
+        })
+      }
 
     }
 
     initAnimations()
   }, [])
+
+  // Replay pixel reveal when carousel changes
+  useEffect(() => {
+    if (!testimonialRevealedRef.current) return
+    const play = testimonialRevealFnRef.current
+    if (play) {
+      // Small delay to let the CSS transition start positioning the card
+      const timer = setTimeout(() => play(activeTestimonial), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [activeTestimonial])
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen)
@@ -816,13 +942,24 @@ export default function Home() {
                   key={index}
                   className={`testimonial-card ${index === activeTestimonial ? 'active' : ''}`}
                 >
-                  <div className="testimonial-video">
+                  <div
+                    className="testimonial-video"
+                    ref={el => { testimonialVideoContainerRefs.current[index] = el }}
+                  >
                     <iframe
                       src={`https://www.youtube.com/embed/${testimonial.videoId}`}
                       title={`${testimonial.author} testimonial`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      style={{ opacity: 0 }}
                     />
+                    <div className="testimonial-video-overlay">
+                      <GlitchImage
+                        ref={el => { testimonialGlitchRefs.current[index] = el }}
+                        imageUrl={`https://img.youtube.com/vi/${testimonial.videoId}/maxresdefault.jpg`}
+                      />
+                    </div>
+                    <div className="testimonial-video-scanner" />
                   </div>
                   <blockquote>&ldquo;{testimonial.quote}&rdquo;</blockquote>
                   <cite>— {testimonial.author}, {testimonial.role}</cite>
@@ -862,7 +999,7 @@ export default function Home() {
             <p className="team-section-subtitle">A lean team of senior engineers, researchers, and strategists.</p>
           </div>
         </div>
-        <TeamCarousel />
+        <TeamGrid />
       </section>
 
       {/* Blog */}
