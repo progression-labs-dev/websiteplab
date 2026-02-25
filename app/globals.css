@@ -899,10 +899,8 @@ p {
 .nav-pixel {
   position: absolute;
   bottom: 0;
-  width: 3px;
   height: 3px;
   background: #60a5fa;
-  border-radius: 0;
   opacity: 0;
   transform: translateY(10px);
   transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),

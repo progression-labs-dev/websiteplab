@@ -1,10 +1,11 @@
 'use client'
 
-const PIXEL_COUNT = 12
-const PIXEL_WIDTH = 3 // px
-const PIXEL_GAP = 2   // px gap between pixels
+const PIXEL_COUNT = 14
+const PIXEL_GAP_PERCENT = 1.2 // % gap between pixels
 
 export default function NavPixelWhip() {
+  const pixelWidth = (100 - PIXEL_GAP_PERCENT * (PIXEL_COUNT - 1)) / PIXEL_COUNT
+
   return (
     <span className="nav-pixel-whip" aria-hidden="true">
       {Array.from({ length: PIXEL_COUNT }, (_, i) => (
@@ -12,8 +13,9 @@ export default function NavPixelWhip() {
           key={i}
           className="nav-pixel"
           style={{
-            left: `${i * (PIXEL_WIDTH + PIXEL_GAP)}px`,
-            transitionDelay: `${i * 30}ms`,
+            left: `${i * (pixelWidth + PIXEL_GAP_PERCENT)}%`,
+            width: `${pixelWidth}%`,
+            transitionDelay: `${i * 25}ms`,
           }}
         />
       ))}
