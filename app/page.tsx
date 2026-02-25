@@ -694,12 +694,12 @@ export default function Home() {
       {/* Navigation */}
       <nav className={`nav nav-black ${introComplete ? 'intro-visible' : 'intro-hidden'}`} id="nav">
         <div className="nav-container">
-          <a href="/" className="nav-logo global-sync-reveal" aria-label="Progression Labs home">
+          <a href="/" className="nav-logo global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }} aria-label="Progression Labs home">
             <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
             <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={700}>Progression Labs</TerminalText></span>
           </a>
 
-          <div className="nav-links global-sync-reveal">
+          <div className="nav-links global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
             <a href="#hero" className={activeSection === 'hero' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Home</TerminalText><NavPixelWhip /></a>
             <a href="#services" className={activeSection === 'services' || activeSection === 'comparison' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Services</TerminalText><NavPixelWhip /></a>
             <a href="#case-studies" className={activeSection === 'case-studies' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Case Studies</TerminalText><NavPixelWhip /></a>
@@ -728,7 +728,7 @@ export default function Home() {
       </div>
 
       {/* Announcement Bar */}
-      <div className="announcement-bar global-sync-reveal">
+      <div className="announcement-bar global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
         <div className="announcement-bar-content">
           <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={800}>New: AI Agent Platform now available for enterprise</TerminalText></span>
           <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={700}>Learn more →</TerminalText></a>
@@ -739,9 +739,13 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content blueprint-box ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={900}>Turn your company into a leader in the age of AI</TerminalText>
-            <p className="hero-dark-subtitle global-sync-reveal"><TerminalText trigger={introComplete} duration={900}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
-            <div className="hero-dark-actions global-sync-reveal">
+            <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
+              <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={900}>Turn your company into a leader in the age of AI</TerminalText>
+            </div>
+            <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
+              <p className="hero-dark-subtitle"><TerminalText trigger={introComplete} duration={900}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
+            </div>
+            <div className="hero-dark-actions global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
               <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={700}>Request a brainstorm</TerminalText></a>
             </div>
           </div>
@@ -751,7 +755,7 @@ export default function Home() {
           </div>
         </div>
         {/* Boot data — bottom right */}
-        <div className="hero-boot-data global-sync-reveal">
+        <div className="hero-boot-data global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
           {bootTime}
         </div>
       </section>
