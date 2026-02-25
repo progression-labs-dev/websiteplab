@@ -12,21 +12,29 @@ const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_+<>[]'
  * Replays every time `trigger` flips from false → true.
  * When trigger goes back to false, resets so the next true fires fresh.
  */
+function scrambled(text: string): string {
+  let result = ''
+  for (let i = 0; i < text.length; i++) {
+    result += text[i] === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]
+  }
+  return result
+}
+
 export function useTerminalScramble(
   text: string,
   trigger: boolean,
   duration: number = 500
 ): string {
-  const [displayText, setDisplayText] = useState(text)
+  const [displayText, setDisplayText] = useState(() => scrambled(text))
   const rafRef = useRef<number>(0)
   const isPlayingRef = useRef(false)
 
   useEffect(() => {
-    // Trigger went false — reset for next play
+    // Trigger went false — reset to scrambled for next play
     if (!trigger) {
       cancelAnimationFrame(rafRef.current)
       isPlayingRef.current = false
-      setDisplayText(text)
+      setDisplayText(scrambled(text))
       return
     }
 
