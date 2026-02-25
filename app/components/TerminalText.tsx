@@ -1,6 +1,6 @@
 'use client'
 
-import { type ElementType, type CSSProperties } from 'react'
+import { type ElementType, type CSSProperties, useState, useEffect } from 'react'
 import { useTerminalScramble } from '../hooks/useTerminalScramble'
 
 const BLOCK_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'section', 'article'])
@@ -9,6 +9,7 @@ export default function TerminalText({
   children,
   trigger,
   duration = 500,
+  delay = 0,
   as: Tag = 'span',
   className,
   style,
@@ -16,11 +17,29 @@ export default function TerminalText({
   children: string
   trigger: boolean
   duration?: number
+  delay?: number
   as?: ElementType
   className?: string
   style?: CSSProperties
 }) {
-  const displayText = useTerminalScramble(children, trigger, duration)
+  // Delay the scramble start so right-side elements begin scrambling
+  // exactly when the clip-path wipe reaches them
+  const [isReady, setIsReady] = useState(false)
+
+  useEffect(() => {
+    if (!trigger) {
+      setIsReady(false)
+      return
+    }
+    if (delay === 0) {
+      setIsReady(true)
+      return
+    }
+    const timer = setTimeout(() => setIsReady(true), delay)
+    return () => clearTimeout(timer)
+  }, [trigger, delay])
+
+  const displayText = useTerminalScramble(children, isReady, duration)
   const isBlock = typeof Tag === 'string' && BLOCK_TAGS.has(Tag)
 
   return (
