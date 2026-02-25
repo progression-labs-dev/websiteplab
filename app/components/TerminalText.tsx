@@ -34,7 +34,7 @@ export default function TerminalText({
     >
       {/* Invisible dummy — holds exact layout space for final text */}
       <span
-        style={{ opacity: 0, pointerEvents: 'none' as const, userSelect: 'none' as const }}
+        style={{ opacity: 0, pointerEvents: 'none' as const, userSelect: 'none' as const, whiteSpace: 'nowrap' as const }}
         aria-hidden="true"
       >
         {children}
@@ -48,6 +48,8 @@ export default function TerminalText({
           width: '100%',
           height: '100%',
           pointerEvents: 'none' as const,
+          whiteSpace: 'nowrap' as const,
+          overflow: 'visible' as const,
         }}
       >
         {displayText}

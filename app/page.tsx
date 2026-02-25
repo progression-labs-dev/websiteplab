@@ -696,15 +696,15 @@ export default function Home() {
         <div className="nav-container">
           <a href="/" className="nav-logo global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }} aria-label="Progression Labs home">
             <Image src="/logo-white.png" alt="Progression Labs" className="nav-logo-img" width={42} height={28} />
-            <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={700}>Progression Labs</TerminalText></span>
+            <span className="nav-wordmark"><TerminalText trigger={introComplete} duration={1500}>Progression Labs</TerminalText></span>
           </a>
 
           <div className="nav-links global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-            <a href="#hero" className={activeSection === 'hero' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Home</TerminalText><NavPixelWhip /></a>
-            <a href="#services" className={activeSection === 'services' || activeSection === 'comparison' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Services</TerminalText><NavPixelWhip /></a>
-            <a href="#case-studies" className={activeSection === 'case-studies' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Case Studies</TerminalText><NavPixelWhip /></a>
-            <a href="#team" className={activeSection === 'team' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Team</TerminalText><NavPixelWhip /></a>
-            <a href="#blog" className={activeSection === 'blog' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Blog</TerminalText><NavPixelWhip /></a>
+            <a href="#hero" className={activeSection === 'hero' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={1500}>Home</TerminalText><NavPixelWhip /></a>
+            <a href="#services" className={activeSection === 'services' || activeSection === 'comparison' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={1500}>Services</TerminalText><NavPixelWhip /></a>
+            <a href="#case-studies" className={activeSection === 'case-studies' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={1500}>Case Studies</TerminalText><NavPixelWhip /></a>
+            <a href="#team" className={activeSection === 'team' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={1500}>Team</TerminalText><NavPixelWhip /></a>
+            <a href="#blog" className={activeSection === 'blog' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={1500}>Blog</TerminalText><NavPixelWhip /></a>
           </div>
 
           <div className="nav-actions">
@@ -730,8 +730,8 @@ export default function Home() {
       {/* Announcement Bar */}
       <div className="announcement-bar global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
         <div className="announcement-bar-content">
-          <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={800}>New: AI Agent Platform now available for enterprise</TerminalText></span>
-          <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={700}>Learn more →</TerminalText></a>
+          <span className="announcement-bar-text"><TerminalText trigger={introComplete} duration={1500}>New: AI Agent Platform now available for enterprise</TerminalText></span>
+          <a href="#contact" className="announcement-bar-link"><TerminalText trigger={introComplete} duration={1500}>Learn more →</TerminalText></a>
         </div>
       </div>
 
@@ -740,13 +740,13 @@ export default function Home() {
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content blueprint-box ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
             <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={900}>Turn your company into a leader in the age of AI</TerminalText>
+              <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={1500}>Turn your company into a leader in the age of AI</TerminalText>
             </div>
             <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <p className="hero-dark-subtitle"><TerminalText trigger={introComplete} duration={900}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
+              <p className="hero-dark-subtitle"><TerminalText trigger={introComplete} duration={1500}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
             </div>
             <div className="hero-dark-actions global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={700}>Request a brainstorm</TerminalText></a>
+              <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={1500}>Request a brainstorm</TerminalText></a>
             </div>
           </div>
           <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
