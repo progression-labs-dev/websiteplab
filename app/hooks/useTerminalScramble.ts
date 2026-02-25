@@ -25,7 +25,10 @@ export function useTerminalScramble(
   trigger: boolean,
   duration: number = 500
 ): string {
-  const [displayText, setDisplayText] = useState(() => scrambled(text))
+  // Initialize to final text (deterministic) to avoid hydration mismatch.
+  // The useEffect below will scramble it immediately after mount, before
+  // the clip-path mask reveals anything.
+  const [displayText, setDisplayText] = useState(text)
   const rafRef = useRef<number>(0)
   const isPlayingRef = useRef(false)
 
