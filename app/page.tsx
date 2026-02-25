@@ -743,7 +743,7 @@ export default function Home() {
               <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={1500}>Turn your company into a leader in the age of AI</TerminalText>
             </div>
             <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <p className="hero-dark-subtitle"><TerminalText trigger={introComplete} duration={1500}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
+              <TerminalText as="p" className="hero-dark-subtitle" trigger={introComplete} duration={1500}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText>
             </div>
             <div className="hero-dark-actions global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
               <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={1500}>Request a brainstorm</TerminalText></a>
