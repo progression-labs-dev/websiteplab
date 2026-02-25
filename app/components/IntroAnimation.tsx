@@ -37,6 +37,9 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
 
   useEffect(() => {
     let phase: 'animating' | 'holding' | 'expanding' | 'static' = 'animating'
+    let isHeroHovered = false
+    let lastRenderTime = 0
+    let flowerTargetTime = 0 // virtual time for hover-driven seeking
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -105,6 +108,53 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
       }
     }
 
+    // Frame bank for hover-driven reverse playback
+    // Captures downsampled frames during the expanding phase so we can
+    // scrub through them instantly without async video seeking
+    const FRAME_SCALE = 0.25 // 1/4 resolution (480x270 for 1920x1080)
+    const frameBank: { time: number; data: ImageData }[] = []
+    let frameBankCanvas: HTMLCanvasElement | null = null
+    let frameBankCtx: CanvasRenderingContext2D | null = null
+    let frameBankW = 0
+    let frameBankH = 0
+    let lastFrameCaptureTime = -1
+
+    const initFrameBank = () => {
+      if (frameBankCanvas) return
+      frameBankW = Math.round(flowerVideo.videoWidth * FRAME_SCALE)
+      frameBankH = Math.round(flowerVideo.videoHeight * FRAME_SCALE)
+      if (frameBankW === 0 || frameBankH === 0) return
+      frameBankCanvas = document.createElement('canvas')
+      frameBankCanvas.width = frameBankW
+      frameBankCanvas.height = frameBankH
+      frameBankCtx = frameBankCanvas.getContext('2d')
+    }
+
+    const captureFrame = () => {
+      if (!frameBankCtx || frameBankW === 0) return
+      const t = flowerVideo.currentTime
+      // Skip if we already captured at a very similar time
+      if (lastFrameCaptureTime >= 0 && Math.abs(t - lastFrameCaptureTime) < 0.02) return
+      lastFrameCaptureTime = t
+      frameBankCtx.drawImage(flowerVideo, 0, 0, frameBankW, frameBankH)
+      frameBank.push({ time: t, data: frameBankCtx.getImageData(0, 0, frameBankW, frameBankH) })
+    }
+
+    // Get the closest captured frame for a given time
+    const getFrameAtTime = (t: number): ImageData | null => {
+      if (frameBank.length === 0) return null
+      let best = frameBank[0]
+      let bestDist = Math.abs(best.time - t)
+      for (let i = 1; i < frameBank.length; i++) {
+        const dist = Math.abs(frameBank[i].time - t)
+        if (dist < bestDist) {
+          best = frameBank[i]
+          bestDist = dist
+        }
+      }
+      return best.data
+    }
+
     // Scroll tracking for horse-to-line animation
     let scrollProgress = 0
     const updateScrollProgress = () => {
@@ -136,6 +186,15 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     }
     window.addEventListener('scroll', updateScrollProgress)
     updateScrollProgress()
+
+    // Hover interaction: reverse flower video on mouseenter, re-open on mouseleave
+    const heroImageEl = document.querySelector('.hero-image') as HTMLElement | null
+    const onHeroEnter = () => { isHeroHovered = true }
+    const onHeroLeave = () => { isHeroHovered = false }
+    if (heroImageEl) {
+      heroImageEl.addEventListener('mouseenter', onHeroEnter)
+      heroImageEl.addEventListener('mouseleave', onHeroLeave)
+    }
 
     // Timing constants (each step is 0.5 seconds)
     const STEP_DURATION = 500
@@ -1057,10 +1116,14 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         // Start flower video at beginning of expanding phase
         if (expandElapsed < 50 && flowerVideo.paused) {
           flowerVideo.play().catch(() => {})
+          initFrameBank()
         }
 
         // Update flower image data for current frame
         updateFlowerImageData()
+
+        // Capture this frame for the hover frame bank
+        captureFrame()
 
         // Progress from 0 to 1
         const expandProgress = Math.min(1, expandElapsed / expandDuration)
@@ -1206,14 +1269,56 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
         if (expandProgress >= 1) {
           phase = 'static'
           setAnimationPhase('static')
+          // Keep video playing briefly to capture remaining frames, then pause
+          flowerTargetTime = flowerVideo.currentTime
+          lastRenderTime = performance.now()
+          const onVideoEnd = () => {
+            captureFrame() // capture final frame
+            flowerVideo.pause()
+            flowerTargetTime = flowerVideo.duration || flowerTargetTime
+          }
+          flowerVideo.addEventListener('ended', onVideoEnd, { once: true })
+          // Safety: if video doesn't end within 2s, force pause
+          setTimeout(() => {
+            if (!flowerVideo.paused) {
+              captureFrame()
+              flowerVideo.pause()
+              flowerTargetTime = flowerVideo.currentTime
+            }
+          }, 2000)
           onComplete()
         }
       }
 
       // STATIC - continue drawing flower with ASCII overlay
       if (phase === 'static') {
-        // Update flower image data
-        updateFlowerImageData()
+        // Capture remaining frames while video still plays into static phase
+        if (!flowerVideo.paused) {
+          captureFrame()
+          updateFlowerImageData()
+        }
+
+        // Hover-driven scrubbing via the frame bank
+        const now = performance.now()
+        const dt = Math.min((now - lastRenderTime) / 1000, 0.05) // delta in seconds, cap at 50ms
+        lastRenderTime = now
+        const seekSpeed = 1.0 // 1x real-time playback speed
+        const videoDuration = flowerVideo.duration || 1.67
+
+        if (isHeroHovered) {
+          // Scrub backwards (close the flower)
+          flowerTargetTime = Math.max(0, flowerTargetTime - dt * seekSpeed)
+        } else {
+          // Scrub forwards (re-open the flower)
+          flowerTargetTime = Math.min(videoDuration, flowerTargetTime + dt * seekSpeed)
+        }
+
+        // Look up the closest captured frame
+        const bankFrame = getFrameAtTime(flowerTargetTime)
+        // Use frame bank data for rendering (downsampled), or fall back to live flowerImageData
+        const activeImageData = bankFrame || flowerImageData
+        const activeW = bankFrame ? frameBankW : sampleWidth
+        const activeH = bankFrame ? frameBankH : sampleHeight
 
         // Get hero image area position
         const heroArea = document.querySelector('.hero-image') as HTMLElement
@@ -1245,12 +1350,21 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
           drawY = flowerY
         }
 
-        // Draw grayscale flower video
-        ctx.filter = 'grayscale(100%)'
-        ctx.drawImage(flowerVideo, drawX, drawY, drawW, drawH)
-        ctx.filter = 'none'
+        // Draw the flower base image from the frame bank
+        if (bankFrame && frameBankCanvas && frameBankCtx) {
+          // Put the captured frame data onto the bank canvas, then draw it scaled
+          frameBankCtx.putImageData(bankFrame, 0, 0)
+          ctx.filter = 'grayscale(100%)'
+          ctx.drawImage(frameBankCanvas, drawX, drawY, drawW, drawH)
+          ctx.filter = 'none'
+        } else {
+          // Fallback: draw from live video (initial frames before bank is populated)
+          ctx.filter = 'grayscale(100%)'
+          ctx.drawImage(flowerVideo, drawX, drawY, drawW, drawH)
+          ctx.filter = 'none'
+        }
 
-        // Draw ASCII overlay
+        // Draw ASCII overlay using activeImageData
         const flowerBlockSize = 20
         const flowerCols = Math.ceil(drawW / flowerBlockSize)
         const flowerRows = Math.ceil(drawH / flowerBlockSize)
@@ -1260,16 +1374,16 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
             const screenX = drawX + col * flowerBlockSize
             const screenY = drawY + row * flowerBlockSize
 
-            if (flowerImageData && sampleWidth > 0) {
-              const imgX = Math.floor(((screenX - drawX + flowerBlockSize / 2) / drawW) * sampleWidth)
-              const imgY = Math.floor(((screenY - drawY + flowerBlockSize / 2) / drawH) * sampleHeight)
-              const clampedX = Math.max(0, Math.min(sampleWidth - 1, imgX))
-              const clampedY = Math.max(0, Math.min(sampleHeight - 1, imgY))
-              const idx = (clampedY * sampleWidth + clampedX) * 4
-              const r = flowerImageData.data[idx]
-              const g = flowerImageData.data[idx + 1]
-              const b = flowerImageData.data[idx + 2]
-              const a = flowerImageData.data[idx + 3]
+            if (activeImageData && activeW > 0) {
+              const imgX = Math.floor(((screenX - drawX + flowerBlockSize / 2) / drawW) * activeW)
+              const imgY = Math.floor(((screenY - drawY + flowerBlockSize / 2) / drawH) * activeH)
+              const clampedX = Math.max(0, Math.min(activeW - 1, imgX))
+              const clampedY = Math.max(0, Math.min(activeH - 1, imgY))
+              const idx = (clampedY * activeW + clampedX) * 4
+              const r = activeImageData.data[idx]
+              const g = activeImageData.data[idx + 1]
+              const b = activeImageData.data[idx + 2]
+              const a = activeImageData.data[idx + 3]
 
               if (a < 10) continue
 
@@ -1324,6 +1438,10 @@ export default function IntroAnimation({ onComplete }: IntroAnimationProps) {
     return () => {
       window.removeEventListener('resize', updateSize)
       window.removeEventListener('scroll', updateScrollProgress)
+      if (heroImageEl) {
+        heroImageEl.removeEventListener('mouseenter', onHeroEnter)
+        heroImageEl.removeEventListener('mouseleave', onHeroLeave)
+      }
       if (animationFrame) {
         cancelAnimationFrame(animationFrame)
       }
