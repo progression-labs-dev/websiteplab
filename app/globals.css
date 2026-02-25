@@ -892,43 +892,29 @@ p {
   width: 100%;
   background: repeating-linear-gradient(
     90deg,
-    #2563eb 0 3px,
+    #60a5fa 0 3px,
     transparent 3px 5px
   );
-  clip-path: inset(0 100% 0 0);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s steps(10, end);
 }
 
 .nav-links a:hover {
   color: var(--text-primary);
 }
 
-/* Hover: quick whip in */
 .nav-links a:hover::after {
-  animation: pixel-whip 0.35s steps(10, end) forwards;
+  transform: scaleX(1);
 }
 
-/* Active section: stays visible with whip-in on activation */
+/* Active section: pixel underline stays visible */
 .nav-links a.nav-active {
   color: var(--text-primary);
 }
 
 .nav-links a.nav-active::after {
-  animation: pixel-whip 0.4s steps(12, end) forwards;
-}
-
-/* When leaving hover on non-active links, whip out */
-.nav-links a:not(:hover):not(.nav-active)::after {
-  animation: pixel-whip-out 0.25s steps(8, end) forwards;
-}
-
-@keyframes pixel-whip {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 0% 0 0); }
-}
-
-@keyframes pixel-whip-out {
-  from { clip-path: inset(0 0% 0 0); }
-  to { clip-path: inset(0 100% 0 0); }
+  transform: scaleX(1);
 }
 
 .nav-actions {
@@ -1002,14 +988,7 @@ p {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.nav-black .nav-links a::after,
-.nav-dark .nav-links a::after {
-  background: repeating-linear-gradient(
-    90deg,
-    #60a5fa 0 3px,
-    transparent 3px 5px
-  );
-}
+/* nav-black and nav-dark inherit the base ::after gradient (#60a5fa) */
 
 .nav-black .nav-links a:hover,
 .nav-black .nav-links a.nav-active {
