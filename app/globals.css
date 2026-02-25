@@ -750,7 +750,6 @@ p {
    Subtle white grid lines (4% opacity, 60px spacing) appear on all .grid-section elements.
    This covers services, case studies, team, blog — but NOT the hero. */
 #case-studies .testimonial-carousel {
-  background-color: var(--bg-warm);
   position: relative;
   z-index: 1;
 }
