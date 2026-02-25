@@ -9,8 +9,8 @@ const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_+<>[]'
  * Characters rapidly cycle through random technical chars before
  * locking into the correct final string.
  *
- * Plays once when `trigger` flips to true. After that, text updates
- * pass through unchanged (no re-scramble on every clock tick, etc.)
+ * Replays every time `trigger` flips from false → true.
+ * When trigger goes back to false, resets so the next true fires fresh.
  */
 export function useTerminalScramble(
   text: string,
@@ -19,23 +19,22 @@ export function useTerminalScramble(
 ): string {
   const [displayText, setDisplayText] = useState(text)
   const rafRef = useRef<number>(0)
-  const hasPlayedRef = useRef(false)
+  const isPlayingRef = useRef(false)
 
   useEffect(() => {
-    // After initial animation, just pass text through
-    if (hasPlayedRef.current) {
-      setDisplayText(text)
-      return
-    }
-
-    // Before trigger, show the real text (hidden by clip-path anyway)
+    // Trigger went false — reset for next play
     if (!trigger) {
+      cancelAnimationFrame(rafRef.current)
+      isPlayingRef.current = false
       setDisplayText(text)
       return
     }
 
-    // Fire once
-    hasPlayedRef.current = true
+    // Already animating, skip
+    if (isPlayingRef.current) return
+
+    // Fire animation
+    isPlayingRef.current = true
     const startTime = performance.now()
     const len = text.length
 
@@ -60,6 +59,7 @@ export function useTerminalScramble(
         rafRef.current = requestAnimationFrame(animate)
       } else {
         setDisplayText(text)
+        isPlayingRef.current = false
       }
     }
 

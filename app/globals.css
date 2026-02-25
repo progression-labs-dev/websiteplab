@@ -1681,7 +1681,7 @@ p {
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: transparent;
+  background: #111111;
 }
 
 .testimonial-video iframe {
@@ -1932,7 +1932,7 @@ p {
 
 /* --- 14. CTA --- */
 .cta-section {
-  text-align: center;
+  text-align: left;
 }
 
 .cta-section h2 {
@@ -1955,7 +1955,7 @@ p {
 .cta-actions {
   display: flex;
   gap: 16px;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
@@ -2073,7 +2073,7 @@ p {
 /* GSAP animation prep classes */
 .fade-up {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(12px);
 }
 
 .fade-in {
@@ -2082,12 +2082,12 @@ p {
 
 .slide-left {
   opacity: 0;
-  transform: translateX(-40px);
+  transform: translateX(-20px);
 }
 
 .slide-right {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateX(20px);
 }
 
 /* Animated state */

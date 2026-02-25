@@ -70,7 +70,7 @@ export default function Home() {
     '/services/ideation-sessions.jpg',
   ]
 
-  // Trigger terminal scrambles when sections scroll into view
+  // Trigger terminal scrambles when sections scroll into view (fire once)
   useEffect(() => {
     const sections: [React.RefObject<HTMLDivElement | null>, (v: boolean) => void][] = [
       [comparisonRef, setComparisonInView],
@@ -85,7 +85,12 @@ export default function Home() {
       const el = ref.current
       if (!el) return
       const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) { setter(true); obs.disconnect() } },
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setter(true)
+            obs.disconnect()
+          }
+        },
         { threshold: 0.05 }
       )
       obs.observe(el)
@@ -117,11 +122,14 @@ export default function Home() {
     if (!introComplete) return
     const initBoot = async () => {
       const gsap = (await import('gsap')).default
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger')
       gsap.to('.global-sync-reveal', {
         clipPath: 'inset(0 0% 0 0)',
         duration: 0.8,
         ease: 'power3.inOut',
       })
+      // Recalculate all ScrollTrigger positions after intro overlay clears
+      setTimeout(() => ScrollTrigger.refresh(), 1000)
     }
     initBoot()
   }, [introComplete])
@@ -155,26 +163,26 @@ export default function Home() {
         { opacity: 1, scale: 1, duration: 1.2, delay: 0.3, ease: 'back.out(1.2)' }
       )
 
-      // Fade up animations — bouncy easing, play once only
+      // Fade up animations — smooth easing, play once
       const fadeUpElements = document.querySelectorAll('.fade-up:not(.hero-title):not(.hero-subtitle):not(.hero-actions)')
       fadeUpElements.forEach((el) => {
         gsap.fromTo(el,
-          { opacity: 0, y: 30 },
+          { opacity: 0, y: 12 },
           {
             opacity: 1,
             y: 0,
-            duration: 1,
-            ease: 'back.out(1.2)',
+            duration: 0.8,
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
       })
 
-      // Section titles — clip-path wipe (same feel as hero boot), play once
+      // Section titles — clip-path wipe left-to-right, play once
       document.querySelectorAll('.section-title-reveal').forEach((el) => {
         gsap.fromTo(el,
           { clipPath: 'inset(0 100% 0 0)' },
@@ -185,7 +193,7 @@ export default function Home() {
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
@@ -201,7 +209,7 @@ export default function Home() {
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
@@ -219,14 +227,14 @@ export default function Home() {
             scrollTrigger: {
               trigger: tile,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             },
             delay: i * 0.15
           })
 
           // 1. Fade tile in
           tl.fromTo(tile,
-            { opacity: 0, y: 30 },
+            { opacity: 0, y: 12 },
             { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
             0
           )
@@ -264,20 +272,20 @@ export default function Home() {
         })
       }
 
-      // Slide animations — bouncy
+      // Slide animations — smooth
       document.querySelectorAll('.slide-left').forEach((el, i) => {
         gsap.fromTo(el,
-          { opacity: 0, x: -40 },
+          { opacity: 0, x: -20 },
           {
             opacity: 1,
             x: 0,
-            duration: 0.9,
+            duration: 0.8,
             delay: i * 0.1,
-            ease: 'back.out(1.2)',
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
@@ -285,16 +293,16 @@ export default function Home() {
 
       document.querySelectorAll('.slide-right').forEach((el) => {
         gsap.fromTo(el,
-          { opacity: 0, x: 40 },
+          { opacity: 0, x: 20 },
           {
             opacity: 1,
             x: 0,
-            duration: 0.9,
-            ease: 'back.out(1.2)',
+            duration: 0.8,
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: el,
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
@@ -307,7 +315,7 @@ export default function Home() {
           scrollTrigger: {
             trigger: comparisonSection,
             start: 'top 65%',
-            once: true
+            toggleActions: 'play none none none'
           }
         })
 
@@ -519,14 +527,14 @@ export default function Home() {
           scrollTrigger: {
             trigger: card,
             start: 'top 85%',
-            once: true
+            toggleActions: 'play none none none'
           },
           delay: i * 0.2
         })
 
         // 1. Fade card in
         tl.fromTo(card,
-          { opacity: 0, y: 30 },
+          { opacity: 0, y: 12 },
           { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
           0
         )
@@ -557,17 +565,17 @@ export default function Home() {
       const resourceCards = document.querySelectorAll('.resource-card')
       if (resourceCards.length) {
         gsap.fromTo(resourceCards,
-          { opacity: 0, y: 20 },
+          { opacity: 0, y: 12 },
           {
             opacity: 1,
             y: 0,
             duration: 0.8,
             stagger: 0.15,
-            ease: 'back.out(1.2)',
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: resourceCards[0],
               start: 'top 85%',
-              once: true
+              toggleActions: 'play none none none'
             }
           }
         )
@@ -628,14 +636,14 @@ export default function Home() {
         // Store on ref for carousel useEffect
         testimonialRevealFnRef.current = playTestimonialReveal
 
-        // Scroll-triggered initial reveal
+        // Scroll-triggered reveal (plays once)
         ScrollTrigger.create({
           trigger: testimonialSection,
           start: 'top 75%',
           once: true,
           onEnter: () => {
             testimonialRevealedRef.current = true
-            playTestimonialReveal(0)
+            playTestimonialReveal(activeTestimonial)
           }
         })
       }
@@ -717,7 +725,7 @@ export default function Home() {
       <section className="hero-fullscreen" id="hero">
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
-            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={900} style={{ textTransform: 'uppercase' as const }}>Turn your company a leader in the age of AI</TerminalText>
+            <TerminalText as="h1" className="hero-dark-title global-sync-reveal" trigger={introComplete} duration={900}>Turn your company into a leader in the age of AI</TerminalText>
             <p className="hero-dark-subtitle global-sync-reveal"><TerminalText trigger={introComplete} duration={900}>We&apos;re a frontier AI-native engineering partner that helps companies in complex industries lead the next decade.</TerminalText></p>
             <div className="hero-dark-actions global-sync-reveal">
               <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={700}>Request a brainstorm</TerminalText></a>
@@ -738,8 +746,8 @@ export default function Home() {
       <section className="section grid-section" id="comparison">
         <div className="grid-container">
         <div className="container">
-          <div ref={comparisonRef} className="section-header section-title-reveal" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 60px' }}>
-            <TerminalText as="h2" trigger={comparisonInView} duration={900} style={{ textTransform: 'uppercase' as const }}>We Rebuilt Consulting From Scratch</TerminalText>
+          <div ref={comparisonRef} className="section-header section-title-reveal" style={{ maxWidth: '600px', marginBottom: '60px' }}>
+            <TerminalText as="h2" trigger={comparisonInView} duration={900}>We rebuilt consulting from scratch</TerminalText>
           </div>
 
           <div className="comparison-grid">
@@ -935,7 +943,7 @@ export default function Home() {
       <section className="section grid-section" id="services">
         <div className="grid-container">
           <div className="container">
-            <div ref={servicesRef} className="section-header section-title-reveal" style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
+            <div ref={servicesRef} className="section-header section-title-reveal" style={{ maxWidth: '700px', marginBottom: '60px' }}>
               <TerminalText as="h2" trigger={servicesInView} duration={900}>Wherever you are with AI, we meet you there</TerminalText>
             </div>
 
@@ -980,7 +988,7 @@ export default function Home() {
       {/* Case Studies */}
       <section className="section section-offwhite" id="case-studies">
         <div className="container">
-          <div ref={caseStudiesRef} className="section-header section-title-reveal" style={{ textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+          <div ref={caseStudiesRef} className="section-header section-title-reveal" style={{ maxWidth: '600px' }}>
             <TerminalText as="h2" trigger={caseStudiesInView} duration={900}>What our clients say</TerminalText>
           </div>
 
@@ -1010,6 +1018,7 @@ export default function Home() {
                       title={`${testimonial.author} testimonial`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      loading="lazy"
                       style={{ opacity: 0 }}
                     />
                     <div className="testimonial-video-overlay">
