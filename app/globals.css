@@ -889,21 +889,46 @@ p {
   bottom: -6px;
   left: 0;
   height: 3px;
-  width: 0;
+  width: 100%;
   background: repeating-linear-gradient(
     90deg,
     #2563eb 0 3px,
     transparent 3px 5px
   );
-  transition: width 0.35s steps(15, end);
+  clip-path: inset(0 100% 0 0);
 }
 
 .nav-links a:hover {
   color: var(--text-primary);
 }
 
+/* Hover: quick whip in */
 .nav-links a:hover::after {
-  width: 100%;
+  animation: pixel-whip 0.35s steps(10, end) forwards;
+}
+
+/* Active section: stays visible with whip-in on activation */
+.nav-links a.nav-active {
+  color: var(--text-primary);
+}
+
+.nav-links a.nav-active::after {
+  animation: pixel-whip 0.4s steps(12, end) forwards;
+}
+
+/* When leaving hover on non-active links, whip out */
+.nav-links a:not(:hover):not(.nav-active)::after {
+  animation: pixel-whip-out 0.25s steps(8, end) forwards;
+}
+
+@keyframes pixel-whip {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0% 0 0); }
+}
+
+@keyframes pixel-whip-out {
+  from { clip-path: inset(0 0% 0 0); }
+  to { clip-path: inset(0 100% 0 0); }
 }
 
 .nav-actions {
@@ -986,7 +1011,8 @@ p {
   );
 }
 
-.nav-black .nav-links a:hover {
+.nav-black .nav-links a:hover,
+.nav-black .nav-links a.nav-active {
   color: var(--white);
 }
 
@@ -1002,7 +1028,8 @@ p {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.nav-dark .nav-links a:hover {
+.nav-dark .nav-links a:hover,
+.nav-dark .nav-links a.nav-active {
   color: var(--white);
 }
 

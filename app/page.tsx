@@ -42,6 +42,7 @@ export default function Home() {
   const [blogInView, setBlogInView] = useState(false)
   const [ctaInView, setCtaInView] = useState(false)
   const [bootTime, setBootTime] = useState('')
+  const [activeSection, setActiveSection] = useState('hero')
   const comparisonRef = useRef<HTMLDivElement>(null)
   const servicesRef = useRef<HTMLDivElement>(null)
   const caseStudiesRef = useRef<HTMLDivElement>(null)
@@ -134,13 +135,24 @@ export default function Home() {
     initBoot()
   }, [introComplete])
 
-  // Track scroll position for nav styling
+  // Track scroll position for nav styling + active section
   useEffect(() => {
+    const sectionIds = ['blog', 'team', 'case-studies', 'services', 'comparison', 'hero']
     const handleScroll = () => {
       const heroHeight = window.innerHeight
       setScrolledPastHero(window.scrollY > heroHeight - 100)
+
+      // Scroll-spy: find which section is currently in view
+      const offset = 200
+      for (const id of sectionIds) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top < offset) {
+          setActiveSection(id)
+          break
+        }
+      }
     }
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -686,11 +698,11 @@ export default function Home() {
           </a>
 
           <div className="nav-links global-sync-reveal">
-            <a href="#hero"><TerminalText trigger={introComplete} duration={700}>Home</TerminalText></a>
-            <a href="#services"><TerminalText trigger={introComplete} duration={700}>Services</TerminalText></a>
-            <a href="#case-studies"><TerminalText trigger={introComplete} duration={700}>Case Studies</TerminalText></a>
-            <a href="#team"><TerminalText trigger={introComplete} duration={700}>Team</TerminalText></a>
-            <a href="#blog"><TerminalText trigger={introComplete} duration={700}>Blog</TerminalText></a>
+            <a href="#hero" className={activeSection === 'hero' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Home</TerminalText></a>
+            <a href="#services" className={activeSection === 'services' || activeSection === 'comparison' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Services</TerminalText></a>
+            <a href="#case-studies" className={activeSection === 'case-studies' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Case Studies</TerminalText></a>
+            <a href="#team" className={activeSection === 'team' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Team</TerminalText></a>
+            <a href="#blog" className={activeSection === 'blog' ? 'nav-active' : ''}><TerminalText trigger={introComplete} duration={700}>Blog</TerminalText></a>
           </div>
 
           <div className="nav-actions">
