@@ -13,9 +13,6 @@ const teamMembers = [
   { name: 'Talha Muhammad', role: 'Senior Engineer', gradient: 'linear-gradient(135deg, #14b8a6, #0ea5e9)', imageUrl: '/team/talha-muhammad.jpg' },
 ]
 
-const VISIBLE_COUNT = 4
-const TOTAL_PAGES = Math.ceil(teamMembers.length / VISIBLE_COUNT)
-
 function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
@@ -68,37 +65,36 @@ function PixelOverlay({ cardIndex }: { cardIndex: number }) {
 }
 
 export default function TeamGrid() {
-  const [page, setPage] = useState(0)
-  const gridRef = useRef<HTMLDivElement>(null)
+  const [offset, setOffset] = useState(0)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const hasAnimated = useRef(false)
 
-  const start = page * VISIBLE_COUNT
-  const visibleMembers = teamMembers.slice(start, start + VISIBLE_COUNT)
+  // How many cards to scroll per click
+  const SCROLL_COUNT = 1
+  const maxOffset = teamMembers.length - 1
 
   const goNext = useCallback(() => {
-    setPage(p => (p + 1) % TOTAL_PAGES)
-  }, [])
+    setOffset(prev => Math.min(prev + SCROLL_COUNT, maxOffset))
+  }, [maxOffset])
 
   const goPrev = useCallback(() => {
-    setPage(p => (p - 1 + TOTAL_PAGES) % TOTAL_PAGES)
+    setOffset(prev => Math.max(prev - SCROLL_COUNT, 0))
   }, [])
 
-  // Self-contained GSAP animation — re-runs on page change
+  // GSAP entrance animation — runs once when section scrolls into view
   useEffect(() => {
-    const grid = gridRef.current
-    if (!grid) return
-
-    let timelines: unknown[] = []
+    const track = trackRef.current
+    if (!track || hasAnimated.current) return
 
     const runAnimation = async () => {
       const { default: gsap } = await import('gsap')
 
-      const cards = grid.querySelectorAll('.team-card')
+      const cards = track.querySelectorAll('.team-card')
       cards.forEach((card, i) => {
         const blocks = card.querySelectorAll('.pixel-block')
         const scanEdge = card.querySelector('.team-card-scan-edge') as HTMLElement
 
-        const tl = gsap.timeline({ delay: i * 0.2 })
-        timelines.push(tl)
+        const tl = gsap.timeline({ delay: i * 0.15 })
 
         // 1. Fade card in
         tl.fromTo(card,
@@ -124,58 +120,63 @@ export default function TeamGrid() {
           ease: 'none'
         }, 1.0)
       })
+
+      hasAnimated.current = true
     }
 
     runAnimation()
-
-    return () => {
-      timelines.forEach(tl => {
-        if (tl && typeof (tl as { kill: () => void }).kill === 'function') {
-          (tl as { kill: () => void }).kill()
-        }
-      })
-    }
-  }, [page])
+  }, [])
 
   return (
     <div className="team-carousel-wrapper">
-      <div className="team-grid" ref={gridRef} key={page}>
-        {visibleMembers.map((member, i) => (
-          <div className="team-card blueprint-box" key={start + i} style={{ opacity: 0 }}>
-            <div
-              className="team-avatar"
-              style={{ background: member.gradient }}
-            >
-              {member.imageUrl ? (
-                <img src={member.imageUrl} alt={member.name} className="team-card-image" />
-              ) : (
-                <span className="team-initials">{getInitials(member.name)}</span>
-              )}
+      <div className="team-carousel-viewport">
+        <div
+          className="team-carousel-track"
+          ref={trackRef}
+          style={{
+            transform: `translateX(calc(-${offset} * (var(--team-card-width) + var(--team-card-gap))))`,
+          }}
+        >
+          {teamMembers.map((member, i) => (
+            <div className="team-card blueprint-box" key={i} style={{ opacity: 0 }}>
+              <div
+                className="team-avatar"
+                style={{ background: member.gradient }}
+              >
+                {member.imageUrl ? (
+                  <img src={member.imageUrl} alt={member.name} className="team-card-image" />
+                ) : (
+                  <span className="team-initials">{getInitials(member.name)}</span>
+                )}
+              </div>
+              <div className="team-card-name">{member.name}</div>
+              <div className="team-card-role">{member.role}</div>
+              <PixelOverlay cardIndex={i} />
             </div>
-            <div className="team-card-name">{member.name}</div>
-            <div className="team-card-role">{member.role}</div>
-            <PixelOverlay cardIndex={start + i} />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="team-carousel-nav">
-        <button className="team-carousel-btn" onClick={goPrev} aria-label="Previous team members">
+        <button
+          className="team-carousel-btn"
+          onClick={goPrev}
+          aria-label="Previous team member"
+          disabled={offset === 0}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
 
-        <div className="team-carousel-dots">
-          {Array.from({ length: TOTAL_PAGES }, (_, i) => (
-            <button
-              key={i}
-              className={`team-carousel-dot${i === page ? ' active' : ''}`}
-              onClick={() => setPage(i)}
-              aria-label={`Go to page ${i + 1}`}
-            />
-          ))}
+        <div className="team-carousel-counter">
+          {offset + 1} / {teamMembers.length}
         </div>
 
-        <button className="team-carousel-btn" onClick={goNext} aria-label="Next team members">
+        <button
+          className="team-carousel-btn"
+          onClick={goNext}
+          aria-label="Next team member"
+          disabled={offset >= maxOffset}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
