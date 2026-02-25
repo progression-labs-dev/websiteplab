@@ -125,11 +125,16 @@ export default function Home() {
     const initBoot = async () => {
       const gsap = (await import('gsap')).default
       const { ScrollTrigger } = await import('gsap/ScrollTrigger')
-      gsap.to('.global-sync-reveal', {
-        clipPath: 'inset(0 0% 0 0)',
-        duration: 0.8,
-        ease: 'power3.inOut',
-      })
+      const bootTl = gsap.timeline()
+      const wipe = { clipPath: 'inset(0 0% 0 0)', duration: 0.8, ease: 'power3.inOut' }
+      bootTl
+        .to('.nav-logo',          wipe, 0)
+        .to('.nav-links',         wipe, 0.25)
+        .to('.announcement-bar',  wipe, 0.45)
+        .to('.hero-dark-title',   wipe, 0.55)
+        .to('.hero-dark-subtitle', wipe, 0.7)
+        .to('.hero-dark-actions', wipe, 0.85)
+        .to('.hero-boot-data',    wipe, 0.95)
       // Recalculate all ScrollTrigger positions after intro overlay clears
       setTimeout(() => ScrollTrigger.refresh(), 1000)
     }
