@@ -614,7 +614,7 @@ export default function Home() {
           if (!container || !glitchHandle) return
 
           // Reset state
-          if (overlayEl) gsap.set(overlayEl, { opacity: 1, pointerEvents: 'auto' })
+          if (overlayEl) gsap.set(overlayEl, { display: 'block', opacity: 1, pointerEvents: 'auto' })
           if (iframeEl) gsap.set(iframeEl, { opacity: 0, visibility: 'hidden' })
           glitchHandle.progress = 0
 
@@ -638,10 +638,12 @@ export default function Home() {
             0.1
           )
 
-          // 3. After reveal, crossfade to interactive iframe
+          // 3. After reveal, crossfade to interactive iframe then remove overlay entirely
           if (overlayEl && iframeEl) {
             tl.to(iframeEl, { opacity: 1, visibility: 'visible', duration: 0.3 }, '-=0.3')
-            tl.to(overlayEl, { opacity: 0, pointerEvents: 'none', duration: 0.3 }, '-=0.3')
+            tl.to(overlayEl, { opacity: 0, pointerEvents: 'none', duration: 0.3, onComplete: () => {
+              gsap.set(overlayEl, { display: 'none' })
+            } }, '-=0.3')
           }
 
           return tl
@@ -1028,7 +1030,7 @@ export default function Home() {
                   className={`testimonial-card ${index === activeTestimonial ? 'active' : ''}`}
                 >
                   <div
-                    className="testimonial-video blueprint-box-light"
+                    className="testimonial-video"
                     ref={el => { testimonialVideoContainerRefs.current[index] = el }}
                   >
                     <iframe
