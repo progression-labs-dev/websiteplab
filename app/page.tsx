@@ -8,6 +8,7 @@ import TeamGrid from './components/TeamGrid'
 import GlitchImage, { type GlitchImageHandle } from './components/GlitchImage'
 import TerminalText from './components/TerminalText'
 import NavPixelWhip from './components/NavPixelWhip'
+import ValueCarousel from './components/ValueCarousel'
 
 const testimonials = [
   {
@@ -731,13 +732,14 @@ export default function Home() {
         <div className="hero-fullscreen-inner">
           <div className={`hero-fullscreen-content blueprint-box ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
             <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={600}>Start scaling progress that compounds.</TerminalText>
+              <TerminalText as="h1" className="hero-dark-title" trigger={introComplete} duration={600}>The upgrade that compounds.</TerminalText>
             </div>
             <div className="global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <TerminalText as="p" className="hero-dark-subtitle" trigger={introComplete} duration={600}>We&apos;re an AI engineering partner that embeds agents alongside your team — handling the repetitive work, clearing the bottlenecks, and freeing your people to focus on what actually moves the business forward. Built for complex industries where getting AI right isn&apos;t optional.</TerminalText>
+              <TerminalText as="p" className="hero-dark-subtitle" trigger={introComplete} duration={600}>Every company knows AI matters. Few know where to start. We bring proven experience, click right into your team, and make sure AI is integrated in a way that fits. What we deliver works. You keep all the value.</TerminalText>
             </div>
             <div className="hero-dark-actions global-sync-reveal" style={{ clipPath: 'inset(0 100% 0 0)' }}>
               <a href="#contact" className="btn btn-dark"><TerminalText trigger={introComplete} duration={500}>Request a brainstorm</TerminalText></a>
+              <a href="#why-us" className="btn btn-ghost"><TerminalText trigger={introComplete} duration={500}>Find out more</TerminalText></a>
             </div>
           </div>
           <div className={`hero-image ${introComplete ? 'intro-visible' : 'intro-hidden'}`}>
@@ -751,16 +753,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Us */}
-      <section className="section" id="about" style={{ background: 'var(--bg-warm)' }}>
-        <div className="container">
-          <div ref={aboutRef} className="section-header section-title-reveal">
-            <TerminalText as="h2" trigger={aboutInView} duration={900}>About Us</TerminalText>
-          </div>
-          <div className="about-content">
-            <p className="about-placeholder">Content coming soon — Joe will fill this in.</p>
-          </div>
-        </div>
+      {/* Value Proposition */}
+      <section className="section" id="about" ref={aboutRef} style={{ background: 'var(--bg-warm)' }}>
+        <ValueCarousel trigger={aboutInView} />
       </section>
 
       {/* Why Us */}
