@@ -25,7 +25,7 @@ export function Nav() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/#services" className="text-sm font-[450] text-text-secondary hover:text-black transition-colors tracking-[-0.01em]">
+            <Link href="/services" className="text-sm font-[450] text-text-secondary hover:text-black transition-colors tracking-[-0.01em]">
               Services
             </Link>
             <Link href="/#platform" className="text-sm font-[450] text-text-secondary hover:text-black transition-colors tracking-[-0.01em]">
@@ -72,14 +72,19 @@ export function Nav() {
           mobileOpen ? "flex" : "hidden"
         }`}
       >
-        {["Services", "Platform", "Pricing", "Resources"].map((item) => (
+        {[
+          { label: "Services", href: "/services" },
+          { label: "Platform", href: "/#platform" },
+          { label: "Pricing", href: "/#pricing" },
+          { label: "Resources", href: "/#resources" },
+        ].map((item) => (
           <Link
-            key={item}
-            href={`/#${item.toLowerCase()}`}
+            key={item.label}
+            href={item.href}
             className="text-lg font-medium py-3 border-b border-[rgba(0,0,0,0.08)]"
             onClick={() => setMobileOpen(false)}
           >
-            {item}
+            {item.label}
           </Link>
         ))}
         <Link
