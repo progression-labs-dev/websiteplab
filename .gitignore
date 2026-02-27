@@ -6,4 +6,6 @@ screenshots/
 .next/
 .vercel/
 tsconfig.tsbuildinfo
-*.png
+# Ignore screenshot PNGs in root, but not public/ assets
+/*.png
+!/public/*.png
