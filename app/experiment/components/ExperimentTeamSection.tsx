@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
 import ScrollDecode from './ScrollDecode'
 import PanelCorners from './PanelCorners'
-import ScannerImageReveal from './ScannerImageReveal'
 
 const teamMembers = [
   { name: 'Gabor Soter', role: 'Founder & CEO', imageUrl: '/team/gabor-soter.jpg' },
@@ -20,65 +18,14 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
+/**
+ * ExperimentTeamSection — Infinite auto-scroll marquee of team member cards.
+ * Duplicates the array for seamless looping via CSS translateX(-50%).
+ * Pauses on hover. No navigation buttons or dots.
+ */
 export default function ExperimentTeamSection() {
-  const [current, setCurrent] = useState(0)
-  const [isHovered, setIsHovered] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const total = teamMembers.length
-
-  const goTo = useCallback((index: number) => {
-    const next = ((index % total) + total) % total
-    setCurrent(next)
-  }, [total])
-
-  const goNext = useCallback(() => goTo(current + 1), [current, goTo])
-  const goPrev = useCallback(() => goTo(current - 1), [current, goTo])
-
-  // Auto-advance every 4 seconds, pause on hover
-  useEffect(() => {
-    if (isHovered) {
-      if (timerRef.current) clearInterval(timerRef.current)
-      return
-    }
-
-    timerRef.current = setInterval(() => {
-      setCurrent(prev => (prev + 1) % total)
-    }, 4000)
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [isHovered, total])
-
-  // GSAP crossfade on card change
-  useEffect(() => {
-    const card = cardRef.current
-    if (!card) return
-
-    let ctx: { revert: () => void } | null = null
-
-    const animate = async () => {
-      const { default: gsap } = await import('gsap')
-
-      ctx = gsap.context(() => {
-        gsap.fromTo(
-          card,
-          { opacity: 0, x: 40 },
-          { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' }
-        )
-      })
-    }
-
-    animate()
-
-    return () => {
-      ctx?.revert()
-    }
-  }, [current])
-
-  const member = teamMembers[current]
+  // Duplicate for seamless CSS loop
+  const doubled = [...teamMembers, ...teamMembers]
 
   return (
     <div className="exp-team-section">
@@ -93,57 +40,31 @@ export default function ExperimentTeamSection() {
         />
       </div>
 
-      {/* Isidor-style meta bar: label left, counter right */}
-      <div className="exp-team-meta">
-        <span>Progression Labs</span>
-        <span>{current + 1} of {total}</span>
-      </div>
-
-      <div
-        className="exp-team-single"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className="exp-team-single-card" ref={cardRef} key={current}>
-          <PanelCorners />
-          <div className="exp-team-avatar">
-            {member.imageUrl ? (
-              <ScannerImageReveal
-                src={member.imageUrl}
-                alt={member.name}
-                style={{ width: '100%', height: '100%' }}
-              />
-            ) : (
-              <span className="exp-team-initials">{getInitials(member.name)}</span>
-            )}
-          </div>
-          <div className="exp-team-info">
-            <div className="exp-team-id">{String(current + 1).padStart(2, '0')}</div>
-            <div className="exp-team-name">{member.name}</div>
-            <div className="exp-team-role">{member.role}</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="exp-team-carousel-nav">
-        <button className="exp-team-carousel-btn" onClick={goPrev} aria-label="Previous team member">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-
-        <div className="exp-team-carousel-dots">
-          {teamMembers.map((_, i) => (
-            <button
-              key={i}
-              className={`exp-team-carousel-dot${i === current ? ' active' : ''}`}
-              onClick={() => goTo(i)}
-              aria-label={`Go to ${teamMembers[i].name}`}
-            />
+      <div className="exp-team-single">
+        <div className="exp-team-marquee-track">
+          {doubled.map((member, i) => (
+            <div className="exp-team-single-card" key={`${member.name}-${i}`}>
+              <PanelCorners />
+              <div className="exp-team-avatar">
+                {member.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={member.imageUrl}
+                    alt={member.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1)' }}
+                  />
+                ) : (
+                  <span className="exp-team-initials">{getInitials(member.name)}</span>
+                )}
+              </div>
+              <div className="exp-team-info">
+                <div className="exp-team-id">{String((i % teamMembers.length) + 1).padStart(2, '0')}</div>
+                <div className="exp-team-name">{member.name}</div>
+                <div className="exp-team-role">{member.role}</div>
+              </div>
+            </div>
           ))}
         </div>
-
-        <button className="exp-team-carousel-btn" onClick={goNext} aria-label="Next team member">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
       </div>
     </div>
   )

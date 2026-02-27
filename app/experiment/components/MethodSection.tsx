@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react'
 import ScrollDecode from './ScrollDecode'
-import PanelCorners from './PanelCorners'
 import CardIcon from './CardIcon'
 import ArrowIcon from './ArrowIcon'
 
@@ -52,7 +51,6 @@ export default function MethodSection() {
     <div className="exp-12-grid exp-12-grid--half">
       {/* Columns 1-6: Isidor-style vivid gradient sticky label */}
       <div className="exp-col-label exp-col-label--gradient">
-        <PanelCorners />
         <div className="exp-tag">Enterprise</div>
         <ScrollDecode
           text="Our Method"
@@ -77,7 +75,6 @@ export default function MethodSection() {
             ref={(el) => { panelRefs.current[i] = el }}
             className="exp-panel"
           >
-            <PanelCorners />
             <CardIcon name={step.icon} />
             <div className="exp-panel-id">{step.id}</div>
             <div className="exp-panel-title">{step.title}</div>
