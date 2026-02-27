@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --salmon: #FFA07A;
+  --salmon-hover: #ff8a5c;
+  --orchid: #BA55D3;
+  --blue: #0000FF;
+  --white-smoke: #F5F5F5;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.15);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--white-smoke);
+  color: #000000;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.gradient-bar {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    #0000FF 0%, #0000FF 8.33%,
+    #2200EE 8.33%, #2200EE 16.66%,
+    #4400CC 16.66%, #4400CC 25%,
+    #6622BB 25%, #6622BB 33.33%,
+    #8833BB 33.33%, #8833BB 41.66%,
+    #9944CC 41.66%, #9944CC 50%,
+    #BA55D3 50%, #BA55D3 58.33%,
+    #C8669F 58.33%, #C8669F 66.66%,
+    #D5778B 66.66%, #D5778B 75%,
+    #E28877 75%, #E28877 83.33%,
+    #EE9963 83.33%, #EE9963 91.66%,
+    #FFA07A 91.66%, #FFA07A 100%
+  );
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
