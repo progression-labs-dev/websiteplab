@@ -36,7 +36,7 @@ export default function DashboardOverview() {
     <div>
       <div className="mb-8">
         <h2 className="text-2xl font-medium tracking-[-0.03em] mb-1">
-          Welcome back{user?.email ? `, ${user.email.split("@")[0]}` : ""}
+          Welcome back, Globo
         </h2>
         <p className="text-sm text-text-tertiary">
           Here&apos;s an overview of your AI engagement with Progression Labs
