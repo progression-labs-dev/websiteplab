@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './experiment.css'
+import SmoothScroll from './components/SmoothScroll'
 
 export const metadata: Metadata = {
   title: 'Progression Labs — AI That Ships',
@@ -13,7 +14,9 @@ export default function ExperimentLayout({
 }) {
   return (
     <div className="experiment">
+      <SmoothScroll>
       {children}
+      </SmoothScroll>
       {/* Fixed SVG noise/grain texture overlay */}
       <div className="exp-noise" aria-hidden="true">
         <svg>
