@@ -1136,6 +1136,232 @@ body:has(.experiment) {
 }
 
 /* ============================================
+   JOURNEY SELECTOR + SERVICE LAYOUT
+   (CEO AI Journey — interactive stage selector)
+   ============================================ */
+
+/* --- Journey selector pills row --- */
+.exp-journey-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  --journey-accent: rgb(0, 0, 255); /* JS overrides via RAF */
+}
+
+.exp-journey-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  position: relative;
+  font-family: inherit;
+  color: inherit;
+}
+
+.exp-journey-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+
+.exp-journey-pill:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.exp-journey-pill--active {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.exp-journey-pill--active::before {
+  background: var(--journey-accent);
+}
+
+.exp-journey-pill-phase {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--exp-text-tertiary);
+  text-transform: uppercase;
+}
+
+.exp-journey-pill--active .exp-journey-pill-phase {
+  color: var(--exp-text-secondary);
+}
+
+.exp-journey-pill-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--exp-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.exp-journey-pill--active .exp-journey-pill-label {
+  color: var(--exp-text-primary);
+}
+
+/* --- Journey content column overrides --- */
+.exp-col-content--journey {
+  gap: 0 !important;
+}
+
+/* --- Hero service panel (core service — full width) --- */
+.exp-service-hero {
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  text-align: left !important;
+  padding-bottom: 32px;
+}
+
+.exp-service-hero .exp-panel-icon {
+  margin-left: 0 !important;
+}
+
+.exp-service-hero-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+}
+
+/* --- Thin divider between sections --- */
+.exp-service-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 24px 0;
+}
+
+/* --- Supporting services — 2-column grid --- */
+.exp-supporting-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.exp-supporting-card {
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  text-align: left !important;
+}
+
+.exp-supporting-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-supporting-card .exp-panel-title {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.exp-supporting-card .exp-panel-desc {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* --- Compact accordion list (remaining services) --- */
+.exp-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.exp-compact-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-compact-item:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-compact-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  transition: opacity 0.2s ease;
+}
+
+.exp-compact-header:hover {
+  opacity: 0.85;
+}
+
+.exp-compact-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp-compact-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--exp-text-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.exp-compact-chevron {
+  font-size: 12px;
+  color: var(--exp-text-tertiary);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.exp-compact-item--expanded .exp-compact-chevron {
+  transform: rotate(90deg);
+}
+
+.exp-compact-body {
+  padding: 0 0 16px 44px;
+}
+
+.exp-compact-body p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--exp-text-secondary);
+}
+
+/* ============================================
    RESPONSIVE BREAKPOINTS
    ============================================ */
 
@@ -1190,6 +1416,11 @@ body:has(.experiment) {
   .exp-col-label--gradient {
     padding: 32px 24px;
     justify-content: flex-start;
+  }
+
+  /* Journey pills: wrap on tablet */
+  .exp-journey-selector {
+    flex-wrap: wrap;
   }
 }
 
@@ -1251,6 +1482,15 @@ body:has(.experiment) {
 
   .exp-pre-footer-social {
     justify-content: center;
+  }
+
+  /* Journey: pills stack vertically, supporting goes single-col */
+  .exp-journey-selector {
+    flex-direction: column;
+  }
+
+  .exp-supporting-row {
+    grid-template-columns: 1fr;
   }
 }
 
