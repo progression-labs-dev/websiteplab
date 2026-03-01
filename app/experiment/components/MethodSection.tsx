@@ -12,8 +12,55 @@ const steps = [
   { id: '04', title: 'Scale', desc: 'We deploy to production, monitor performance, and hand over with full documentation. You own everything we build.', icon: 'scale' },
 ]
 
+// Brand palette matching the hero shader (RGB 0-255)
+const BRAND_COLORS: [number, number, number][] = [
+  [186, 85, 211],   // #BA55D3 Medium Orchid
+  [255, 160, 122],  // #FFA07A Light Salmon
+  [185, 233, 121],  // #B9E979 Progression Green
+  [64, 224, 208],   // #40E0D0 Turquoise
+  [0, 0, 255],      // #0000FF Blue
+]
+const CYCLE_SEC = 30
+function ssmooth(t: number) { return t * t * (3 - 2 * t) }
+
 export default function MethodSection() {
   const panelRefs = useRef<(HTMLDivElement | null)[]>([])
+  const labelRef = useRef<HTMLDivElement>(null)
+
+  // Color cycling — synced with hero gradient (same 30s cycle, same smoothstep)
+  useEffect(() => {
+    let raf: number
+    const startTime = performance.now() / 1000
+
+    const tick = () => {
+      if (!labelRef.current) { raf = requestAnimationFrame(tick); return }
+
+      const elapsed = performance.now() / 1000 - startTime
+      const progress = (elapsed % CYCLE_SEC) / CYCLE_SEC
+      const segProgress = progress * 5
+      const segIndex = Math.floor(segProgress) % 5
+      const t = ssmooth(segProgress - Math.floor(segProgress))
+
+      const from = BRAND_COLORS[segIndex]
+      const to = BRAND_COLORS[(segIndex + 1) % 5]
+      const r = Math.round(from[0] + (to[0] - from[0]) * t)
+      const g = Math.round(from[1] + (to[1] - from[1]) * t)
+      const b = Math.round(from[2] + (to[2] - from[2]) * t)
+
+      labelRef.current.style.backgroundImage = `linear-gradient(
+        to bottom,
+        rgba(${r}, ${g}, ${b}, 0.45) 0%,
+        rgba(${r}, ${g}, ${b}, 0.22) 30%,
+        rgba(${r}, ${g}, ${b}, 0.06) 65%,
+        transparent 100%
+      )`
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     let ctx: { revert: () => void } | null = null
@@ -50,7 +97,7 @@ export default function MethodSection() {
   return (
     <div className="exp-12-grid exp-12-grid--half">
       {/* Columns 1-6: Isidor-style vivid gradient sticky label */}
-      <div className="exp-col-label exp-col-label--gradient">
+      <div ref={labelRef} className="exp-col-label exp-col-label--gradient">
         <div className="exp-tag">Enterprise</div>
         <ScrollDecode
           text="Our Method"
