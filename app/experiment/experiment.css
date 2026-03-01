@@ -81,12 +81,12 @@ body:has(.experiment) {
 }
 
 /* Continuous dashed border frame matching hero perimeter (Isidor style) —
-   Two vertical lines at 80px from each edge, running the full page height.
-   Aligns exactly with .exp-hero-frame's left/right edges (hero padding: 16px 80px 80px 80px). */
+   Two vertical lines at 80px from each edge, running below the nav.
+   Aligns exactly with .exp-hero-frame's left/right edges. */
 .experiment::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: 56px; /* Start below nav height — creates clean nav/hero boundary */
   bottom: 0;
   left: 80px;
   right: 80px;
@@ -187,14 +187,14 @@ body:has(.experiment) {
   position: relative;
   overflow: hidden;
   background: var(--exp-bg);
-  padding: 16px 80px 80px 80px;
+  padding: 72px 80px 80px 80px; /* top = nav height (56px) + 16px gap */
 }
 
 /* Inner framed box — sharp 90-degree corners, 1px border */
 .exp-hero-frame {
   position: relative;
   width: 100%;
-  min-height: calc(100dvh - 96px);
+  min-height: calc(100dvh - 152px); /* 72px top + 80px bottom padding */
   border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 0;
   overflow: hidden;
@@ -267,10 +267,10 @@ body:has(.experiment) {
   left: 0;
   right: 0;
   z-index: 50;
-  background: transparent;
+  background: var(--exp-bg);
   backdrop-filter: none;
-  border-bottom: none;
-  padding: 0 max(40px, calc((100vw - var(--exp-container)) / 2));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 80px;
   height: 56px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
