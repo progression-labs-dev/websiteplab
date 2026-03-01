@@ -9,12 +9,14 @@ interface GradientLottieProps {
 }
 
 /**
- * GradientLottie — White-to-blue gradient Lottie for dark backgrounds.
+ * GradientLottie — Bright white-to-blue gradient Lottie for dark backgrounds.
  *
- * Injects an SVG <linearGradient> into the Lottie's rendered SVG and
- * applies it to all fill/stroke elements. Uses MutationObserver to
- * persist through animation frame updates. Forces opacity: 1 to
- * override the default 0.7 on .exp-panel-icon svg.
+ * Two-step approach:
+ * 1. Force all SVG shapes to white (#fff) so the base is bright
+ * 2. Inject an SVG <linearGradient> and apply it to all fills/strokes
+ *
+ * The MutationObserver re-applies on Lottie animation frame changes.
+ * Re-entrancy guard prevents infinite observer loops.
  */
 let gradCounter = 0
 
@@ -35,7 +37,7 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
     }
   }, [src])
 
-  // Inject SVG gradient and maintain via MutationObserver
+  // Inject SVG gradient and force onto all shapes
   useEffect(() => {
     const el = containerRef.current
     if (!el || !animData) return
@@ -43,7 +45,6 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
     let observer: MutationObserver | null = null
     let applying = false
 
-    // Find the Lottie SVG — skip PanelCorners (12x12 viewBox)
     const findLottieSvg = (): SVGSVGElement | null => {
       const svgs = Array.from(el.querySelectorAll('svg'))
       for (const svg of svgs) {
@@ -60,10 +61,8 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
       const svg = findLottieSvg()
       if (!svg) { applying = false; return }
 
-      // Override CSS opacity: 0.7 from .exp-panel-icon svg
       svg.style.opacity = '1'
 
-      // Get viewBox dimensions for userSpaceOnUse coordinates
       const vb = svg.getAttribute('viewBox')?.split(' ').map(Number) || [0, 0, 100, 100]
       const vbH = vb[3]
 
@@ -75,16 +74,16 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
           <linearGradient id="${gid}" gradientUnits="userSpaceOnUse"
             x1="0" y1="${vbH}" x2="0" y2="0">
             <stop offset="0%" stop-color="#ffffff" />
-            <stop offset="35%" stop-color="#5B9BD5" />
-            <stop offset="100%" stop-color="#0A3D8F" />
+            <stop offset="60%" stop-color="#ffffff" />
+            <stop offset="100%" stop-color="#3B82F6" />
           </linearGradient>
         `
         svg.insertBefore(defs, svg.firstChild)
       }
 
-      // Apply gradient to all shape elements
+      // Apply gradient to all shape fills and strokes
       const gradUrl = `url(#${gid})`
-      const shapes = svg.querySelectorAll('path, rect, circle, ellipse, polygon, polyline')
+      const shapes = svg.querySelectorAll('path, rect, circle, ellipse, polygon, polyline, line')
       shapes.forEach(shape => {
         const s = shape as SVGElement
         const fill = s.getAttribute('fill') || s.style.fill
@@ -100,7 +99,7 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
       applying = false
     }
 
-    // Apply after Lottie renders, then watch for changes
+    // Apply after Lottie renders, then watch for Lottie's fill changes
     const timer = setTimeout(() => {
       applyGradient()
 
@@ -111,7 +110,7 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
           childList: true,
           subtree: true,
           attributes: true,
-          attributeFilter: ['fill'],
+          attributeFilter: ['fill', 'stroke', 'd'],
         })
       }
     }, 200)

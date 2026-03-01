@@ -638,6 +638,10 @@ body:has(.experiment) {
   margin-bottom: 12px;
 }
 
+.exp-12-grid--half .exp-panel-icon svg {
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.4));
+}
+
 .exp-12-grid--half .exp-corner {
   color: rgba(255, 255, 255, 0.25);
 }

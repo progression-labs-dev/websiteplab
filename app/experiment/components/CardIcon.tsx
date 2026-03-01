@@ -32,7 +32,7 @@ export default function CardIcon({ name }: { name: string }) {
   return (
     <div className="exp-panel-icon" data-icon={name} ref={containerRef}>
       <PanelCorners />
-      <GradientLottie src={path} size={80} />
+      <GradientLottie src={path} size={90} />
     </div>
   )
 }
