@@ -16,10 +16,13 @@ interface GradientLottieProps {
  * persist through animation frame updates. Forces opacity: 1 to
  * override the default 0.7 on .exp-panel-icon svg.
  */
+let gradCounter = 0
+
 export default function GradientLottie({ src, size = 80 }: GradientLottieProps) {
   const lottieRef = useRef<LottieRefCurrentProps>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [animData, setAnimData] = useState<object | null>(null)
+  const gradId = useRef(`lottie-grad-${++gradCounter}`)
 
   useEffect(() => {
     if (typeof src === 'string') {
@@ -38,10 +41,11 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
     if (!el || !animData) return
 
     let observer: MutationObserver | null = null
+    let applying = false
 
     // Find the Lottie SVG — skip PanelCorners (12x12 viewBox)
     const findLottieSvg = (): SVGSVGElement | null => {
-      const svgs = el.querySelectorAll('svg')
+      const svgs = Array.from(el.querySelectorAll('svg'))
       for (const svg of svgs) {
         const vb = svg.getAttribute('viewBox') || ''
         if (!vb.includes('0 0 12 12')) return svg
@@ -50,8 +54,11 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
     }
 
     const applyGradient = () => {
+      if (applying) return
+      applying = true
+
       const svg = findLottieSvg()
-      if (!svg) return
+      if (!svg) { applying = false; return }
 
       // Override CSS opacity: 0.7 from .exp-panel-icon svg
       svg.style.opacity = '1'
@@ -61,31 +68,36 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
       const vbH = vb[3]
 
       // Inject gradient defs if not present
-      if (!svg.querySelector('#lottie-grad')) {
+      const gid = gradId.current
+      if (!svg.querySelector(`#${gid}`)) {
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
         defs.innerHTML = `
-          <linearGradient id="lottie-grad" gradientUnits="userSpaceOnUse"
+          <linearGradient id="${gid}" gradientUnits="userSpaceOnUse"
             x1="0" y1="${vbH}" x2="0" y2="0">
             <stop offset="0%" stop-color="#ffffff" />
-            <stop offset="100%" stop-color="#3B82F6" />
+            <stop offset="35%" stop-color="#5B9BD5" />
+            <stop offset="100%" stop-color="#0A3D8F" />
           </linearGradient>
         `
         svg.insertBefore(defs, svg.firstChild)
       }
 
       // Apply gradient to all shape elements
+      const gradUrl = `url(#${gid})`
       const shapes = svg.querySelectorAll('path, rect, circle, ellipse, polygon, polyline')
       shapes.forEach(shape => {
         const s = shape as SVGElement
         const fill = s.getAttribute('fill') || s.style.fill
-        if (fill !== 'none' && fill !== 'transparent') {
-          s.style.fill = 'url(#lottie-grad)'
+        if (fill !== 'none' && fill !== 'transparent' && s.style.fill !== gradUrl) {
+          s.style.fill = gradUrl
         }
         const stroke = s.getAttribute('stroke') || s.style.stroke
-        if (stroke && stroke !== 'none' && stroke !== 'transparent') {
-          s.style.stroke = 'url(#lottie-grad)'
+        if (stroke && stroke !== 'none' && stroke !== 'transparent' && s.style.stroke !== gradUrl) {
+          s.style.stroke = gradUrl
         }
       })
+
+      applying = false
     }
 
     // Apply after Lottie renders, then watch for changes
@@ -99,7 +111,7 @@ export default function GradientLottie({ src, size = 80 }: GradientLottieProps) 
           childList: true,
           subtree: true,
           attributes: true,
-          attributeFilter: ['fill', 'style'],
+          attributeFilter: ['fill'],
         })
       }
     }, 200)

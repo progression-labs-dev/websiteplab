@@ -29,16 +29,16 @@ export default function ServicesSection() {
       if (validRefs.length === 0) return
 
       ctx = gsap.context(() => {
-        gsap.set(validRefs, { y: 40, opacity: 0 })
+        gsap.set(validRefs, { y: 60, opacity: 0 })
         gsap.to(validRefs, {
           y: 0,
           opacity: 1,
-          duration: 0.7,
-          stagger: 0.1,
-          ease: 'power3.out',
+          duration: 1.0,
+          stagger: 0.2,
+          ease: 'power2.out',
           scrollTrigger: {
             trigger: validRefs[0],
-            start: 'top 80%',
+            start: 'top 85%',
             once: true,
           },
         })
