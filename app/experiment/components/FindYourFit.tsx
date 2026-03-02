@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ScrollDecode from './ScrollDecode'
 import ArrowIcon from './ArrowIcon'
-import GradientLottie from './GradientLottie'
+import PulsingGrid from './PulsingGrid'
 
 // Brand palette (synced with hero shader)
 const BRAND_COLORS: [number, number, number][] = [
@@ -430,7 +430,7 @@ export default function FindYourFit() {
           {step === 0 && (
             <div className="exp-finder-step exp-finder-step--visible">
               <div style={{ marginBottom: 16 }}>
-                <GradientLottie src="/lottie/finder-person.json" size={48} />
+                <PulsingGrid size={48} />
               </div>
               <div className="exp-terminal-prompt">
                 <span className="exp-terminal-caret">&gt;</span>
