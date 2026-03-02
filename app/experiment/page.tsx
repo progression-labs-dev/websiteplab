@@ -7,7 +7,9 @@ import LogoMarquee from './components/LogoMarquee'
 import ProofSection from './components/ProofSection'
 import ConvergenceSection from './components/ConvergenceSection'
 import FindYourFit from './components/FindYourFit'
+import ServiceDetailSection from './components/ServiceDetailSection'
 import ExperimentTeamSection from './components/ExperimentTeamSection'
+import BlogSection from './components/BlogSection'
 import CTASection from './components/CTASection'
 import PlusDivider from './components/PlusDivider'
 
@@ -55,8 +57,20 @@ export default function ExperimentPage() {
 
       <PlusDivider />
 
+      <section id="services-detail">
+        <ServiceDetailSection />
+      </section>
+
+      <PlusDivider />
+
       <section id="team">
         <ExperimentTeamSection />
+      </section>
+
+      <PlusDivider />
+
+      <section id="blog">
+        <BlogSection />
       </section>
 
       <PlusDivider />

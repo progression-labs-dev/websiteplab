@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 import ScrollDecode from './ScrollDecode'
 import PanelCorners from './PanelCorners'
+import DepixelateAvatar from './DepixelateAvatar'
 
 const teamMembers = [
   { name: 'Gabor Soter', role: 'Founder & CEO', imageUrl: '/team/gabor-soter.jpg' },
@@ -22,64 +23,6 @@ function getInitials(name: string): string {
 const SHUFFLE_CHARS = '01'
 const SHUFFLE_INTERVAL = 60
 const SHUFFLE_TIMEOUT = 500
-
-/**
- * PixelAvatar — Renders a photo pixelated by default (via tiny canvas),
- * with a glitch de-pixelation reveal on hover.
- */
-function PixelAvatar({ src, alt }: { src: string; alt: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const imgRef = useRef<HTMLImageElement>(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const img = imgRef.current
-    if (!canvas || !img) return
-
-    const draw = () => {
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      // Draw the full image into a tiny 12x12 canvas — browser upscales with pixelated rendering
-      canvas.width = 12
-      canvas.height = 12
-      ctx.drawImage(img, 0, 0, 12, 12)
-    }
-
-    if (img.complete && img.naturalWidth > 0) {
-      draw()
-    } else {
-      img.addEventListener('load', draw)
-      return () => img.removeEventListener('load', draw)
-    }
-  }, [src])
-
-  return (
-    <div className="exp-team-pixel-wrap">
-      {/* Hidden source image — used to draw canvas and shown on hover */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        className="exp-team-clean-img"
-      />
-      {/* Pixelated overlay — visible by default, fades out on hover */}
-      <canvas
-        ref={canvasRef}
-        className="exp-team-pixel-canvas"
-      />
-      {/* Glitch slices — visible only during hover transition */}
-      <div className="exp-team-glitch-slices" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="exp-team-glitch-slice exp-team-glitch-1" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="exp-team-glitch-slice exp-team-glitch-2" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="exp-team-glitch-slice exp-team-glitch-3" />
-      </div>
-    </div>
-  )
-}
 
 /**
  * InitialsAvatar — Shows initials with a binary scramble on hover
@@ -147,7 +90,7 @@ function MarqueeRow({ direction = 'left', speed = '25s' }: { direction?: 'left' 
             <PanelCorners />
             <div className="exp-team-avatar">
               {member.imageUrl ? (
-                <PixelAvatar src={member.imageUrl} alt={member.name} />
+                <DepixelateAvatar src={member.imageUrl} alt={member.name} />
               ) : (
                 <InitialsAvatar name={member.name} />
               )}

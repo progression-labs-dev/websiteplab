@@ -4,6 +4,17 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import ScrollDecode from './ScrollDecode'
 import ArrowIcon from './ArrowIcon'
 
+// Brand palette (synced with hero shader)
+const BRAND_COLORS: [number, number, number][] = [
+  [186, 85, 211],
+  [255, 160, 122],
+  [185, 233, 121],
+  [64, 224, 208],
+  [0, 0, 255],
+]
+const CYCLE_SEC = 30
+function ssmooth(t: number) { return t * t * (3 - 2 * t) }
+
 type Role = 'ceo' | 'cto' | 'product' | 'commercial' | 'other'
 type Journey = 'exploring' | 'building' | 'scaling'
 
@@ -126,10 +137,46 @@ export default function FindYourFit() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLDivElement>(null)
   const gsapRef = useRef<typeof import('gsap')['default'] | null>(null)
 
   useEffect(() => {
     import('gsap').then(mod => { gsapRef.current = mod.default })
+  }, [])
+
+  // Color cycling gradient — synced with hero
+  useEffect(() => {
+    let raf: number
+    const startTime = performance.now() / 1000
+
+    const tick = () => {
+      if (!labelRef.current) { raf = requestAnimationFrame(tick); return }
+
+      const elapsed = performance.now() / 1000 - startTime
+      const progress = (elapsed % CYCLE_SEC) / CYCLE_SEC
+      const segProgress = progress * 5
+      const segIndex = Math.floor(segProgress) % 5
+      const t = ssmooth(segProgress - Math.floor(segProgress))
+
+      const from = BRAND_COLORS[segIndex]
+      const to = BRAND_COLORS[(segIndex + 1) % 5]
+      const r = Math.round(from[0] + (to[0] - from[0]) * t)
+      const g = Math.round(from[1] + (to[1] - from[1]) * t)
+      const b = Math.round(from[2] + (to[2] - from[2]) * t)
+
+      labelRef.current.style.backgroundImage = `linear-gradient(
+        to bottom,
+        rgba(${r}, ${g}, ${b}, 0.8) 0%,
+        rgba(${r}, ${g}, ${b}, 0.5) 30%,
+        rgba(${r}, ${g}, ${b}, 0.18) 65%,
+        transparent 100%
+      )`
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
   }, [])
 
   // GSAP ScrollTrigger initial reveal
@@ -169,9 +216,11 @@ export default function FindYourFit() {
     const el = contentRef.current
     if (!gsap || !el) { callback(); return }
 
+    // Lock height to prevent collapse during transition
+    el.style.minHeight = `${el.offsetHeight}px`
+
     gsap.to(el, {
       opacity: 0,
-      y: -20,
       duration: 0.2,
       ease: 'power2.in',
       onComplete: () => {
@@ -179,8 +228,16 @@ export default function FindYourFit() {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             gsap.fromTo(el,
-              { opacity: 0, y: 30 },
-              { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+              { opacity: 0 },
+              {
+                opacity: 1,
+                duration: 0.4,
+                ease: 'power2.out',
+                onComplete: () => {
+                  // Release height lock after transition
+                  el.style.minHeight = ''
+                },
+              }
             )
           })
         })
@@ -213,7 +270,7 @@ export default function FindYourFit() {
   return (
     <div className="exp-12-grid exp-12-grid--half exp-finder">
       {/* Left column */}
-      <div className="exp-col-label exp-col-label--gradient">
+      <div ref={labelRef} className="exp-col-label exp-col-label--gradient">
         <div className="exp-tag">Interactive</div>
         <ScrollDecode
           text="Find Your Fit"
@@ -272,7 +329,7 @@ export default function FindYourFit() {
 
         {step === 2 && recommendation && (
           <div className="exp-finder-step exp-finder-step--visible">
-            <div className="exp-finder-question-num">Your recommendation</div>
+            <div className="exp-finder-result-label">Your recommendation</div>
             <div className="exp-finder-result">
               <div className="exp-finder-result-title">{recommendation.title}</div>
               <div className="exp-finder-result-desc">{recommendation.desc}</div>
@@ -281,9 +338,14 @@ export default function FindYourFit() {
                   <span key={s} className="exp-finder-result-tag">{s}</span>
                 ))}
               </div>
-              <a href="#contact" className="exp-btn-outline" style={{ marginTop: 24 }}>
-                {recommendation.cta} <ArrowIcon />
-              </a>
+              <div className="exp-finder-result-actions">
+                <a href="#contact" className="exp-btn-outline" style={{ marginTop: 24 }}>
+                  {recommendation.cta} <ArrowIcon />
+                </a>
+                <a href="#services-detail" className="exp-btn-outline exp-btn-outline--secondary" style={{ marginTop: 8 }}>
+                  Learn more about our services <ArrowIcon />
+                </a>
+              </div>
             </div>
             <button className="exp-finder-reset" onClick={handleReset}>
               Start again
