@@ -8,6 +8,7 @@ import ProofSection from './components/ProofSection'
 import MethodSection from './components/MethodSection'
 import ServicesSection from './components/ServicesSection'
 import ConvergenceSection from './components/ConvergenceSection'
+import FindYourFit from './components/FindYourFit'
 import ExperimentTeamSection from './components/ExperimentTeamSection'
 import CTASection from './components/CTASection'
 import PlusDivider from './components/PlusDivider'
@@ -57,6 +58,10 @@ export default function ExperimentPage() {
       <PlusDivider />
 
       <ConvergenceSection />
+
+      <PlusDivider />
+
+      <FindYourFit />
 
       <PlusDivider />
 
