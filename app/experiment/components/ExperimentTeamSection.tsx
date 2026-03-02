@@ -108,9 +108,8 @@ function MarqueeRow({ direction = 'left', speed = '25s' }: { direction?: 'left' 
 }
 
 /**
- * ExperimentTeamSection — Two-row counter-scrolling marquee of team cards.
- * Row 1 scrolls left at 25s, Row 2 scrolls right at 30s for visual variety.
- * Photos are pixelated by default; hover triggers a glitch de-pixelation reveal.
+ * ExperimentTeamSection — Single-row scrolling marquee of team cards.
+ * Photos are pixelated by default; hover triggers a cell-by-cell de-pixelation reveal.
  */
 export default function ExperimentTeamSection() {
   return (
@@ -127,8 +126,7 @@ export default function ExperimentTeamSection() {
       </div>
 
       <div className="exp-team-rows">
-        <MarqueeRow direction="left" speed="25s" />
-        <MarqueeRow direction="right" speed="30s" />
+        <MarqueeRow direction="left" speed="30s" />
       </div>
     </div>
   )

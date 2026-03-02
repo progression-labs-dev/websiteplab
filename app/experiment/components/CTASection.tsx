@@ -20,9 +20,8 @@ export default function CTASection() {
       gsap.registerPlugin(ScrollTrigger)
 
       ctx = gsap.context(() => {
-        gsap.set(el, { y: 30, opacity: 0 })
+        gsap.set(el, { opacity: 0 })
         gsap.to(el, {
-          y: 0,
           opacity: 1,
           duration: 0.8,
           ease: 'power3.out',
