@@ -94,15 +94,7 @@ const fragmentShader = `
     float dist = distance(vUv * aspectVec, uMouse * aspectVec);
     float mask = exp(-dist * dist * 6.0) * uMouseActive;
 
-    // ═══ 4. PER-CELL BRIGHTNESS JITTER (makes pixel edges visible) ═══
-    // Without this, horizontally adjacent blocks sample nearly identical
-    // colors from the vertical gradient, hiding vertical pixel edges.
-    // Small random brightness offset per cell creates visible discontinuity.
-    vec2 cellId = floor(vUv * grid);
-    float cellNoise = hash(cellId) * 0.08 - 0.04; // ±4% brightness
-    pixelColor *= 1.0 + cellNoise;
-
-    // ═══ 5. PURE COLOR BLENDING ═══
+    // ═══ 4. PURE COLOR BLENDING ═══
     vec3 finalColor = mix(smoothColor, pixelColor, mask);
 
     // ═══ 6. PAGE-LOAD PIXEL REVEAL ═══
