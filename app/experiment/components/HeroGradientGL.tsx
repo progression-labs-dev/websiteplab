@@ -87,9 +87,10 @@ const fragmentShader = `
     vec2 grid = uResolution / blockPx;
     vec2 cellId = floor(vUv * grid);
     vec2 pixelUv = cellId / grid;
-    // Tiny per-cell y-offset so adjacent columns sample different gradient positions
-    // Creates natural visible cell edges without brightness jitter or grid lines
-    pixelUv.y += hash(cellId) * 0.012;
+    // Per-COLUMN y-offset: each column samples a slightly different gradient position
+    // Breaks horizontal banding while keeping vertical coherence within each column
+    float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
+    pixelUv.y += colOffset;
     vec3 pixelColor = getGradientColor(pixelUv);
 
     // ═══ 3. ORGANIC REVEAL MASK (Gaussian falloff) ═══
