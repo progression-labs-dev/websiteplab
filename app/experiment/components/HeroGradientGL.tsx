@@ -15,129 +15,125 @@ const vertexShader = `
   }
 `
 
-// Single-pass fragment shader: smooth gradient + soft breathing LED wall + page-load reveal
+// Single-pass fragment shader: smooth gradient + mouse-driven pixel reveal + page-load reveal
 const fragmentShader = `
-    precision highp float;
+  precision highp float;
 
-    uniform float uTime;           // elapsed seconds
-    uniform float uRevealProgress; // 0 = dark grid, 1 = full gradient (page-load)
-    uniform vec2 uResolution;      // container size in px
-    uniform vec2 uMouse;           // damped mouse position in UV space (0-1)
-    uniform float uMouseActive;    // 0 = not hovering, 1 = hovering (GSAP-animated)
+  uniform float uTime;           // elapsed seconds
+  uniform float uRevealProgress; // 0 = dark grid, 1 = full gradient (page-load)
+  uniform vec2 uResolution;      // container size in px
+  uniform vec2 uMouse;           // damped mouse position in UV space (0-1)
+  uniform float uMouseActive;    // 0 = not hovering, 1 = hovering (GSAP-animated)
 
-    varying vec2 vUv;
+  varying vec2 vUv;
 
-    // ─── Cubic smoothstep for organic keyframe easing ───
-    float ssmooth(float t) {
-      return t * t * (3.0 - 2.0 * t);
-    }
+  // ─── Cubic smoothstep for organic keyframe easing ───
+  float ssmooth(float t) {
+    return t * t * (3.0 - 2.0 * t);
+  }
 
-    // ─── Per-cell deterministic random ───
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-    }
+  // ─── Per-cell deterministic random (for page-load reveal) ───
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
 
-    // ─── 7-stop gradient ramp from near-black to white ───
-    vec3 computeGradient(float gp, vec3 peak) {
-      vec3 deep = peak * 0.15;
-      vec3 mid1 = peak * 0.40;
-      vec3 mid2 = peak * 0.70;
-      if (gp < 0.03) return mix(vec3(0.004), deep, gp / 0.03);
-      else if (gp < 0.15) return mix(deep, mid1, (gp - 0.03) / 0.12);
-      else if (gp < 0.30) return mix(mid1, mid2, (gp - 0.15) / 0.15);
-      else if (gp < 0.55) return mix(mid2, peak, (gp - 0.30) / 0.25);
-      else if (gp < 0.95) return mix(peak, vec3(1.0), (gp - 0.55) / 0.40);
-      else return vec3(1.0);
-    }
+  // ─── Gradient ramp: black bottom → saturated peak → white top edge ───
+  vec3 computeGradient(float gp, vec3 peak) {
+    vec3 deep = peak * 0.06;
+    vec3 mid  = peak * 0.35;
+    vec3 hot  = peak * 1.0;
+    vec3 wash = mix(peak, vec3(1.0), 0.5);   // 50% desaturated toward white
+    if (gp < 0.04) return mix(vec3(0.004), deep, gp / 0.04);         // near-black
+    else if (gp < 0.18) return mix(deep, mid, (gp - 0.04) / 0.14);   // dark tint
+    else if (gp < 0.45) return mix(mid, hot, (gp - 0.18) / 0.27);    // ramp to full color
+    else if (gp < 0.72) return mix(hot, wash, (gp - 0.45) / 0.27);   // desaturate
+    else return mix(wash, vec3(1.0), (gp - 0.72) / 0.28);            // push to white
+  }
 
-    // ═══ 1. PURE COLOR GENERATION ═══
-    vec3 getGradientColor(vec2 uv) {
-      vec3 cOrchid    = vec3(0.729, 0.333, 0.827);
-      vec3 cSalmon    = vec3(1.000, 0.627, 0.478);
-      vec3 cGreen     = vec3(0.725, 0.914, 0.475);
-      vec3 cTurquoise = vec3(0.251, 0.878, 0.816);
-      vec3 cBlue      = vec3(0.000, 0.000, 1.000);
+  // ═══ 1. PURE COLOR GENERATION ═══
+  // Self-contained: takes any UV, returns the gradient color at that point
+  // including time-based brand color cycling.
+  vec3 getGradientColor(vec2 uv) {
+    // Progression Labs brand palette — 5 colors over 30s cycle
+    vec3 cOrchid    = vec3(0.729, 0.333, 0.827); // #BA55D3
+    vec3 cSalmon    = vec3(1.000, 0.627, 0.478); // #FFA07A
+    vec3 cGreen     = vec3(0.725, 0.914, 0.475); // #B9E979
+    vec3 cTurquoise = vec3(0.251, 0.878, 0.816); // #40E0D0
+    vec3 cBlue      = vec3(0.000, 0.000, 1.000); // #0000FF
 
-      float cycleSec = 30.0;
-      float progress = mod(uTime, cycleSec) / cycleSec;
-      float segProgress = progress * 5.0;
-      int segIndex = int(floor(segProgress));
-      float t = ssmooth(segProgress - floor(segProgress));
+    float cycleSec = 30.0;
+    float progress = mod(uTime, cycleSec) / cycleSec;
+    float segProgress = progress * 5.0;
+    int segIndex = int(floor(segProgress));
+    float t = ssmooth(segProgress - floor(segProgress));
 
-      vec3 fromColor, toColor;
-      if (segIndex == 0)      { fromColor = cOrchid;    toColor = cSalmon;    }
-      else if (segIndex == 1) { fromColor = cSalmon;    toColor = cGreen;     }
-      else if (segIndex == 2) { fromColor = cGreen;     toColor = cTurquoise; }
-      else if (segIndex == 3) { fromColor = cTurquoise; toColor = cBlue;      }
-      else                    { fromColor = cBlue;      toColor = cOrchid;    }
+    vec3 fromColor, toColor;
+    if (segIndex == 0)      { fromColor = cOrchid;    toColor = cSalmon;    }
+    else if (segIndex == 1) { fromColor = cSalmon;    toColor = cGreen;     }
+    else if (segIndex == 2) { fromColor = cGreen;     toColor = cTurquoise; }
+    else if (segIndex == 3) { fromColor = cTurquoise; toColor = cBlue;      }
+    else                    { fromColor = cBlue;      toColor = cOrchid;    }
 
-      vec3 peakColor = mix(fromColor, toColor, t);
-      float gp = 1.0 - uv.y;
-      return computeGradient(gp, peakColor);
-    }
+    vec3 peakColor = mix(fromColor, toColor, t);
+    float gp = uv.y;
+    return computeGradient(gp, peakColor);
+  }
 
-    void main() {
-      // ═══ 2. DUAL TEXTURES (Smooth vs Grid) ═══
-      vec3 smoothColor = getGradientColor(vUv);
+  void main() {
+    // ═══ 2. DUAL TEXTURES: smooth + pixelated ═══
+    vec3 smoothColor = getGradientColor(vUv);
 
-      float blockPx = 45.0; // Size of the blocks
-      vec2 grid = uResolution / blockPx;
-      vec2 cellIndex = floor(vUv * grid);
+    float blockPx = 45.0; // ~45px square blocks
+    vec2 grid = uResolution / blockPx;
+    vec2 cellId = floor(vUv * grid);
+    vec2 pixelUv = cellId / grid;
+    // Per-COLUMN y-offset: each column samples a slightly different gradient position
+    // Breaks horizontal banding while keeping vertical coherence within each column
+    float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
+    pixelUv.y += colOffset;
+    vec3 pixelColor = getGradientColor(pixelUv);
 
-      vec2 pixelUv = (cellIndex + 0.5) / grid;
-      vec3 pixelColor = getGradientColor(pixelUv);
+    // ═══ 3. ORGANIC REVEAL MASK (Gaussian falloff) ═══
+    float aspect = uResolution.x / uResolution.y;
+    vec2 aspectVec = vec2(aspect, 1.0);
+    float dist = distance(vUv * aspectVec, uMouse * aspectVec);
+    float mouseMask = exp(-dist * dist * 18.0) * uMouseActive;
 
-      // ═══ 3. CRISP DIAGONAL SHIMMER ═══
-      float blockRandom = hash(cellIndex);
-      float diagonalWave = (cellIndex.x - cellIndex.y) * 0.1;
+    // ─── Ambient diagonal shimmer (sweeps top-left → bottom-right) ───
+    float diag = (vUv.x + 1.0 - vUv.y) * 0.5;
+    float shimmerPos = fract(uTime * 0.25);
+    float shimmerDist = abs(diag - shimmerPos);
+    shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
+    float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
 
-      // Slower wave, but we use pow() to "sharpen" the peaks.
-      // This makes blocks pop distinctly rather than looking like mushy fog.
-      float wave = sin(diagonalWave + (uTime * 1.2) + (blockRandom * 4.0)) * 0.5 + 0.5;
-      float sharpPulse = pow(wave, 3.0);
+    float mask = max(mouseMask, shimmerMask * (1.0 - uMouseActive));
 
-      // ═══ 4. MOUSE GLOW ═══
-      float aspect = uResolution.x / uResolution.y;
-      vec2 aspectVec = vec2(aspect, 1.0);
-      float dist = distance(pixelUv * aspectVec, uMouse * aspectVec);
+    // ═══ 4. PURE COLOR BLENDING ═══
+    vec3 finalColor = mix(smoothColor, pixelColor, mask);
 
-      // Slightly tighter radius for the mouse so it feels like a focused interaction
-      float mouseGlow = exp(-dist * dist * 6.0) * uMouseActive;
+    // ═══ 6. PAGE-LOAD PIXEL REVEAL ═══
+    if (uRevealProgress < 1.0) {
+      float cellCount = floor(uResolution.x / 20.0);
+      vec2 revealGrid = vec2(cellCount, cellCount * uResolution.y / uResolution.x);
+      vec2 cell = floor(vUv * revealGrid);
+      float noise = hash(cell);
+      float sweep = 1.0 - vUv.y;
+      float threshold = noise * 0.3 + sweep * 0.7;
+      vec3 darkColor = vec3(0.14);
 
-      // ═══ 5. CONTRAST BLENDING ═══
-      float rawIntensity = (sharpPulse * 0.4) + (mouseGlow * 0.85);
-
-      // FORCE CRISP EDGES: If a block has even a little intensity, force the mix to show the block's hard edges
-      float mixFactor = smoothstep(0.05, 0.35, rawIntensity);
-
-      // BRIGHTNESS BUMP: When a block is illuminated, make it distinctly brighter than the smooth background
-      vec3 ledColor = pixelColor * (1.0 + rawIntensity * 0.35);
-
-      vec3 finalColor = mix(smoothColor, ledColor, clamp(mixFactor, 0.0, 1.0));
-
-      // ═══ 6. PAGE-LOAD PIXEL REVEAL ═══
-      if (uRevealProgress < 1.0) {
-        float cellCount = floor(uResolution.x / 20.0);
-        vec2 revealGrid = vec2(cellCount, cellCount * uResolution.y / uResolution.x);
-        vec2 cell = floor(vUv * revealGrid);
-        float noise = hash(cell);
-        float sweep = 1.0 - vUv.y;
-        float threshold = noise * 0.3 + sweep * 0.7;
-        vec3 darkColor = vec3(0.14);
-
-        if (uRevealProgress > threshold + 0.08) {
-          // Fully revealed
-        } else if (uRevealProgress > threshold) {
-          gl_FragColor = vec4(darkColor, 1.0);
-          return;
-        } else {
-          gl_FragColor = vec4(vec3(0.004), 1.0);
-          return;
-        }
+      if (uRevealProgress > threshold + 0.08) {
+        // Fully revealed — show blended gradient
+      } else if (uRevealProgress > threshold) {
+        gl_FragColor = vec4(darkColor, 1.0);
+        return;
+      } else {
+        gl_FragColor = vec4(vec3(0.004), 1.0);
+        return;
       }
-
-      gl_FragColor = vec4(finalColor, 1.0);
     }
+
+    gl_FragColor = vec4(finalColor, 1.0);
+  }
 `
 
 export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
