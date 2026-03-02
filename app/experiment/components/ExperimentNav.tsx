@@ -5,10 +5,8 @@ import ShuffleHover from './ShuffleHover'
 import ArrowIcon from './ArrowIcon'
 
 const NAV_LINKS = [
-  { label: 'Work', href: '#work' },
-  { label: 'Method', href: '#method' },
   { label: 'Services', href: '#services' },
-  { label: 'Team', href: '#team' },
+  { label: 'Proof', href: '#work' },
   { label: 'Contact', href: '#contact' },
 ]
 

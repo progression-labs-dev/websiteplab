@@ -200,15 +200,15 @@ body:has(.experiment) {
   background: #010101;
 }
 
-/* Text readability overlay — dark gradient at bottom over the light end of gradient */
+/* Text readability overlay — strong dark gradient at bottom for WCAG AA contrast */
 .exp-hero-frame::before {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 45%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  height: 55%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.5) 40%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -758,6 +758,26 @@ body:has(.experiment) {
 .exp-logo-carousel-label {
   text-align: center;
   margin-bottom: 32px;
+}
+
+/* Static logo display — single partner badge */
+.exp-logo-static {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.exp-logo-static-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp-logo-static-img {
+  height: 36px;
+  width: auto;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .exp-marquee {

@@ -37,17 +37,18 @@ const fragmentShader = `
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
   }
 
-  // ─── 7-stop gradient ramp from near-black to white ───
+  // ─── 7-stop gradient ramp: black bottom, saturated top (no wash-out) ───
   vec3 computeGradient(float gp, vec3 peak) {
-    vec3 deep = peak * 0.15;
-    vec3 mid1 = peak * 0.40;
-    vec3 mid2 = peak * 0.70;
-    if (gp < 0.03) return mix(vec3(0.004), deep, gp / 0.03);
-    else if (gp < 0.15) return mix(deep, mid1, (gp - 0.03) / 0.12);
-    else if (gp < 0.30) return mix(mid1, mid2, (gp - 0.15) / 0.15);
-    else if (gp < 0.55) return mix(mid2, peak, (gp - 0.30) / 0.25);
-    else if (gp < 0.95) return mix(peak, vec3(1.0), (gp - 0.55) / 0.40);
-    else return vec3(1.0);
+    vec3 deep = peak * 0.08;
+    vec3 mid1 = peak * 0.25;
+    vec3 mid2 = peak * 0.50;
+    vec3 bright = peak * 0.75;
+    if (gp < 0.05) return mix(vec3(0.004), deep, gp / 0.05);
+    else if (gp < 0.20) return mix(deep, mid1, (gp - 0.05) / 0.15);
+    else if (gp < 0.40) return mix(mid1, mid2, (gp - 0.20) / 0.20);
+    else if (gp < 0.65) return mix(mid2, peak, (gp - 0.40) / 0.25);
+    else if (gp < 0.90) return mix(peak, bright, (gp - 0.65) / 0.25);
+    else return bright;
   }
 
   // ═══ 1. PURE COLOR GENERATION ═══

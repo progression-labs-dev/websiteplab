@@ -4,12 +4,8 @@ import { useRef, useState } from 'react'
 import HeroSection from './components/HeroSection'
 import ExperimentNav from './components/ExperimentNav'
 import LogoMarquee from './components/LogoMarquee'
-import ProofSection from './components/ProofSection'
-import ConvergenceSection from './components/ConvergenceSection'
 import FindYourFit from './components/FindYourFit'
-import ServiceDetailSection from './components/ServiceDetailSection'
-import ExperimentTeamSection from './components/ExperimentTeamSection'
-import BlogSection from './components/BlogSection'
+import ProofSection from './components/ProofSection'
 import CTASection from './components/CTASection'
 import PlusDivider from './components/PlusDivider'
 
@@ -32,45 +28,23 @@ export default function ExperimentPage() {
       <ExperimentNav ref={navRef} showBrand={showBrand} />
       <HeroSection onNavReveal={handleNavReveal} onBrandReveal={handleBrandReveal} />
 
-      {/* Logo carousel — clean black gap, no divider above */}
+      {/* Selective partner proof — AWS logo only */}
       <div className="exp-logo-carousel">
         <LogoMarquee />
       </div>
 
       <PlusDivider />
 
-      <section id="work">
-        <ProofSection />
-      </section>
-
-      <PlusDivider />
-
-      <section id="method">
-        <ConvergenceSection />
-      </section>
-
-      <PlusDivider />
-
+      {/* Centerpiece: interactive service finder */}
       <section id="services">
         <FindYourFit />
       </section>
 
       <PlusDivider />
 
-      <section id="services-detail">
-        <ServiceDetailSection />
-      </section>
-
-      <PlusDivider />
-
-      <section id="team">
-        <ExperimentTeamSection />
-      </section>
-
-      <PlusDivider />
-
-      <section id="blog">
-        <BlogSection />
+      {/* Testimonials — single rotating quote */}
+      <section id="work">
+        <ProofSection />
       </section>
 
       <PlusDivider />

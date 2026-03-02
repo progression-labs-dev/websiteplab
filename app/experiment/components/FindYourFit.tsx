@@ -279,7 +279,7 @@ export default function FindYourFit() {
           duration={800}
         />
         <p className="exp-label-desc">
-          Two quick questions. Your personalised recommendation in seconds.
+          Two questions. One recommendation.
         </p>
         {/* Dot progress indicator */}
         <div className="exp-finder-progress" aria-hidden="true">
@@ -337,14 +337,9 @@ export default function FindYourFit() {
                   <span key={s} className="exp-finder-result-tag">{s}</span>
                 ))}
               </div>
-              <div className="exp-finder-result-actions">
-                <a href="#contact" className="exp-btn-outline" style={{ marginTop: 24 }}>
-                  {recommendation.cta} <ArrowIcon />
-                </a>
-                <a href="#services-detail" className="exp-btn-outline exp-btn-outline--secondary" style={{ marginTop: 8 }}>
-                  Learn more about our services <ArrowIcon />
-                </a>
-              </div>
+              <a href="#contact" className="exp-btn-filled" style={{ marginTop: 24 }}>
+                {recommendation.cta} <ArrowIcon />
+              </a>
             </div>
             <button className="exp-finder-reset" onClick={handleReset}>
               Start again
