@@ -1097,25 +1097,27 @@ body:has(.experiment) {
 
 .exp-terminal-divider {
   font-family: var(--exp-mono);
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  margin-bottom: 20px;
 }
 
 .exp-terminal-result-title {
-  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.2rem;
   font-weight: 600;
   color: var(--exp-text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  line-height: 1.35;
 }
 
 .exp-terminal-result-desc {
-  font-family: var(--exp-body);
-  font-size: 0.9rem;
-  color: var(--exp-text-secondary);
-  line-height: 1.65;
-  margin-bottom: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.7;
+  margin-bottom: 22px;
 }
 
 .exp-terminal-result-tags {

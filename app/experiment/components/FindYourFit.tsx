@@ -47,34 +47,34 @@ const journeys = [
 const recommendations: Record<string, Recommendation> = {
   // ── CEO / Founder ──
   'ceo-no_start': {
-    title: 'AI Transformation + Ideation Sessions',
-    desc: 'Start with a strategic assessment to identify high-impact AI opportunities, then run structured workshops with your leadership team to build conviction and a concrete roadmap.',
+    title: 'Find your highest-impact AI opportunity',
+    desc: 'You know AI matters, but it\'s hard to know where to start without wasting budget on the wrong thing. We run a focused strategy session with your leadership team and leave you with a clear, prioritised roadmap — not a slide deck.',
     services: ['AI Transformation', 'Ideation Sessions', 'AI Audit'],
-    cta: 'Book a strategy session',
+    cta: 'Book a free intro call',
   },
   'ceo-know_what': {
-    title: 'AI Builds + AI Expert',
-    desc: 'Full-stack AI product development with senior engineers embedded in your team. We build production software, not prototypes — and your team learns alongside ours.',
+    title: 'Go from vision to production, fast',
+    desc: 'You\'ve got the idea — now you need the team to build it properly. Our senior engineers embed alongside yours and ship production software from week one. You keep the code and the knowledge.',
     services: ['AI Builds', 'AI Expert'],
-    cta: 'Start building',
+    cta: 'Talk to us about your project',
   },
   'ceo-stuck': {
-    title: 'Project Surgery + AI Expert',
-    desc: 'We diagnose what stalled — architecture, data, vendor lock-in, or team gaps — then fix it. Our senior engineers embed with your team to unblock and set up for long-term success.',
+    title: 'Get your AI project back on track',
+    desc: 'You\'ve invested time and budget, and it\'s not delivering yet. That\'s more common than you\'d think. We diagnose what stalled — architecture, data, team gaps — and fix it, usually within weeks.',
     services: ['Project Surgery', 'AI Expert', 'AI Audit'],
-    cta: 'Unblock your project',
+    cta: 'Book a free diagnosis call',
   },
   'ceo-need_hands': {
-    title: 'AI Expert + AI Builds',
-    desc: 'On-demand senior AI engineers who embed within your team immediately. No hiring lag, no ramp-up — production-ready talent that ships from week one.',
+    title: 'Senior AI engineers, shipping from day one',
+    desc: 'Hiring takes months. You need capacity now. Our engineers embed in your team immediately — no recruitment cycles, no ramp-up. They know the stack and start delivering from week one.',
     services: ['AI Expert', 'AI Builds'],
-    cta: 'Add senior talent',
+    cta: 'See how embedding works',
   },
   'ceo-scaling': {
-    title: 'AI Transformation + AI Expert',
-    desc: 'Strategic advisory to optimise and expand your AI operations. We help you build the internal capability to scale independently.',
+    title: 'Scale what\'s working without breaking it',
+    desc: 'Your AI is live and delivering value — now you need to expand without losing quality or velocity. We help you build the internal capability to scale independently, so you don\'t need us forever.',
     services: ['AI Transformation', 'AI Expert', 'AI Audit'],
-    cta: 'Scale with us',
+    cta: 'Talk about scaling',
   },
 
   // ── CTO / VP Engineering ──
