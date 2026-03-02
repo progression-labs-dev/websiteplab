@@ -915,6 +915,7 @@ body:has(.experiment) {
    ============================================ */
 
 /* Dot progress indicator */
+/* ── FindYourFit progress dots ── */
 .exp-finder-progress {
   display: flex;
   align-items: center;
@@ -934,7 +935,6 @@ body:has(.experiment) {
   background: var(--exp-text-primary);
 }
 
-/* Step container */
 .exp-finder-step {
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -944,118 +944,211 @@ body:has(.experiment) {
   opacity: 1;
 }
 
-/* Question number label */
-.exp-finder-question-num {
-  font-family: var(--exp-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--exp-text-tertiary);
-  margin-bottom: 12px;
-}
-
-/* Question heading */
-.exp-finder-question {
-  font-size: var(--exp-h3);
-  font-weight: 600;
-  color: var(--exp-text-primary);
-  margin: 0 0 24px 0;
-}
-
-/* Content area */
 .exp-finder-content {
   min-height: 420px;
 }
 
-/* Chip buttons */
-.exp-finder-chips {
+/* ── Terminal container ── */
+.exp-finder-terminal {
+  --t-accent: rgb(186, 85, 211);
+  --t-accent-dim: rgba(186, 85, 211, 0.12);
+  --t-accent-glow: rgba(186, 85, 211, 0.2);
+  font-family: var(--exp-mono);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0 28px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle scan-line overlay */
+.exp-finder-terminal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(255, 255, 255, 0.015) 1px,
+    rgba(255, 255, 255, 0.015) 2px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Terminal title bar ── */
+.exp-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.exp-terminal-dot--red { background: #ff5f57; }
+.exp-terminal-dot--yellow { background: #febc2e; }
+.exp-terminal-dot--green { background: #28c840; }
+
+.exp-terminal-title {
+  margin-left: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.03em;
+}
+
+/* ── Prompt line ── */
+.exp-terminal-prompt {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.exp-terminal-caret {
+  color: var(--t-accent);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.exp-terminal-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ── Blinking cursor ── */
+.exp-terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: rgba(255, 255, 255, 0.7);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: terminal-blink 1s step-end infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ── Option keys ── */
+.exp-terminal-keys {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 20px;
 }
 
-.exp-finder-chip {
+.exp-terminal-key {
+  font-family: var(--exp-mono);
+  font-size: 0.82rem;
   padding: 12px 20px;
-  background: var(--exp-surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--exp-text-primary);
-  font-size: 14px;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: border-color 0.3s ease, background 0.3s ease;
-  border-radius: 0;
+  transition: all 0.25s ease;
+  border-radius: 4px;
+  position: relative;
 }
 
-.exp-finder-chip:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+.exp-terminal-key:hover {
+  border-color: var(--t-accent);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 24px var(--t-accent-glow), inset 0 0 12px var(--t-accent-dim);
+  background: var(--t-accent-dim);
 }
 
-/* Result card */
-.exp-finder-result {
-  background: var(--exp-surface);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 32px;
+.exp-terminal-key:disabled {
+  pointer-events: none;
+  opacity: 0.4;
 }
 
-.exp-finder-result-title {
-  font-size: 20px;
+/* ── Typed selection feedback ── */
+.exp-terminal-typed {
+  color: var(--t-accent);
+  font-size: 0.85rem;
+  margin-top: 8px;
+  min-height: 1.4em;
+}
+
+/* ── Result output (staggered lines) ── */
+.exp-terminal-line {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.exp-terminal-line--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.exp-terminal-divider {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 16px;
+}
+
+.exp-terminal-result-title {
+  font-size: 1rem;
   font-weight: 600;
   color: var(--exp-text-primary);
   margin-bottom: 12px;
 }
 
-.exp-finder-result-desc {
-  font-size: 15px;
+.exp-terminal-result-desc {
+  font-family: var(--exp-body);
+  font-size: 0.9rem;
   color: var(--exp-text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
   margin-bottom: 20px;
 }
 
-.exp-finder-result-services {
+.exp-terminal-result-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
-.exp-finder-result-tag {
+.exp-terminal-tag {
   font-family: var(--exp-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--exp-text-secondary);
 }
 
-/* Result step label — uses body font (Inter) instead of monospace */
-.exp-finder-result-label {
-  font-family: inherit;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--exp-text-tertiary);
-  margin-bottom: 12px;
-}
-
-.exp-finder-reset {
+/* ── Reset command ── */
+.exp-terminal-reset {
   display: block;
-  margin-top: 16px;
-  padding: 12px 24px;
+  margin-top: 20px;
+  padding: 0;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--exp-text-tertiary);
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
   font-family: var(--exp-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
-.exp-finder-reset:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--exp-text-secondary);
+.exp-terminal-reset:hover {
+  color: var(--t-accent);
 }
 
 /* ============================================

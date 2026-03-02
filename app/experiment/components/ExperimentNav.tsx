@@ -7,6 +7,7 @@ import ArrowIcon from './ArrowIcon'
 const NAV_LINKS = [
   { label: 'Services', href: '#services' },
   { label: 'Proof', href: '#work' },
+  { label: 'Team', href: '#team' },
   { label: 'Contact', href: '#contact' },
 ]
 

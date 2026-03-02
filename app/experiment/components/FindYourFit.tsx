@@ -15,6 +15,8 @@ const BRAND_COLORS: [number, number, number][] = [
 const CYCLE_SEC = 30
 function ssmooth(t: number) { return t * t * (3 - 2 * t) }
 
+const TYPING_SPEED = 35 // ms per character
+
 type Role = 'ceo' | 'cto' | 'product' | 'commercial' | 'other'
 type Journey = 'exploring' | 'building' | 'scaling'
 
@@ -133,25 +135,29 @@ const recommendations: Record<string, Recommendation> = {
 }
 
 export default function FindYourFit() {
-  const [step, setStep] = useState(0) // 0 = role, 1 = journey, 2 = result
+  const [step, setStep] = useState(0)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null)
+  const [typedText, setTypedText] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const [resultLines, setResultLines] = useState(0)
   const contentRef = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
+  const terminalRef = useRef<HTMLDivElement>(null)
   const gsapRef = useRef<typeof import('gsap')['default'] | null>(null)
+  const typingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     import('gsap').then(mod => { gsapRef.current = mod.default })
   }, [])
 
   // Color cycling gradient — synced with hero
+  // Also drives the terminal accent color via CSS custom property
   useEffect(() => {
     let raf: number
     const startTime = performance.now() / 1000
 
     const tick = () => {
-      if (!labelRef.current) { raf = requestAnimationFrame(tick); return }
-
       const elapsed = performance.now() / 1000 - startTime
       const progress = (elapsed % CYCLE_SEC) / CYCLE_SEC
       const segProgress = progress * 5
@@ -164,13 +170,21 @@ export default function FindYourFit() {
       const g = Math.round(from[1] + (to[1] - from[1]) * t)
       const b = Math.round(from[2] + (to[2] - from[2]) * t)
 
-      labelRef.current.style.backgroundImage = `linear-gradient(
-        to bottom,
-        rgba(${r}, ${g}, ${b}, 0.8) 0%,
-        rgba(${r}, ${g}, ${b}, 0.5) 30%,
-        rgba(${r}, ${g}, ${b}, 0.18) 65%,
-        transparent 100%
-      )`
+      if (labelRef.current) {
+        labelRef.current.style.backgroundImage = `linear-gradient(
+          to bottom,
+          rgba(${r}, ${g}, ${b}, 0.8) 0%,
+          rgba(${r}, ${g}, ${b}, 0.5) 30%,
+          rgba(${r}, ${g}, ${b}, 0.18) 65%,
+          transparent 100%
+        )`
+      }
+
+      if (terminalRef.current) {
+        terminalRef.current.style.setProperty('--t-accent', `rgb(${r}, ${g}, ${b})`)
+        terminalRef.current.style.setProperty('--t-accent-dim', `rgba(${r}, ${g}, ${b}, 0.12)`)
+        terminalRef.current.style.setProperty('--t-accent-glow', `rgba(${r}, ${g}, ${b}, 0.2)`)
+      }
 
       raf = requestAnimationFrame(tick)
     }
@@ -210,12 +224,46 @@ export default function FindYourFit() {
     return () => { ctx?.revert() }
   }, [])
 
+  // Stagger result lines when step 2 is reached
+  useEffect(() => {
+    if (step !== 2) return
+    const timers: ReturnType<typeof setTimeout>[] = []
+    for (let i = 1; i <= 5; i++) {
+      timers.push(setTimeout(() => setResultLines(i), 400 + i * 150))
+    }
+    return () => timers.forEach(t => clearTimeout(t))
+  }, [step])
+
+  // Typing effect — returns a promise that resolves when typing completes
+  const typeText = useCallback((text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (typingRef.current) clearInterval(typingRef.current)
+      setIsTyping(true)
+      setTypedText('')
+      let i = 0
+      typingRef.current = setInterval(() => {
+        i++
+        setTypedText(text.slice(0, i))
+        if (i >= text.length) {
+          if (typingRef.current) clearInterval(typingRef.current)
+          typingRef.current = null
+          setIsTyping(false)
+          resolve()
+        }
+      }, TYPING_SPEED)
+    })
+  }, [])
+
+  // Cleanup typing on unmount
+  useEffect(() => {
+    return () => { if (typingRef.current) clearInterval(typingRef.current) }
+  }, [])
+
   const animateTransition = useCallback((callback: () => void) => {
     const gsap = gsapRef.current
     const el = contentRef.current
     if (!gsap || !el) { callback(); return }
 
-    // Lock height to prevent collapse during transition
     el.style.minHeight = `${el.offsetHeight}px`
 
     gsap.to(el, {
@@ -232,10 +280,7 @@ export default function FindYourFit() {
                 opacity: 1,
                 duration: 0.4,
                 ease: 'power2.out',
-                onComplete: () => {
-                  // Release height lock after transition
-                  el.style.minHeight = ''
-                },
+                onComplete: () => { el.style.minHeight = '' },
               }
             )
           })
@@ -244,21 +289,32 @@ export default function FindYourFit() {
     })
   }, [])
 
-  const handleRoleSelect = useCallback((role: Role) => {
+  const handleRoleSelect = useCallback(async (role: Role) => {
+    const label = roles.find(r => r.id === role)?.label || role
     setSelectedRole(role)
+    await typeText(label)
+    await new Promise(r => setTimeout(r, 350))
+    setTypedText('')
     animateTransition(() => setStep(1))
-  }, [animateTransition])
+  }, [animateTransition, typeText])
 
-  const handleJourneySelect = useCallback((journey: Journey) => {
+  const handleJourneySelect = useCallback(async (journey: Journey) => {
+    const label = journeys.find(j => j.id === journey)?.label || journey
     setSelectedJourney(journey)
+    await typeText(label)
+    await new Promise(r => setTimeout(r, 350))
+    setTypedText('')
+    setResultLines(0)
     animateTransition(() => setStep(2))
-  }, [animateTransition])
+  }, [animateTransition, typeText])
 
   const handleReset = useCallback(() => {
     animateTransition(() => {
       setStep(0)
       setSelectedRole(null)
       setSelectedJourney(null)
+      setTypedText('')
+      setResultLines(0)
     })
   }, [animateTransition])
 
@@ -268,7 +324,7 @@ export default function FindYourFit() {
 
   return (
     <div className="exp-12-grid exp-12-grid--half exp-finder">
-      {/* Left column */}
+      {/* Left column — label + gradient */}
       <div ref={labelRef} className="exp-col-label exp-col-label--gradient">
         <div className="exp-tag">Interactive</div>
         <ScrollDecode
@@ -281,71 +337,115 @@ export default function FindYourFit() {
         <p className="exp-label-desc">
           Two questions. One recommendation.
         </p>
-        {/* Dot progress indicator */}
         <div className="exp-finder-progress" aria-hidden="true">
           <div className={`exp-finder-dot${step >= 0 ? ' exp-finder-dot--active' : ''}`} />
           <div className={`exp-finder-dot${step >= 1 ? ' exp-finder-dot--active' : ''}`} />
         </div>
       </div>
 
-      {/* Right column — interactive quiz */}
+      {/* Right column — terminal interface */}
       <div ref={contentRef} className="exp-col-content exp-finder-content" aria-live="polite">
-        {step === 0 && (
-          <div className="exp-finder-step exp-finder-step--visible">
-            <div className="exp-finder-question-num">01 / 02</div>
-            <h3 className="exp-finder-question" tabIndex={-1}>What&apos;s your role?</h3>
-            <div className="exp-finder-chips">
-              {roles.map(role => (
-                <button
-                  key={role.id}
-                  className="exp-finder-chip"
-                  onClick={() => handleRoleSelect(role.id)}
-                >
-                  {role.label}
-                </button>
-              ))}
-            </div>
+        <div ref={terminalRef} className="exp-finder-terminal">
+          {/* Terminal header bar */}
+          <div className="exp-terminal-bar">
+            <span className="exp-terminal-dot exp-terminal-dot--red" />
+            <span className="exp-terminal-dot exp-terminal-dot--yellow" />
+            <span className="exp-terminal-dot exp-terminal-dot--green" />
+            <span className="exp-terminal-title">progression-labs://finder</span>
           </div>
-        )}
 
-        {step === 1 && (
-          <div className="exp-finder-step exp-finder-step--visible">
-            <div className="exp-finder-question-num">02 / 02</div>
-            <h3 className="exp-finder-question" tabIndex={-1}>Where are you on your AI journey?</h3>
-            <div className="exp-finder-chips">
-              {journeys.map(j => (
-                <button
-                  key={j.id}
-                  className="exp-finder-chip"
-                  onClick={() => handleJourneySelect(j.id)}
-                >
-                  {j.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === 2 && recommendation && (
-          <div className="exp-finder-step exp-finder-step--visible">
-            <div className="exp-finder-result-label">Your recommendation</div>
-            <div className="exp-finder-result">
-              <div className="exp-finder-result-title">{recommendation.title}</div>
-              <div className="exp-finder-result-desc">{recommendation.desc}</div>
-              <div className="exp-finder-result-services">
-                {recommendation.services.map(s => (
-                  <span key={s} className="exp-finder-result-tag">{s}</span>
+          {/* Step 0: Role selection */}
+          {step === 0 && (
+            <div className="exp-finder-step exp-finder-step--visible">
+              <div className="exp-terminal-prompt">
+                <span className="exp-terminal-caret">&gt;</span>
+                <span className="exp-terminal-text">What&apos;s your role?</span>
+                {!typedText && !isTyping && <span className="exp-terminal-cursor" />}
+              </div>
+              <div className="exp-terminal-keys">
+                {roles.map(role => (
+                  <button
+                    key={role.id}
+                    className="exp-terminal-key"
+                    onClick={() => handleRoleSelect(role.id)}
+                    disabled={isTyping}
+                  >
+                    {role.label}
+                  </button>
                 ))}
               </div>
-              <a href="#contact" className="exp-btn-filled" style={{ marginTop: 24 }}>
-                {recommendation.cta} <ArrowIcon />
-              </a>
+              {typedText && (
+                <div className="exp-terminal-typed">
+                  <span className="exp-terminal-caret">&gt;</span> {typedText}
+                  {isTyping && <span className="exp-terminal-cursor" />}
+                </div>
+              )}
             </div>
-            <button className="exp-finder-reset" onClick={handleReset}>
-              Start again
-            </button>
-          </div>
-        )}
+          )}
+
+          {/* Step 1: Journey selection */}
+          {step === 1 && (
+            <div className="exp-finder-step exp-finder-step--visible">
+              <div className="exp-terminal-prompt">
+                <span className="exp-terminal-caret">&gt;</span>
+                <span className="exp-terminal-text">Where are you on your AI journey?</span>
+                {!typedText && !isTyping && <span className="exp-terminal-cursor" />}
+              </div>
+              <div className="exp-terminal-keys">
+                {journeys.map(j => (
+                  <button
+                    key={j.id}
+                    className="exp-terminal-key"
+                    onClick={() => handleJourneySelect(j.id)}
+                    disabled={isTyping}
+                  >
+                    {j.label}
+                  </button>
+                ))}
+              </div>
+              {typedText && (
+                <div className="exp-terminal-typed">
+                  <span className="exp-terminal-caret">&gt;</span> {typedText}
+                  {isTyping && <span className="exp-terminal-cursor" />}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Result */}
+          {step === 2 && recommendation && (
+            <div className="exp-finder-step exp-finder-step--visible">
+              <div className={`exp-terminal-line${resultLines >= 1 ? ' exp-terminal-line--visible' : ''}`}>
+                <div className="exp-terminal-divider">
+                  ──────── ANALYSIS COMPLETE ────────
+                </div>
+              </div>
+              <div className={`exp-terminal-line${resultLines >= 2 ? ' exp-terminal-line--visible' : ''}`}>
+                <div className="exp-terminal-result-title">
+                  <span className="exp-terminal-caret">&gt;</span> {recommendation.title}
+                </div>
+              </div>
+              <div className={`exp-terminal-line${resultLines >= 3 ? ' exp-terminal-line--visible' : ''}`}>
+                <div className="exp-terminal-result-desc">{recommendation.desc}</div>
+              </div>
+              <div className={`exp-terminal-line${resultLines >= 4 ? ' exp-terminal-line--visible' : ''}`}>
+                <div className="exp-terminal-result-tags">
+                  {recommendation.services.map(s => (
+                    <span key={s} className="exp-terminal-tag">{s}</span>
+                  ))}
+                </div>
+              </div>
+              <div className={`exp-terminal-line${resultLines >= 5 ? ' exp-terminal-line--visible' : ''}`}>
+                <a href="#contact" className="exp-btn-filled" style={{ marginTop: 16 }}>
+                  {recommendation.cta} <ArrowIcon />
+                </a>
+              </div>
+              <button className="exp-terminal-reset" onClick={handleReset}>
+                &gt; reset
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

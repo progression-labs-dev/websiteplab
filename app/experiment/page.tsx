@@ -6,6 +6,7 @@ import ExperimentNav from './components/ExperimentNav'
 import LogoMarquee from './components/LogoMarquee'
 import FindYourFit from './components/FindYourFit'
 import ProofSection from './components/ProofSection'
+import ExperimentTeamSection from './components/ExperimentTeamSection'
 import CTASection from './components/CTASection'
 import PlusDivider from './components/PlusDivider'
 
@@ -45,6 +46,13 @@ export default function ExperimentPage() {
       {/* Testimonials — single rotating quote */}
       <section id="work">
         <ProofSection />
+      </section>
+
+      <PlusDivider />
+
+      {/* Team marquee with de-pixelation avatars */}
+      <section id="team">
+        <ExperimentTeamSection />
       </section>
 
       <PlusDivider />
