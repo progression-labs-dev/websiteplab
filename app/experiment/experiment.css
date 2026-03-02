@@ -946,6 +946,10 @@ body:has(.experiment) {
 
 .exp-finder-content {
   min-height: 560px;
+  padding-top: 0;
+  position: sticky;
+  top: 15vh;
+  align-self: start;
 }
 
 /* ── Terminal container ── */
