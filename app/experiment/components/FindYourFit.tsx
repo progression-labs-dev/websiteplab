@@ -51,31 +51,31 @@ const recommendations: Record<string, Recommendation> = {
     title: 'Find your highest-impact AI opportunity',
     desc: 'You know AI matters, but it\'s hard to know where to start without wasting budget on the wrong thing. We run a focused strategy session with your leadership team and leave you with a clear, prioritised roadmap — not a slide deck.',
     services: ['AI Transformation', 'Ideation Sessions', 'AI Audit'],
-    cta: 'Book a free intro call',
+    cta: 'Request a brainstorm',
   },
   'ceo-know_what': {
     title: 'Go from vision to production, fast',
     desc: 'You\'ve got the idea — now you need the team to build it properly. Our senior engineers embed alongside yours and ship production software from week one. You keep the code and the knowledge.',
     services: ['AI Builds', 'AI Expert'],
-    cta: 'Talk to us about your project',
+    cta: 'Request a brainstorm',
   },
   'ceo-stuck': {
     title: 'Get your AI project back on track',
     desc: 'You\'ve invested time and budget, and it\'s not delivering yet. That\'s more common than you\'d think. We diagnose what stalled — architecture, data, team gaps — and fix it, usually within weeks.',
     services: ['Project Surgery', 'AI Expert', 'AI Audit'],
-    cta: 'Book a free diagnosis call',
+    cta: 'Request a brainstorm',
   },
   'ceo-need_hands': {
     title: 'Senior AI engineers, shipping from day one',
     desc: 'Hiring takes months. You need capacity now. Our engineers embed in your team immediately — no recruitment cycles, no ramp-up. They know the stack and start delivering from week one.',
     services: ['AI Expert', 'AI Builds'],
-    cta: 'See how embedding works',
+    cta: 'Request a brainstorm',
   },
   'ceo-scaling': {
     title: 'Scale what\'s working without breaking it',
     desc: 'Your AI is live and delivering value — now you need to expand without losing quality or velocity. We help you build the internal capability to scale independently, so you don\'t need us forever.',
     services: ['AI Transformation', 'AI Expert', 'AI Audit'],
-    cta: 'Talk about scaling',
+    cta: 'Request a brainstorm',
   },
 
   // ── CTO / VP Engineering ──

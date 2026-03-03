@@ -946,8 +946,6 @@ body:has(.experiment) {
 
 .exp-finder-content {
   min-height: 560px;
-  position: sticky;
-  top: 15vh;
   align-self: start;
 }
 
