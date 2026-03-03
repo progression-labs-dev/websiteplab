@@ -43,6 +43,23 @@
   --radius-pill: 100px;
 }
 
+/* ─── Light Mode Overrides (global) ─── */
+[data-theme="light"] {
+  --white-smoke: #f5f5f5;
+  --bg-warm: #fafafa;
+  --bg-cream: #f0f0f0;
+  --charcoal: #1a1a1a;
+  --charcoal-hover: #333333;
+  --grid-line: rgba(0, 0, 0, 0.06);
+  --grid-line-dark: rgba(0, 0, 0, 0.12);
+
+  --text-primary: #1a1a1a;
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --text-tertiary: rgba(0, 0, 0, 0.45);
+  --border-light: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.12);
+}
+
 /* --- 2. Reset & Base --- */
 *,
 *::before,

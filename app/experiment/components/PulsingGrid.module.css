@@ -1,0 +1,43 @@
+.wrapper {
+  --pg-size: 270px; /* default: 3×80 + 2×15 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--pg-size);
+  height: var(--pg-size);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--pg-size) * 0.055);
+  width: 100%;
+  height: 100%;
+}
+
+.box {
+  border-radius: calc(var(--pg-size) * 0.015);
+  animation: scalePulse 1.5s infinite ease-in-out;
+}
+
+/* Row gradients — derived from the cycling --t-accent set by the parent terminal */
+.box:nth-child(-n+3) {
+  background: linear-gradient(135deg,
+    var(--t-accent),
+    color-mix(in srgb, var(--t-accent) 45%, white));
+}
+.box:nth-child(n+4):nth-child(-n+6) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--t-accent) 75%, black),
+    var(--t-accent));
+}
+.box:nth-child(n+7) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--t-accent) 35%, black),
+    color-mix(in srgb, var(--t-accent) 65%, black));
+}
+
+@keyframes scalePulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.1); }
+}

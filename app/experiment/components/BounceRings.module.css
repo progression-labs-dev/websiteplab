@@ -1,0 +1,53 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon {
+  width: 120px;
+  height: auto;
+  overflow: visible;
+}
+
+.ring {
+  fill: none;
+  stroke: url(#bounce-grad);
+  stroke-width: 3.5px;
+}
+
+.stopAccent {
+  stop-color: var(--t-accent, rgb(186, 85, 211));
+}
+
+.topRing { animation: bounceTop 1.5s ease-in-out infinite; }
+.midRing { animation: bounceMid 1.5s ease-in-out infinite; }
+.botRing { animation: bounceBot 1.5s ease-in-out infinite; }
+
+@keyframes bounceTop {
+  0%, 100% { transform: translateY(4px); }
+  15%, 85% { transform: translateY(0px); }
+  50% { transform: translateY(-35px); }
+}
+
+@keyframes bounceMid {
+  0%, 100% { transform: translateY(2px); }
+  15%, 85% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes bounceBot {
+  0%, 100% { transform: translateY(0px); }
+  15%, 85% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.label {
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,170 @@
+/* =========================================
+   Shared wrapper — fixed size, stacking context
+   ========================================= */
+.wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+}
+
+.active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.stopAccent {
+  stop-color: var(--t-accent, rgb(186, 85, 211));
+}
+
+/* =========================================
+   Bouncing Stack (Question 1)
+   ========================================= */
+.stack {
+  fill: none;
+  stroke: url(#stack-grad);
+  stroke-width: 3.5px;
+}
+
+.stackTop { animation: bounceTop 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+.stackMid { animation: bounceMid 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+.stackBot { animation: bounceBot 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+
+/*
+  0%–25% and 75%–100% = Perfectly flat at rest (all overlap).
+  50% = Maximum bounce height.
+*/
+@keyframes bounceTop {
+  0%, 25%, 75%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-60px); }
+}
+
+@keyframes bounceMid {
+  0%, 25%, 75%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+
+@keyframes bounceBot {
+  0%, 25%, 75%, 100% { transform: translateY(0); }
+  50% { transform: translateY(0px); }
+}
+
+/* =========================================
+   Spreading Rings (Question 2)
+   ========================================= */
+.ring {
+  fill: none;
+  stroke: url(#rings-grad);
+  stroke-width: 3.5px;
+}
+
+.ring1 { animation: slideLeftOuter 3s ease-in-out infinite; }
+.ring2 { animation: slideLeftInner 3s ease-in-out infinite; }
+.ring3 { animation: slideRightInner 3s ease-in-out infinite; }
+.ring4 { animation: slideRightOuter 3s ease-in-out infinite; }
+
+@keyframes slideLeftOuter {
+  0%, 15%, 85%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-40px); }
+}
+
+@keyframes slideLeftInner {
+  0%, 15%, 85%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-14px); }
+}
+
+@keyframes slideRightInner {
+  0%, 15%, 85%, 100% { transform: translateX(0); }
+  50% { transform: translateX(14px); }
+}
+
+@keyframes slideRightOuter {
+  0%, 15%, 85%, 100% { transform: translateX(0); }
+  50% { transform: translateX(40px); }
+}
+
+/* =========================================
+   Venn Diagram (Result — Step 2)
+   3.5s loop, staggered draw-on baked into
+   separate keyframes, accent→white gradient
+   ========================================= */
+.venn {
+  fill: none;
+  stroke: url(#venn-grad);
+  stroke-width: 3.5px;
+  /* circumference of r=38: 2 * π * 38 ≈ 239 */
+  stroke-dasharray: 239;
+  stroke-dashoffset: 239;
+}
+
+/*
+  Sequence: draw circles → pause → fill center → hold → fade → restart
+
+  0–30%   Circles draw on (staggered: 3%, 7%, 11%)
+  30–42%  Circles hold, center still empty (the pause)
+  42–52%  Center fills in
+  52–75%  Everything holds together
+  80–92%  Everything fades out
+  92–100% Rest before restart
+*/
+.circleLeft {
+  transform-origin: 80px 85px;
+  transform: rotate(-90deg);
+  animation: drawLeft 4s ease-in-out infinite;
+}
+.circleRight {
+  transform-origin: 120px 85px;
+  transform: rotate(-90deg);
+  animation: drawRight 4s ease-in-out infinite;
+}
+.circleBottom {
+  transform-origin: 100px 122px;
+  transform: rotate(90deg);
+  animation: drawBottom 4s ease-in-out infinite;
+}
+
+.vennCenter {
+  fill: url(#venn-grad);
+  opacity: 0;
+  animation: fillCenter 4s ease-in-out infinite;
+}
+
+@keyframes drawLeft {
+  0%, 2%    { stroke-dashoffset: 239; opacity: 0; }
+  4%        { opacity: 1; }
+  25%, 75%  { stroke-dashoffset: 0; opacity: 1; }
+  88%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawRight {
+  0%, 6%    { stroke-dashoffset: 239; opacity: 0; }
+  8%        { opacity: 1; }
+  29%, 75%  { stroke-dashoffset: 0; opacity: 1; }
+  88%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawBottom {
+  0%, 10%   { stroke-dashoffset: 239; opacity: 0; }
+  12%       { opacity: 1; }
+  33%, 75%  { stroke-dashoffset: 0; opacity: 1; }
+  88%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes fillCenter {
+  0%, 42%   { opacity: 0; }
+  52%, 75%  { opacity: 1; }
+  88%, 100% { opacity: 0; }
+}

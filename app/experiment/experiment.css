@@ -1,0 +1,2233 @@
+/* ============================================
+   Experiment Site — "Isidor Blueprint" Architecture
+   Fluid scaling, 197deg gradient, SVG L-brackets
+   Scoped under .experiment wrapper
+   ============================================ */
+
+
+
+/* --- Fluid Scaling Tokens (Isidor formula) ---
+   size = from + (to - from) * ((100vw - 1200px) / 720)
+   vwFrom: 1200, vwTo: 1920
+   -------------------------------------------- */
+:root {
+  /* Palette */
+  --exp-white: #FFFFFF;
+  --exp-navy: #0943A0;
+  --exp-black: #010101;
+  --exp-gray: #AEA6B6;
+
+  /* Borders & Accents */
+  --exp-border: rgba(255, 255, 255, 0.1);
+  --exp-border-hover: rgba(255, 255, 255, 0.15);
+  --exp-bracket: rgba(255, 255, 255, 0.2);  /* #ffffff33 */
+
+  /* Alpha utility variables — white overlay on dark, black overlay on light */
+  --alpha-02: rgba(255, 255, 255, 0.02);
+  --alpha-03: rgba(255, 255, 255, 0.03);
+  --alpha-04: rgba(255, 255, 255, 0.04);
+  --alpha-05: rgba(255, 255, 255, 0.05);
+  --alpha-06: rgba(255, 255, 255, 0.06);
+  --alpha-08: rgba(255, 255, 255, 0.08);
+  --alpha-10: rgba(255, 255, 255, 0.1);
+  --alpha-12: rgba(255, 255, 255, 0.12);
+  --alpha-15: rgba(255, 255, 255, 0.15);
+  --alpha-18: rgba(255, 255, 255, 0.18);
+  --alpha-20: rgba(255, 255, 255, 0.2);
+  --alpha-25: rgba(255, 255, 255, 0.25);
+  --alpha-30: rgba(255, 255, 255, 0.3);
+  --alpha-35: rgba(255, 255, 255, 0.35);
+  --alpha-45: rgba(255, 255, 255, 0.45);
+  --alpha-50: rgba(255, 255, 255, 0.5);
+  --alpha-60: rgba(255, 255, 255, 0.6);
+  --alpha-80: rgba(255, 255, 255, 0.8);
+
+  /* Fluid Typography
+     H1: 28 → 40  = clamp(28px, 8px + 1.667vw, 40px)
+     H2: 24 → 32  = clamp(24px, 10.667px + 1.111vw, 32px)
+     H3: 18 → 22  = clamp(18px, 11.333px + 0.556vw, 22px)
+     Body: 16 → 20 = clamp(16px, 9.333px + 0.556vw, 20px) */
+  --exp-h1: clamp(28px, calc(8px + 1.667vw), 40px);
+  --exp-h2: clamp(24px, calc(10.667px + 1.111vw), 32px);
+  --exp-h3: clamp(18px, calc(11.333px + 0.556vw), 22px);
+  --exp-body: clamp(16px, calc(9.333px + 0.556vw), 20px);
+  --exp-small: 12px;
+  --exp-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+
+  /* Spacing */
+  --exp-section-pad: 120px;
+  --exp-container: 1280px;
+
+  /* Easings */
+  --exp-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --exp-ease-snap: cubic-bezier(0.5, 0, 0, 1); /* Isidor @keyframes rotate-steps */
+
+  /* Surface colors */
+  --exp-bg: #010101;
+  --exp-surface: rgba(255, 255, 255, 0.02);
+  --exp-surface-hover: rgba(255, 255, 255, 0.08);
+  --exp-text-primary: #FFFFFF;
+  --exp-text-secondary: #AEA6B6;
+  --exp-text-tertiary: rgba(255, 255, 255, 0.35);
+
+  /* Hero overlay */
+  --exp-hero-overlay: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  --exp-hero-frame-bg: #010101;
+
+  /* Scanner curtain */
+  --exp-scanner-curtain: white;
+
+  /* Logo inversion filter (invert for dark bg so dark logos appear white) */
+  --exp-logo-invert: brightness(0) invert(1);
+}
+
+/* ─── Light Mode Overrides ─── */
+[data-theme="light"] {
+  --exp-white: #1a1a1a;
+  --exp-black: #fafafa;
+  --exp-gray: #555555;
+
+  --exp-border: rgba(0, 0, 0, 0.1);
+  --exp-border-hover: rgba(0, 0, 0, 0.15);
+  --exp-bracket: rgba(0, 0, 0, 0.2);
+
+  --alpha-02: rgba(0, 0, 0, 0.02);
+  --alpha-03: rgba(0, 0, 0, 0.03);
+  --alpha-04: rgba(0, 0, 0, 0.04);
+  --alpha-05: rgba(0, 0, 0, 0.05);
+  --alpha-06: rgba(0, 0, 0, 0.06);
+  --alpha-08: rgba(0, 0, 0, 0.08);
+  --alpha-10: rgba(0, 0, 0, 0.1);
+  --alpha-12: rgba(0, 0, 0, 0.12);
+  --alpha-15: rgba(0, 0, 0, 0.15);
+  --alpha-18: rgba(0, 0, 0, 0.18);
+  --alpha-20: rgba(0, 0, 0, 0.2);
+  --alpha-25: rgba(0, 0, 0, 0.25);
+  --alpha-30: rgba(0, 0, 0, 0.3);
+  --alpha-35: rgba(0, 0, 0, 0.35);
+  --alpha-45: rgba(0, 0, 0, 0.45);
+  --alpha-50: rgba(0, 0, 0, 0.5);
+  --alpha-60: rgba(0, 0, 0, 0.6);
+  --alpha-80: rgba(0, 0, 0, 0.8);
+
+  --exp-bg: #fafafa;
+  --exp-surface: rgba(0, 0, 0, 0.02);
+  --exp-surface-hover: rgba(0, 0, 0, 0.08);
+  --exp-text-primary: #1a1a1a;
+  --exp-text-secondary: #555555;
+  --exp-text-tertiary: rgba(0, 0, 0, 0.45);
+
+  --exp-hero-overlay: linear-gradient(to top, rgba(255, 255, 255, 0.65), transparent);
+  --exp-hero-frame-bg: #fafafa;
+
+  --exp-scanner-curtain: #1a1a1a;
+
+  --exp-logo-invert: brightness(0);
+}
+
+/* Fix: globals.css sets overflow-x:hidden on body, which forces overflow-y:auto
+   per CSS spec. This creates a scroll container on <body> that breaks GSAP
+   ScrollTrigger's window-based scroll detection. Override when experiment is active. */
+html, body { margin: 0; padding: 0; }
+
+body:has(.experiment) {
+  overflow: visible !important;
+}
+
+/* Fix: globals.css sets scroll-behavior:smooth which conflicts with Lenis —
+   both try to smooth-scroll simultaneously, causing micro-jitter. Override to auto. */
+html:has(.experiment) { scroll-behavior: auto; }
+
+/* --- Root Wrapper --- */
+.experiment {
+  background: var(--exp-bg);
+  color: var(--exp-text-primary);
+  min-height: 100vh;
+  overflow: clip;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--exp-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Continuous dashed border frame matching hero perimeter (Isidor style) —
+   Two vertical lines at 80px from each edge, running below the nav.
+   Aligns exactly with .exp-hero-frame's left/right edges. */
+.experiment::before {
+  content: '';
+  position: absolute;
+  top: 56px; /* Start below nav height — creates clean nav/hero boundary */
+  bottom: 0;
+  left: 80px;
+  right: 80px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.12);
+  border-right: 1px dashed rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.experiment *,
+.experiment *::before,
+.experiment *::after {
+  box-sizing: border-box;
+}
+
+/* --- Grid Overlay (1px blueprint, Isidor .enterprise_dvider) --- */
+.exp-grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px,
+      transparent 80px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px,
+      transparent 80px
+    );
+}
+
+/* --- Noise Grain (SVG feTurbulence at 3% opacity) --- */
+.exp-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+}
+
+.exp-noise svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Section Divider (Isidor .enterprise_dvider) --- */
+.exp-divider {
+  border: none;
+  border-top: 1px solid var(--exp-border);
+  margin: 0;
+}
+
+/* --- Plus Divider (Isidor .plus-divider-box) --- */
+.exp-plus-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  height: 0;
+  background: none;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  margin-left: 80px;
+  margin-right: 80px;
+  margin-top: -1px; /* overlap with section above to close sub-pixel gaps */
+}
+
+.exp-plus-divider-mark {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--exp-bg);
+  color: var(--exp-text-tertiary);
+  font-size: 14px;
+  font-weight: 300;
+  font-family: var(--exp-mono);
+  line-height: 1;
+}
+
+/* ============================================
+   HERO — Sharp Technical Frame
+   Static gradient + grain + interactive mosaic
+   ============================================ */
+
+.exp-hero {
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: var(--exp-bg);
+  padding: 72px 80px 80px 80px; /* top = nav height (56px) + 16px gap */
+}
+
+/* Inner framed box — sharp 90-degree corners, 1px border */
+.exp-hero-frame {
+  position: relative;
+  width: 100%;
+  min-height: calc(100dvh - 152px); /* 72px top + 80px bottom padding */
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  overflow: hidden;
+  /* Canvas handles the animated hue-cycling gradient — this is just a fallback */
+  background: #010101;
+}
+
+/* Text readability overlay — strong dark gradient at bottom for WCAG AA contrast */
+.exp-hero-frame::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.5) 40%, transparent 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Static grain/noise overlay via SVG feTurbulence */
+.exp-hero-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+}
+
+/* Hero content — positioned bottom-left inside frame */
+.exp-hero-content {
+  position: absolute;
+  bottom: 60px;
+  left: 60px;
+  right: 60px;
+  z-index: 10;
+}
+
+.exp-hero-headline {
+  font-size: var(--exp-h1);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  max-width: 680px;
+  text-align: left;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+}
+
+.exp-hero-headline strong {
+  font-weight: 600;
+}
+
+/* TextScramble white override — replaces cyan glow with white */
+.exp-hero-headline .scramble-char {
+  color: white !important;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ============================================
+   NAVIGATION (3-column grid: logo | links | cta)
+   ============================================ */
+
+.exp-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--exp-bg);
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 80px;
+  height: 56px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  transition: opacity 0.5s var(--exp-ease);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-family: 'Inter', sans-serif;
+}
+
+.exp-nav-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exp-nav-logo {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp-nav-logo img,
+.exp-nav-logo svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.exp-nav-brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--exp-text-primary);
+  white-space: nowrap;
+  transition: opacity 0.6s var(--exp-ease);
+}
+
+.exp-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-self: center;
+}
+
+.exp-nav-links a {
+  color: var(--exp-text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.exp-nav-links a:hover {
+  color: var(--exp-text-primary);
+}
+
+.exp-nav-cta {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exp-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--alpha-05);
+  border: 1px solid var(--alpha-30);
+  color: var(--exp-text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  padding: 0;
+}
+
+.exp-theme-toggle:hover {
+  border-color: var(--alpha-30);
+  color: var(--exp-text-primary);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.exp-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--exp-text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  text-decoration: none;
+}
+
+.exp-btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.exp-btn-outline--secondary {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--exp-text-secondary);
+  font-size: 10px;
+}
+
+.exp-btn-outline--secondary:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--exp-text-primary);
+}
+
+.exp-btn-filled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: var(--exp-text-primary);
+  color: var(--exp-black);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none;
+}
+
+.exp-btn-filled:hover {
+  background: #e0e0e0;
+}
+
+.exp-btn-filled:hover .exp-arrow-icon,
+.exp-btn-outline:hover .exp-arrow-icon {
+  transform: translateX(3px);
+}
+
+/* SVG arrow icon in buttons (Isidor .button-icon) */
+.exp-arrow-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s var(--exp-ease);
+}
+
+/* Shuffle hover monospace override */
+.exp-shuffle-link {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ============================================
+   SECTION BASE
+   ============================================ */
+
+.exp-section {
+  padding: var(--exp-section-pad) 0;
+  max-width: var(--exp-container);
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+  position: relative;
+}
+
+/* --- Tag Component (Isidor .tag-component) --- */
+.exp-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--exp-mono);
+  font-size: var(--exp-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  margin-bottom: 12px;
+}
+
+/* --- Legacy label (used in proof section) --- */
+.exp-label {
+  font-family: var(--exp-mono);
+  font-size: var(--exp-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--exp-text-tertiary);
+  margin-bottom: 12px;
+}
+
+/* --- Section Heading --- */
+.exp-section-heading {
+  font-size: var(--exp-h2);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* ============================================
+   12-COLUMN GRID (Isidor .enterprise_grid-col)
+   ============================================ */
+
+.exp-12-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  max-width: var(--exp-container);
+  margin: 0 auto;
+  padding: var(--exp-section-pad) 32px;
+  align-items: flex-start;
+  position: relative;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 60px);
+}
+
+/* Sticky left column: cols 1-4 (Isidor .enterprice_sticky-part) */
+.exp-col-label {
+  grid-column: 1 / 5;
+  position: sticky;
+  top: 15vh;
+  align-self: start;
+  height: fit-content;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Content right column: cols 5-12 (Isidor .enterprise_right-part) */
+.exp-col-content {
+  grid-column: 5 / 13;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ============================================
+   PANEL + SVG L-BRACKET CORNERS
+   (Isidor .card_icon-corner)
+   ============================================ */
+
+.exp-panel {
+  position: relative;
+  background: var(--exp-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 32px;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.exp-panel:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--exp-surface-hover);
+}
+
+/* Corner brackets — single-element border-joint method (perfectly flush 90° corners) */
+.exp-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-width: 0;
+  z-index: 10;
+}
+
+.exp-corner--tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+.exp-corner--tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+.exp-corner--bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; }
+.exp-corner--br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* --- SVG card icon container with navy glow background --- */
+.exp-panel-icon {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(9, 67, 160, 0.15) 0%, transparent 70%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.exp-panel-icon svg {
+  width: 80px;
+  height: 80px;
+  opacity: 0.7;
+}
+
+.exp-panel:hover .exp-panel-icon svg {
+  opacity: 1;
+}
+
+.exp-panel-icon svg path,
+.exp-panel-icon svg circle,
+.exp-panel-icon svg ellipse,
+.exp-panel-icon svg line,
+.exp-panel-icon svg polyline {
+  transition: opacity 0.3s ease;
+}
+
+/* Icon animations handled by Lottie — see CardIcon.tsx */
+
+.exp-panel-id {
+  font-family: var(--exp-mono);
+  font-size: var(--exp-small);
+  color: var(--exp-text-tertiary);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.exp-panel-title {
+  font-size: var(--exp-h3);
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--exp-text-primary);
+}
+
+.exp-panel-desc {
+  color: #AEA6B6;
+  line-height: 1.7;
+  font-size: var(--exp-body);
+}
+
+/* --- Panel visibility safety net (prevents GSAP from leaving panels invisible) --- */
+.exp-col-content .exp-panel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Clean sticky label (no border/padding box) --- */
+.exp-col-label--clean {
+  border: none;
+  padding: 0;
+}
+
+/* --- 50/50 grid split (Isidor fidelity) --- */
+.exp-12-grid--half .exp-col-label {
+  grid-column: 1 / 7;
+}
+
+.exp-12-grid--half .exp-col-content {
+  grid-column: 7 / 13;
+}
+
+/* --- Isidor Layout Match: constrained within 80px frame --- */
+.exp-12-grid--half {
+  max-width: none;
+  margin-left: 80px;
+  margin-right: 80px;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.exp-12-grid--half .exp-col-label--gradient {
+  padding-left: 40px;
+  border: none;
+  border-right: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.exp-12-grid--half .exp-col-content {
+  padding-right: 32px;
+  padding-top: 64px;
+  padding-bottom: 64px;
+  gap: 64px;
+}
+
+.exp-12-grid--half .exp-panel {
+  border: none;
+  background: transparent;
+  padding: 0;
+  max-width: 360px;
+}
+
+.exp-12-grid--half .exp-panel:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* Small square icon box matching Isidor — subtle fill + L-brackets */
+.exp-12-grid--half .exp-panel-icon {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 12px;
+}
+
+.exp-12-grid--half .exp-panel-icon svg {
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.4));
+}
+
+.exp-12-grid--half .exp-corner {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.exp-12-grid--half .exp-panel-id {
+  color: hsl(217, 55%, 45%);
+  font-family: var(--exp-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.exp-12-grid--half .exp-panel-title {
+  text-transform: uppercase;
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.exp-12-grid--half .exp-panel-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--exp-text-secondary);
+}
+
+/* Alternating left-right zigzag (Isidor card positioning) */
+.exp-12-grid--half .exp-panel:nth-child(odd) {
+  margin-right: 40px;
+}
+
+.exp-12-grid--half .exp-panel:nth-child(even) {
+  align-self: flex-end;
+  text-align: right;
+  margin-left: 40px;
+}
+
+.exp-12-grid--half .exp-panel:nth-child(even) .exp-panel-icon {
+  margin-left: auto;
+}
+
+/* --- Brand-cycling gradient with bottom fade (JS sets background-image) --- */
+.exp-col-label--gradient {
+  /* Note: position:sticky comes from .exp-col-label — do NOT set position:relative here
+     as it would override sticky. sticky already creates a containing block for ::after. */
+  /* Fallback gradient before JS hydrates — JS will override via inline style */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 255, 0.8) 0%,
+    rgba(0, 0, 255, 0.5) 30%,
+    rgba(0, 0, 255, 0.18) 65%,
+    transparent 100%
+  );
+  padding: 48px 40px;
+  border: none;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Bottom edge fades into dark background — top/left/right stay sharp */
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 65%, transparent 100%);
+}
+
+/* Grain/noise overlay matching hero */
+.exp-col-label--gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+}
+
+.exp-col-label--gradient .exp-section-heading {
+  font-weight: 300;
+  font-size: var(--exp-h1);
+  line-height: 1.35;
+  margin-bottom: 16px;
+}
+
+.exp-col-label--gradient .exp-label-desc {
+  color: var(--exp-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* --- Logo section (Isidor Splide-style infinite CSS marquee) --- */
+.exp-logo-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 0;
+  overflow: hidden;
+}
+
+.exp-logo-carousel-label {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* Static logo display — single partner badge */
+.exp-logo-static {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.exp-logo-static-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp-logo-static-img {
+  height: 36px;
+  width: auto;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.exp-marquee {
+  overflow: hidden;
+  /* Edge fade masks for seamless loop illusion */
+  mask-image: linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent);
+}
+
+.exp-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.exp-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.exp-marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 28px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.exp-marquee-item img {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.45;
+  transition: opacity 0.3s ease;
+}
+
+.exp-marquee-item:hover img {
+  opacity: 0.75;
+}
+
+.exp-marquee-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-right: 28px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   MARQUEE (kept for fallback, unused in static logo grid)
+   ============================================ */
+
+.exp-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.exp-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============================================
+   TESTIMONIAL
+   ============================================ */
+
+.exp-quote {
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  max-width: 680px;
+}
+
+.exp-quote-author {
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--exp-text-secondary);
+}
+
+.exp-quote-author strong {
+  color: var(--exp-text-primary);
+  font-weight: 600;
+}
+
+/* "Learn more" button under testimonial */
+.exp-proof-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 100px;
+  color: var(--exp-text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.exp-proof-learn-more:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--exp-text-primary);
+}
+
+.exp-proof-chevron {
+  transition: transform 0.3s ease;
+}
+
+.exp-proof-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Expandable video wrapper — height transition */
+.exp-proof-video-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.exp-proof-video-wrap--open {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.exp-proof-video-inner {
+  padding-top: 32px;
+}
+
+/* 16:9 responsive iframe */
+.exp-proof-video {
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   METRICS (ConvergenceSection replacement)
+   ============================================ */
+
+.exp-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin-top: 64px;
+  border: 1px solid var(--exp-border);
+}
+
+.exp-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+}
+
+.exp-metric:not(:last-child) {
+  border-right: 1px solid var(--exp-border);
+}
+
+.exp-metric-value {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--exp-text-primary);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.exp-metric-label {
+  font-size: var(--exp-body);
+  color: var(--exp-text-secondary);
+  line-height: 1.5;
+  white-space: pre-line;
+  text-align: center;
+}
+
+/* ============================================
+   FIND YOUR FIT (interactive quiz)
+   ============================================ */
+
+/* Dot progress indicator */
+/* ── FindYourFit progress dots ── */
+.exp-finder-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.exp-finder-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.3s ease;
+}
+
+.exp-finder-dot--active {
+  background: var(--exp-text-primary);
+}
+
+.exp-finder-step {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.exp-finder-step--visible {
+  opacity: 1;
+}
+
+.exp-finder-content {
+  position: sticky;
+  top: 15vh;
+  align-self: start;
+  height: fit-content;
+}
+
+/* Override the generic half-grid padding so the terminal aligns with the left label */
+.exp-12-grid--half .exp-finder-content {
+  padding-top: 0;
+}
+
+/* ── Terminal container ── */
+.exp-finder-terminal {
+  --t-accent: rgb(186, 85, 211);
+  --t-accent-dim: rgba(186, 85, 211, 0.12);
+  --t-accent-glow: rgba(186, 85, 211, 0.2);
+  font-family: 'Inter', sans-serif;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0 32px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle scan-line overlay */
+.exp-finder-terminal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(255, 255, 255, 0.015) 1px,
+    rgba(255, 255, 255, 0.015) 2px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Terminal title bar ── */
+.exp-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.exp-terminal-dot--red { background: #ff5f57; }
+.exp-terminal-dot--yellow { background: #febc2e; }
+.exp-terminal-dot--green { background: #28c840; }
+
+.exp-terminal-title {
+  margin-left: 10px;
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.03em;
+}
+
+/* ── Prompt line ── */
+.exp-terminal-prompt {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.exp-terminal-caret {
+  font-family: var(--exp-mono);
+  color: var(--t-accent);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.exp-terminal-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ── Blinking cursor ── */
+.exp-terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: rgba(255, 255, 255, 0.7);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: terminal-blink 1.5s step-end infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ── Option keys ── */
+.exp-terminal-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.exp-terminal-key {
+  font-size: 0.82rem;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-radius: 4px;
+  position: relative;
+}
+
+.exp-terminal-key:hover {
+  border-color: var(--t-accent);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 24px var(--t-accent-glow), inset 0 0 12px var(--t-accent-dim);
+  background: var(--t-accent-dim);
+}
+
+.exp-terminal-key:disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ── Typed selection feedback ── */
+.exp-terminal-typed {
+  color: var(--t-accent);
+  font-size: 0.85rem;
+  margin-top: 8px;
+  min-height: 1.4em;
+}
+
+/* ── Result output (staggered lines) ── */
+.exp-terminal-line {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.exp-terminal-line--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.exp-terminal-divider {
+  font-family: 'Inter', sans-serif;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.exp-terminal-result-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
+.exp-terminal-result-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+
+.exp-terminal-result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.exp-terminal-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Reset command ── */
+.exp-terminal-reset {
+  display: block;
+  margin-top: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: var(--exp-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.exp-terminal-reset:hover {
+  color: var(--t-accent);
+}
+
+/* ============================================
+   SERVICE DETAIL SECTION
+   ============================================ */
+
+.exp-detail-section {
+  max-width: var(--exp-container);
+  margin: 0 auto;
+  padding: var(--exp-section-pad) 32px;
+}
+
+.exp-detail-header {
+  margin-bottom: 64px;
+}
+
+.exp-detail-subtitle {
+  color: var(--exp-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 16px;
+  max-width: 480px;
+}
+
+.exp-detail-grid {
+  display: grid;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.exp-detail-grid--main {
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 48px;
+}
+
+.exp-detail-grid--supporting {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.exp-detail-card {
+  position: relative;
+  background: var(--exp-bg);
+  padding: 40px 36px;
+  transition: background 0.3s ease;
+}
+
+.exp-detail-card:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.exp-detail-card--small {
+  padding: 32px 36px;
+}
+
+.exp-detail-card-num {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--exp-text-tertiary);
+  margin-bottom: 20px;
+}
+
+.exp-detail-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--exp-text-primary);
+  margin-bottom: 12px;
+}
+
+.exp-detail-card--small .exp-detail-card-title {
+  font-size: 16px;
+}
+
+.exp-detail-card-desc {
+  font-size: 14px;
+  color: var(--exp-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.exp-detail-card--small .exp-detail-card-desc {
+  margin-bottom: 0;
+}
+
+.exp-detail-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exp-detail-bullets li {
+  font-size: 13px;
+  color: var(--exp-text-secondary);
+  line-height: 1.5;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.exp-detail-bullet-plus {
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  color: var(--exp-text-tertiary);
+  flex-shrink: 0;
+}
+
+.exp-detail-cta {
+  margin-top: 64px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .exp-detail-grid--main,
+  .exp-detail-grid--supporting {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   TEAM (experiment-scoped)
+   ============================================ */
+
+.exp-team-section {
+  max-width: var(--exp-container);
+  margin: 0 auto;
+  padding: var(--exp-section-pad) 32px;
+}
+
+.exp-team-header {
+  margin-bottom: 48px;
+}
+
+/* --- Two-row wrapper --- */
+.exp-team-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- Infinite marquee container --- */
+.exp-team-single {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 60px, black calc(100% - 60px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 60px, black calc(100% - 60px), transparent);
+}
+
+.exp-team-marquee-track {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: team-scroll 25s linear infinite;
+}
+
+/* Reverse direction for row 2 */
+.exp-team-marquee-reverse {
+  animation-name: team-scroll-reverse;
+}
+
+.exp-team-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes team-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes team-scroll-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.exp-team-single-card {
+  position: relative;
+  background: var(--exp-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0;
+  overflow: visible;
+  width: 280px;
+  flex-shrink: 0;
+  transition: border-color 0.3s ease;
+}
+
+/* Match bracket color to border so they look continuous */
+.exp-team-single-card .exp-corner {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.exp-team-single-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.exp-team-single-card:hover .exp-corner {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.exp-team-avatar {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* --- De-pixelate Avatar (canvas-based cell-by-cell reveal) --- */
+.exp-team-depixelate-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --- Initials cards — border glow on hover --- */
+.exp-team-initials {
+  font-family: var(--exp-mono);
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--exp-text-tertiary);
+  letter-spacing: 0.05em;
+  cursor: default;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.exp-team-single-card:hover .exp-team-initials {
+  color: var(--exp-text-secondary);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+/* Card border glow on hover for initials cards */
+.exp-team-single-card:has(.exp-team-initials):hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.02);
+}
+
+.exp-team-info {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.exp-team-id {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  color: var(--exp-text-tertiary);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+
+.exp-team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--exp-text-primary);
+  margin-bottom: 2px;
+}
+
+.exp-team-role {
+  font-size: 12px;
+  color: var(--exp-text-secondary);
+}
+
+/* ============================================
+   BLOG SECTION
+   ============================================ */
+
+.exp-blog-section {
+  max-width: var(--exp-container);
+  margin: 0 auto;
+  padding: var(--exp-section-pad) 32px;
+}
+
+.exp-blog-header {
+  margin-bottom: 64px;
+}
+
+.exp-blog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.exp-blog-card {
+  position: relative;
+  background: var(--exp-bg);
+  padding: 40px 36px;
+  transition: background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.exp-blog-card:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.exp-blog-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.exp-blog-category {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--exp-text-secondary);
+}
+
+.exp-blog-date {
+  font-size: 12px;
+  color: var(--exp-text-tertiary);
+}
+
+.exp-blog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--exp-text-primary);
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+}
+
+.exp-blog-excerpt {
+  font-size: 14px;
+  color: var(--exp-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  flex: 1;
+}
+
+.exp-blog-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--exp-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.exp-blog-card:hover .exp-blog-read-more {
+  color: var(--exp-text-primary);
+}
+
+.exp-blog-card:hover .exp-blog-read-more .exp-arrow-icon {
+  transform: translateX(3px);
+}
+
+@media (max-width: 768px) {
+  .exp-blog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   CTA
+   ============================================ */
+
+.exp-cta {
+  text-align: center;
+  padding: var(--exp-section-pad) 32px;
+  margin-left: 80px;
+  margin-right: 80px;
+}
+
+.exp-cta h2 {
+  font-size: var(--exp-h2);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   FOOTER + WAVES
+   ============================================ */
+
+/* --- Pre-Footer (Isidor .pre-footer) --- */
+.exp-pre-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 20px 32px;
+  border-top: 1px solid var(--exp-border);
+}
+
+.exp-pre-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exp-pre-footer-logo svg {
+  opacity: 0.5;
+}
+
+.exp-pre-footer-logo span {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--exp-text-secondary);
+  text-transform: uppercase;
+}
+
+.exp-pre-footer-copy {
+  font-size: 11px;
+  color: var(--exp-text-secondary);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.exp-pre-footer-social {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.exp-pre-footer-social a {
+  color: var(--exp-text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.exp-pre-footer-social a:hover {
+  color: var(--exp-text-primary);
+}
+
+/* --- Footer + Waves (Isidor .footer_gradient-logo) --- */
+.exp-footer {
+  position: relative;
+}
+
+.exp-footer-waves {
+  width: 100%;
+  height: 180px;
+  display: block;
+}
+
+.exp-footer-text {
+  padding: 32px;
+  text-align: center;
+  color: var(--exp-text-tertiary);
+  font-size: var(--exp-small);
+  letter-spacing: 0.05em;
+}
+
+/* Hero CTA buttons */
+.exp-hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+/* ============================================
+   SCROLL DECODE (binary "01" text)
+   ============================================ */
+
+.exp-decode {
+  font-family: var(--exp-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   SCROLL OFFSET FOR FIXED NAV
+   ============================================ */
+
+.experiment section[id] {
+  scroll-margin-top: 72px;
+}
+
+/* ============================================
+   UTILITY
+   ============================================ */
+
+.exp-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* ============================================
+   SCANNER IMAGE REVEAL (3-phase scroll-triggered)
+   ============================================ */
+
+.scanner-reveal-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-reveal-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: white;
+  transform-origin: top left;
+  transform: scaleX(0) scaleY(0.01);
+  will-change: transform, opacity;
+}
+
+/* ============================================
+   JOURNEY SELECTOR + SERVICE LAYOUT
+   (CEO AI Journey — interactive stage selector)
+   ============================================ */
+
+/* --- Journey selector pills row --- */
+.exp-journey-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  --journey-accent: rgb(0, 0, 255); /* JS overrides via RAF */
+}
+
+.exp-journey-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  position: relative;
+  font-family: inherit;
+  color: inherit;
+}
+
+.exp-journey-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+
+.exp-journey-pill:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.exp-journey-pill--active {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.exp-journey-pill--active::before {
+  background: var(--journey-accent);
+}
+
+.exp-journey-pill-phase {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--exp-text-tertiary);
+  text-transform: uppercase;
+}
+
+.exp-journey-pill--active .exp-journey-pill-phase {
+  color: var(--exp-text-secondary);
+}
+
+.exp-journey-pill-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--exp-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.exp-journey-pill--active .exp-journey-pill-label {
+  color: var(--exp-text-primary);
+}
+
+/* --- Journey content column overrides --- */
+.exp-col-content--journey {
+  gap: 0 !important;
+}
+
+/* --- Hero service panel (core service — full width) --- */
+.exp-service-hero {
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  text-align: left !important;
+  padding-bottom: 32px;
+}
+
+.exp-service-hero .exp-panel-icon {
+  margin-left: 0 !important;
+}
+
+.exp-service-hero-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+}
+
+/* --- Thin divider between sections --- */
+.exp-service-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 24px 0;
+}
+
+/* --- Supporting services — 2-column grid --- */
+.exp-supporting-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.exp-supporting-card {
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  text-align: left !important;
+}
+
+.exp-supporting-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-supporting-card .exp-panel-title {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.exp-supporting-card .exp-panel-desc {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* --- Compact accordion list (remaining services) --- */
+.exp-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.exp-compact-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-compact-item:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exp-compact-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  transition: opacity 0.2s ease;
+}
+
+.exp-compact-header:hover {
+  opacity: 0.85;
+}
+
+.exp-compact-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp-compact-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--exp-text-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.exp-compact-chevron {
+  font-size: 12px;
+  color: var(--exp-text-tertiary);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.exp-compact-item--expanded .exp-compact-chevron {
+  transform: rotate(90deg);
+}
+
+.exp-compact-body {
+  padding: 0 0 16px 44px;
+}
+
+.exp-compact-body p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--exp-text-secondary);
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+@media (max-width: 1024px) {
+  :root {
+    --exp-section-pad: 80px;
+  }
+
+  .exp-12-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exp-col-label {
+    grid-column: 1 / -1;
+    position: static;
+  }
+
+  .exp-col-content {
+    grid-column: 1 / -1;
+  }
+
+  /* Team marquee: no min-height needed */
+
+  .exp-12-grid--half {
+    max-width: var(--exp-container);
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .exp-12-grid--half .exp-col-label,
+  .exp-12-grid--half .exp-col-content {
+    grid-column: 1 / -1;
+  }
+
+  .exp-12-grid--half .exp-col-label--gradient {
+    padding-left: 24px;
+  }
+
+  .exp-12-grid--half .exp-col-content {
+    padding-right: 0;
+    gap: 32px;
+  }
+
+  .exp-12-grid--half .exp-panel:nth-child(odd) {
+    margin-right: 0;
+  }
+
+  .exp-12-grid--half .exp-panel:nth-child(even) {
+    margin-left: 0;
+  }
+
+  .exp-col-label--gradient {
+    padding: 32px 24px;
+    justify-content: flex-start;
+  }
+
+  /* Journey pills: wrap on tablet */
+  .exp-journey-selector {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --exp-section-pad: 64px;
+  }
+
+  .exp-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .exp-nav-links {
+    display: none;
+  }
+
+  .exp-nav-cta {
+    justify-self: end;
+  }
+
+  .exp-hero-headline {
+    font-size: clamp(22px, 5vw, 32px);
+  }
+
+  .exp-hero {
+    padding: 48px;
+  }
+
+  .exp-hero-frame {
+    min-height: calc(100dvh - 96px);
+  }
+
+  .exp-hero-content {
+    bottom: 40px;
+    left: 32px;
+    right: 32px;
+  }
+
+  .exp-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exp-metric:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--exp-border);
+  }
+
+  /* Team marquee: no min-height needed */
+
+  .exp-pre-footer {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .exp-pre-footer-logo {
+    justify-content: center;
+  }
+
+  .exp-pre-footer-social {
+    justify-content: center;
+  }
+
+  /* Journey: pills stack vertically, supporting goes single-col */
+  .exp-journey-selector {
+    flex-direction: column;
+  }
+
+  .exp-supporting-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --exp-section-pad: 48px;
+  }
+
+  .exp-hero {
+    padding: 24px;
+  }
+
+  .exp-hero-frame {
+    min-height: calc(100dvh - 48px);
+  }
+
+  .exp-section,
+  .exp-12-grid {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .exp-panel {
+    padding: 20px;
+  }
+
+  .exp-hero-content {
+    bottom: 24px;
+    left: 20px;
+    right: 20px;
+  }
+
+  .exp-hero-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
