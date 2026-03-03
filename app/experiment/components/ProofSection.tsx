@@ -1,35 +1,53 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 
 const testimonials = [
   {
     quote: "They've gone beyond just a number of engineers that I'm outsourcing AI for. They truly have been a thought partner, someone that's been very dependable and someone who helped us shape our strategy.",
     author: 'Dipak Patel',
     role: 'CEO of Globo',
+    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
   {
     quote: 'Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn\'t think were possible.',
     author: 'Sarah Chen',
     role: 'CTO of TechVentures',
+    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
   {
     quote: 'Working with Progression Labs has been a game-changer. They brought deep expertise and a collaborative approach that made all the difference in our AI journey.',
     author: 'Michael Roberts',
     role: 'VP Engineering at DataFlow',
+    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
 ]
 
 export default function ProofSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
-  // Auto-rotate testimonials every 5s
+  // Auto-rotate testimonials every 5s — paused when a video is expanded
   useEffect(() => {
+    if (expandedIndex !== null) return
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % testimonials.length)
     }, 5000)
     return () => clearInterval(interval)
+  }, [expandedIndex])
+
+  const handleLearnMore = useCallback((index: number) => {
+    if (expandedIndex === index) {
+      setExpandedIndex(null)
+    } else {
+      setExpandedIndex(index)
+    }
+  }, [expandedIndex])
+
+  const handleDotClick = useCallback((index: number) => {
+    setActiveIndex(index)
+    setExpandedIndex(null)
   }, [])
 
   // GSAP ScrollTrigger fade-up entrance
@@ -89,6 +107,42 @@ export default function ProofSection() {
             <div className="exp-quote-author">
               <strong>{t.author}</strong> &mdash; {t.role}
             </div>
+
+            {/* Learn more button */}
+            <button
+              className="exp-proof-learn-more"
+              onClick={() => handleLearnMore(i)}
+              aria-expanded={expandedIndex === i}
+            >
+              {expandedIndex === i ? 'Close' : 'Learn more'}
+              <svg
+                className={`exp-proof-chevron${expandedIndex === i ? ' exp-proof-chevron--open' : ''}`}
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {/* Expandable video section */}
+            <div
+              className={`exp-proof-video-wrap${expandedIndex === i ? ' exp-proof-video-wrap--open' : ''}`}
+            >
+              <div className="exp-proof-video-inner">
+                {expandedIndex === i && (
+                  <iframe
+                    className="exp-proof-video"
+                    src={`https://www.youtube.com/embed/${t.videoId}?rel=0`}
+                    title={`${t.author} testimonial video`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            </div>
           </div>
         ))}
 
@@ -97,7 +151,7 @@ export default function ProofSection() {
           {testimonials.map((_, i) => (
             <button
               key={i}
-              onClick={() => setActiveIndex(i)}
+              onClick={() => handleDotClick(i)}
               aria-label={`Show testimonial ${i + 1}`}
               style={{
                 width: 8,

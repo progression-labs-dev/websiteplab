@@ -869,6 +869,65 @@ body:has(.experiment) {
   font-weight: 600;
 }
 
+/* "Learn more" button under testimonial */
+.exp-proof-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 100px;
+  color: var(--exp-text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.exp-proof-learn-more:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--exp-text-primary);
+}
+
+.exp-proof-chevron {
+  transition: transform 0.3s ease;
+}
+
+.exp-proof-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Expandable video wrapper — height transition */
+.exp-proof-video-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.exp-proof-video-wrap--open {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.exp-proof-video-inner {
+  padding-top: 32px;
+}
+
+/* 16:9 responsive iframe */
+.exp-proof-video {
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
 /* ============================================
    METRICS (ConvergenceSection replacement)
    ============================================ */
