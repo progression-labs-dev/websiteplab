@@ -3,7 +3,7 @@
 import styles from './StepIcons.module.css'
 
 interface StepIconsProps {
-  /** Current finder step (0 = bounce stack, 1 = spreading rings) */
+  /** Current finder step (0 = bounce stack, 1 = spreading rings, 2 = venn result) */
   step: number
 }
 
@@ -44,6 +44,32 @@ export default function StepIcons({ step }: StepIconsProps) {
         <circle cx="100" cy="100" r="32" className={`${styles.ring} ${styles.ring2}`} />
         <circle cx="100" cy="100" r="32" className={`${styles.ring} ${styles.ring3}`} />
         <circle cx="100" cy="100" r="32" className={`${styles.ring} ${styles.ring4}`} />
+      </svg>
+
+      {/* Result: Venn Diagram */}
+      <svg
+        className={`${styles.icon} ${step === 2 ? styles.active : ''}`}
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <clipPath id="clip-left">
+            <circle cx="75" cy="85" r="45" />
+          </clipPath>
+          <clipPath id="clip-right">
+            <circle cx="125" cy="85" r="45" />
+          </clipPath>
+        </defs>
+        {/* 3 outlined circles */}
+        <circle cx="75" cy="85" r="45" className={`${styles.venn} ${styles.circleLeft}`} />
+        <circle cx="125" cy="85" r="45" className={`${styles.venn} ${styles.circleRight}`} />
+        <circle cx="100" cy="128" r="45" className={`${styles.venn} ${styles.circleBottom}`} />
+        {/* Filled center — clipped to triple overlap */}
+        <g clipPath="url(#clip-left)">
+          <g clipPath="url(#clip-right)">
+            <circle cx="100" cy="128" r="45" className={styles.vennCenter} />
+          </g>
+        </g>
       </svg>
     </div>
   )

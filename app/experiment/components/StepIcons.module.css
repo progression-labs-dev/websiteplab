@@ -95,3 +95,39 @@
   0%, 15%, 85%, 100% { transform: translateX(0); }
   50% { transform: translateX(40px); }
 }
+
+/* =========================================
+   Venn Diagram (Result — Step 2)
+   ========================================= */
+.venn {
+  fill: none;
+  stroke: var(--t-accent, rgb(186, 85, 211));
+  stroke-width: 2.5px;
+  /* circumference of r=45: 2 * π * 45 ≈ 283 */
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  animation: drawCircles 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Rotate so each circle draws from its nearest edge */
+.circleLeft   { transform-origin: 75px 85px;   transform: rotate(-90deg); }
+.circleRight  { transform-origin: 125px 85px;  transform: rotate(-90deg); }
+.circleBottom { transform-origin: 100px 128px;  transform: rotate(90deg); }
+
+.vennCenter {
+  fill: var(--t-accent, rgb(186, 85, 211));
+  opacity: 0;
+  animation: fillCenter 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes drawCircles {
+  0%, 5%    { stroke-dashoffset: 283; opacity: 1; }
+  30%, 85%  { stroke-dashoffset: 0;   opacity: 1; }
+  95%, 100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+@keyframes fillCenter {
+  0%, 30%   { opacity: 0; }
+  45%, 85%  { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}

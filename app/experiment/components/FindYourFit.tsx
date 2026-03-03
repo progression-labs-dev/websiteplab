@@ -426,12 +426,10 @@ export default function FindYourFit() {
             <span className="exp-terminal-title">progression-labs://finder</span>
           </div>
 
-          {/* Shared icon wrapper — both SVGs always in DOM for crossfade */}
-          {(step === 0 || step === 1) && (
-            <div style={{ marginBottom: 16 }}>
-              <StepIcons step={step} />
-            </div>
-          )}
+          {/* Shared icon wrapper — all 3 SVGs always in DOM for crossfade */}
+          <div style={{ marginBottom: 16 }}>
+            <StepIcons step={step} />
+          </div>
 
           {/* Step 0: Role selection */}
           {step === 0 && (
