@@ -65,7 +65,7 @@ body:has(.experiment) {
   background: var(--exp-bg);
   color: var(--exp-text-primary);
   min-height: 100vh;
-  overflow-x: clip;
+  overflow: clip;
   font-family: 'Inter', sans-serif;
   font-size: var(--exp-body);
   line-height: 1.6;
