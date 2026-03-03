@@ -98,36 +98,48 @@
 
 /* =========================================
    Venn Diagram (Result — Step 2)
+   2s loop with cubic-bezier(0.25, 1, 0.5, 1)
+   to match stack & rings momentum
    ========================================= */
 .venn {
   fill: none;
   stroke: var(--t-accent, rgb(186, 85, 211));
   stroke-width: 2.5px;
-  /* circumference of r=45: 2 * π * 45 ≈ 283 */
   stroke-dasharray: 283;
   stroke-dashoffset: 283;
-  animation: drawCircles 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Rotate so each circle draws from its nearest edge */
-.circleLeft   { transform-origin: 75px 85px;   transform: rotate(-90deg); }
-.circleRight  { transform-origin: 125px 85px;  transform: rotate(-90deg); }
-.circleBottom { transform-origin: 100px 128px;  transform: rotate(90deg); }
+/* Each circle draws on with a staggered delay */
+.circleLeft {
+  transform-origin: 75px 85px;
+  transform: rotate(-90deg);
+  animation: drawCircle 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+.circleRight {
+  transform-origin: 125px 85px;
+  transform: rotate(-90deg);
+  animation: drawCircle 2s cubic-bezier(0.25, 1, 0.5, 1) 0.1s infinite;
+}
+.circleBottom {
+  transform-origin: 100px 128px;
+  transform: rotate(90deg);
+  animation: drawCircle 2s cubic-bezier(0.25, 1, 0.5, 1) 0.2s infinite;
+}
 
 .vennCenter {
   fill: var(--t-accent, rgb(186, 85, 211));
   opacity: 0;
-  animation: fillCenter 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: fillCenter 2s cubic-bezier(0.25, 1, 0.5, 1) 0.2s infinite;
 }
 
-@keyframes drawCircles {
-  0%, 5%    { stroke-dashoffset: 283; opacity: 1; }
-  30%, 85%  { stroke-dashoffset: 0;   opacity: 1; }
-  95%, 100% { stroke-dashoffset: 0;   opacity: 0; }
+@keyframes drawCircle {
+  0%, 10%   { stroke-dashoffset: 283; opacity: 1; }
+  40%, 75%  { stroke-dashoffset: 0;   opacity: 1; }
+  90%, 100% { stroke-dashoffset: 0;   opacity: 0; }
 }
 
 @keyframes fillCenter {
-  0%, 30%   { opacity: 0; }
-  45%, 85%  { opacity: 1; }
-  95%, 100% { opacity: 0; }
+  0%, 40%   { opacity: 0; }
+  55%, 75%  { opacity: 1; }
+  90%, 100% { opacity: 0; }
 }
