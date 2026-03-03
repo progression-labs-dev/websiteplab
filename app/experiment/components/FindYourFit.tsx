@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import ScrollDecode from './ScrollDecode'
 import ArrowIcon from './ArrowIcon'
 import PulsingGrid from './PulsingGrid'
-import PixelPulse from './PixelPulse'
+import ProcessRings from './ProcessRings'
 
 // Brand palette (synced with hero shader)
 const BRAND_COLORS: [number, number, number][] = [
@@ -463,7 +463,7 @@ export default function FindYourFit() {
           {step === 1 && (
             <div className="exp-finder-step exp-finder-step--visible">
               <div style={{ marginBottom: 16 }}>
-                <PixelPulse size={48} />
+                <ProcessRings size={48} showLabel={false} />
               </div>
               <div className="exp-terminal-prompt">
                 <span className="exp-terminal-caret">&gt;</span>
