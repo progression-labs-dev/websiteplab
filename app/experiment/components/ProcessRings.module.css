@@ -2,43 +2,44 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
+}
+
+.icon {
+  width: 120px;
+  height: auto;
+  overflow: visible;
 }
 
 .ring {
   fill: none;
   stroke: #ffffff;
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-  transform-origin: center;
-  animation-duration: 2s;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
+  stroke-width: 3.5px;
 }
 
-.ring1 { animation-name: svgStretch1; }
-.ring2 { animation-name: svgStretch2; }
-.ring3 { animation-name: svgStretch3; }
-.ring4 { animation-name: svgStretch4; }
+.ring1 { animation: slideLeftOuter 4s ease-in-out infinite; }
+.ring2 { animation: slideLeftInner 4s ease-in-out infinite; }
+.ring3 { animation: slideRightInner 4s ease-in-out infinite; }
+.ring4 { animation: slideRightOuter 4s ease-in-out infinite; }
 
-@keyframes svgStretch1 {
-  0%, 100% { transform: scaleX(1); }
-  50%      { transform: scaleX(1.2); }
+@keyframes slideLeftOuter {
+  0%, 10%, 90%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-35px); }
 }
 
-@keyframes svgStretch2 {
-  0%, 100% { transform: scaleX(1); }
-  50%      { transform: scaleX(1.6); }
+@keyframes slideLeftInner {
+  0%, 10%, 90%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-12px); }
 }
 
-@keyframes svgStretch3 {
-  0%, 100% { transform: scaleX(1); }
-  50%      { transform: scaleX(2.0); }
+@keyframes slideRightInner {
+  0%, 10%, 90%, 100% { transform: translateX(0); }
+  50% { transform: translateX(12px); }
 }
 
-@keyframes svgStretch4 {
-  0%, 100% { transform: scaleX(1); }
-  50%      { transform: scaleX(2.4); }
+@keyframes slideRightOuter {
+  0%, 10%, 90%, 100% { transform: translateX(0); }
+  50% { transform: translateX(35px); }
 }
 
 .label {
