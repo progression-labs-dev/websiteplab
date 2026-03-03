@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import ScrollDecode from './ScrollDecode'
 import CardIcon from './CardIcon'
 import ArrowIcon from './ArrowIcon'
+import { useColorCycle } from './useColorCycle'
 
 const steps = [
   { id: '01', title: 'Discover', desc: 'We audit your systems, data, and goals to map the highest-impact AI opportunities. Every engagement starts with deep technical due diligence.', icon: 'discover' },
@@ -12,55 +13,9 @@ const steps = [
   { id: '04', title: 'Scale', desc: 'We deploy to production, monitor performance, and hand over with full documentation. You own everything we build.', icon: 'scale' },
 ]
 
-// Brand palette matching the hero shader (RGB 0-255)
-const BRAND_COLORS: [number, number, number][] = [
-  [186, 85, 211],   // #BA55D3 Medium Orchid
-  [255, 160, 122],  // #FFA07A Light Salmon
-  [185, 233, 121],  // #B9E979 Progression Green
-  [64, 224, 208],   // #40E0D0 Turquoise
-  [0, 0, 255],      // #0000FF Blue
-]
-const CYCLE_SEC = 30
-function ssmooth(t: number) { return t * t * (3 - 2 * t) }
-
 export default function MethodSection() {
   const panelRefs = useRef<(HTMLDivElement | null)[]>([])
-  const labelRef = useRef<HTMLDivElement>(null)
-
-  // Color cycling — synced with hero gradient (same 30s cycle, same smoothstep)
-  useEffect(() => {
-    let raf: number
-    const startTime = performance.now() / 1000
-
-    const tick = () => {
-      if (!labelRef.current) { raf = requestAnimationFrame(tick); return }
-
-      const elapsed = performance.now() / 1000 - startTime
-      const progress = (elapsed % CYCLE_SEC) / CYCLE_SEC
-      const segProgress = progress * 5
-      const segIndex = Math.floor(segProgress) % 5
-      const t = ssmooth(segProgress - Math.floor(segProgress))
-
-      const from = BRAND_COLORS[segIndex]
-      const to = BRAND_COLORS[(segIndex + 1) % 5]
-      const r = Math.round(from[0] + (to[0] - from[0]) * t)
-      const g = Math.round(from[1] + (to[1] - from[1]) * t)
-      const b = Math.round(from[2] + (to[2] - from[2]) * t)
-
-      labelRef.current.style.backgroundImage = `linear-gradient(
-        to bottom,
-        rgba(${r}, ${g}, ${b}, 0.8) 0%,
-        rgba(${r}, ${g}, ${b}, 0.5) 30%,
-        rgba(${r}, ${g}, ${b}, 0.18) 65%,
-        transparent 100%
-      )`
-
-      raf = requestAnimationFrame(tick)
-    }
-
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
+  const labelRef = useColorCycle()
 
   useEffect(() => {
     let ctx: { revert: () => void } | null = null

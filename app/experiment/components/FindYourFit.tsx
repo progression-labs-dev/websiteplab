@@ -4,17 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import ScrollDecode from './ScrollDecode'
 import ArrowIcon from './ArrowIcon'
 import StepIcons from './StepIcons'
-
-// Brand palette (synced with hero shader)
-const BRAND_COLORS: [number, number, number][] = [
-  [186, 85, 211],
-  [255, 160, 122],
-  [185, 233, 121],
-  [64, 224, 208],
-  [0, 0, 255],
-]
-const CYCLE_SEC = 30
-function ssmooth(t: number) { return t * t * (3 - 2 * t) }
+import { useColorCycle } from './useColorCycle'
 
 const TYPING_SPEED = 35 // ms per character
 
@@ -214,55 +204,15 @@ export default function FindYourFit() {
   const [isTyping, setIsTyping] = useState(false)
   const [resultLines, setResultLines] = useState(0)
   const contentRef = useRef<HTMLDivElement>(null)
-  const labelRef = useRef<HTMLDivElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const gsapRef = useRef<typeof import('gsap')['default'] | null>(null)
   const typingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Shared color cycle — gradient on label, accent vars on terminal
+  const labelRef = useColorCycle([terminalRef])
+
   useEffect(() => {
     import('gsap').then(mod => { gsapRef.current = mod.default })
-  }, [])
-
-  // Color cycling gradient — synced with hero
-  // Also drives the terminal accent color via CSS custom property
-  useEffect(() => {
-    let raf: number
-    const startTime = performance.now() / 1000
-
-    const tick = () => {
-      const elapsed = performance.now() / 1000 - startTime
-      const progress = (elapsed % CYCLE_SEC) / CYCLE_SEC
-      const segProgress = progress * 5
-      const segIndex = Math.floor(segProgress) % 5
-      const t = ssmooth(segProgress - Math.floor(segProgress))
-
-      const from = BRAND_COLORS[segIndex]
-      const to = BRAND_COLORS[(segIndex + 1) % 5]
-      const r = Math.round(from[0] + (to[0] - from[0]) * t)
-      const g = Math.round(from[1] + (to[1] - from[1]) * t)
-      const b = Math.round(from[2] + (to[2] - from[2]) * t)
-
-      if (labelRef.current) {
-        labelRef.current.style.backgroundImage = `linear-gradient(
-          to bottom,
-          rgba(${r}, ${g}, ${b}, 0.8) 0%,
-          rgba(${r}, ${g}, ${b}, 0.5) 30%,
-          rgba(${r}, ${g}, ${b}, 0.18) 65%,
-          transparent 100%
-        )`
-      }
-
-      if (terminalRef.current) {
-        terminalRef.current.style.setProperty('--t-accent', `rgb(${r}, ${g}, ${b})`)
-        terminalRef.current.style.setProperty('--t-accent-dim', `rgba(${r}, ${g}, ${b}, 0.12)`)
-        terminalRef.current.style.setProperty('--t-accent-glow', `rgba(${r}, ${g}, ${b}, 0.2)`)
-      }
-
-      raf = requestAnimationFrame(tick)
-    }
-
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
   }, [])
 
   // GSAP ScrollTrigger initial reveal

@@ -22,6 +22,26 @@
   --exp-border-hover: rgba(255, 255, 255, 0.15);
   --exp-bracket: rgba(255, 255, 255, 0.2);  /* #ffffff33 */
 
+  /* Alpha utility variables — white overlay on dark, black overlay on light */
+  --alpha-02: rgba(255, 255, 255, 0.02);
+  --alpha-03: rgba(255, 255, 255, 0.03);
+  --alpha-04: rgba(255, 255, 255, 0.04);
+  --alpha-05: rgba(255, 255, 255, 0.05);
+  --alpha-06: rgba(255, 255, 255, 0.06);
+  --alpha-08: rgba(255, 255, 255, 0.08);
+  --alpha-10: rgba(255, 255, 255, 0.1);
+  --alpha-12: rgba(255, 255, 255, 0.12);
+  --alpha-15: rgba(255, 255, 255, 0.15);
+  --alpha-18: rgba(255, 255, 255, 0.18);
+  --alpha-20: rgba(255, 255, 255, 0.2);
+  --alpha-25: rgba(255, 255, 255, 0.25);
+  --alpha-30: rgba(255, 255, 255, 0.3);
+  --alpha-35: rgba(255, 255, 255, 0.35);
+  --alpha-45: rgba(255, 255, 255, 0.45);
+  --alpha-50: rgba(255, 255, 255, 0.5);
+  --alpha-60: rgba(255, 255, 255, 0.6);
+  --alpha-80: rgba(255, 255, 255, 0.8);
+
   /* Fluid Typography
      H1: 28 → 40  = clamp(28px, 8px + 1.667vw, 40px)
      H2: 24 → 32  = clamp(24px, 10.667px + 1.111vw, 32px)
@@ -49,6 +69,60 @@
   --exp-text-primary: #FFFFFF;
   --exp-text-secondary: #AEA6B6;
   --exp-text-tertiary: rgba(255, 255, 255, 0.35);
+
+  /* Hero overlay */
+  --exp-hero-overlay: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  --exp-hero-frame-bg: #010101;
+
+  /* Scanner curtain */
+  --exp-scanner-curtain: white;
+
+  /* Logo inversion filter (invert for dark bg so dark logos appear white) */
+  --exp-logo-invert: brightness(0) invert(1);
+}
+
+/* ─── Light Mode Overrides ─── */
+[data-theme="light"] {
+  --exp-white: #1a1a1a;
+  --exp-black: #fafafa;
+  --exp-gray: #555555;
+
+  --exp-border: rgba(0, 0, 0, 0.1);
+  --exp-border-hover: rgba(0, 0, 0, 0.15);
+  --exp-bracket: rgba(0, 0, 0, 0.2);
+
+  --alpha-02: rgba(0, 0, 0, 0.02);
+  --alpha-03: rgba(0, 0, 0, 0.03);
+  --alpha-04: rgba(0, 0, 0, 0.04);
+  --alpha-05: rgba(0, 0, 0, 0.05);
+  --alpha-06: rgba(0, 0, 0, 0.06);
+  --alpha-08: rgba(0, 0, 0, 0.08);
+  --alpha-10: rgba(0, 0, 0, 0.1);
+  --alpha-12: rgba(0, 0, 0, 0.12);
+  --alpha-15: rgba(0, 0, 0, 0.15);
+  --alpha-18: rgba(0, 0, 0, 0.18);
+  --alpha-20: rgba(0, 0, 0, 0.2);
+  --alpha-25: rgba(0, 0, 0, 0.25);
+  --alpha-30: rgba(0, 0, 0, 0.3);
+  --alpha-35: rgba(0, 0, 0, 0.35);
+  --alpha-45: rgba(0, 0, 0, 0.45);
+  --alpha-50: rgba(0, 0, 0, 0.5);
+  --alpha-60: rgba(0, 0, 0, 0.6);
+  --alpha-80: rgba(0, 0, 0, 0.8);
+
+  --exp-bg: #fafafa;
+  --exp-surface: rgba(0, 0, 0, 0.02);
+  --exp-surface-hover: rgba(0, 0, 0, 0.08);
+  --exp-text-primary: #1a1a1a;
+  --exp-text-secondary: #555555;
+  --exp-text-tertiary: rgba(0, 0, 0, 0.45);
+
+  --exp-hero-overlay: linear-gradient(to top, rgba(255, 255, 255, 0.65), transparent);
+  --exp-hero-frame-bg: #fafafa;
+
+  --exp-scanner-curtain: #1a1a1a;
+
+  --exp-logo-invert: brightness(0);
 }
 
 /* Fix: globals.css sets overflow-x:hidden on body, which forces overflow-y:auto
@@ -59,6 +133,10 @@ html, body { margin: 0; padding: 0; }
 body:has(.experiment) {
   overflow: visible !important;
 }
+
+/* Fix: globals.css sets scroll-behavior:smooth which conflicts with Lenis —
+   both try to smooth-scroll simultaneously, causing micro-jitter. Override to auto. */
+html:has(.experiment) { scroll-behavior: auto; }
 
 /* --- Root Wrapper --- */
 .experiment {
@@ -158,6 +236,7 @@ body:has(.experiment) {
   border-top: 1px dashed rgba(255, 255, 255, 0.12);
   margin-left: 80px;
   margin-right: 80px;
+  margin-top: -1px; /* overlap with section above to close sub-pixel gaps */
 }
 
 .exp-plus-divider-mark {
@@ -337,6 +416,28 @@ body:has(.experiment) {
 
 .exp-nav-cta {
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exp-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--alpha-05);
+  border: 1px solid var(--alpha-30);
+  color: var(--exp-text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  padding: 0;
+}
+
+.exp-theme-toggle:hover {
+  border-color: var(--alpha-30);
+  color: var(--exp-text-primary);
 }
 
 /* ============================================
@@ -516,19 +617,23 @@ body:has(.experiment) {
   background: var(--exp-surface-hover);
 }
 
-/* SVG corner bracket positioning (Isidor .card_icon-corner with rotate) */
+/* Corner brackets — single-element border-joint method (perfectly flush 90° corners) */
 .exp-corner {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
   pointer-events: none;
-  color: #ffffff33;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-width: 0;
+  z-index: 10;
 }
 
-.exp-corner--tl { top: -1px; left: -1px; }
-.exp-corner--tr { top: -1px; right: -1px; transform: rotate(90deg); }
-.exp-corner--bl { bottom: -1px; left: -1px; transform: rotate(-90deg); }
-.exp-corner--br { bottom: -1px; right: -1px; transform: rotate(180deg); }
+.exp-corner--tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+.exp-corner--tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+.exp-corner--bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; }
+.exp-corner--br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
 
 /* --- SVG card icon container with navy glow background --- */
 .exp-panel-icon {
@@ -656,7 +761,7 @@ body:has(.experiment) {
 }
 
 .exp-12-grid--half .exp-corner {
-  color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .exp-12-grid--half .exp-panel-id {
@@ -1402,16 +1507,25 @@ body:has(.experiment) {
 .exp-team-single-card {
   position: relative;
   background: var(--exp-surface);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   width: 280px;
   flex-shrink: 0;
   transition: border-color 0.3s ease;
 }
 
+/* Match bracket color to border so they look continuous */
+.exp-team-single-card .exp-corner {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .exp-team-single-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.exp-team-single-card:hover .exp-corner {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .exp-team-avatar {
@@ -1455,7 +1569,7 @@ body:has(.experiment) {
 
 .exp-team-info {
   padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .exp-team-id {
