@@ -463,7 +463,7 @@ export default function FindYourFit() {
           {step === 1 && (
             <div className="exp-finder-step exp-finder-step--visible">
               <div style={{ marginBottom: 16 }}>
-                <ProcessRings size={48} showLabel={false} />
+                <ProcessRings size={80} showLabel={false} />
               </div>
               <div className="exp-terminal-prompt">
                 <span className="exp-terminal-caret">&gt;</span>

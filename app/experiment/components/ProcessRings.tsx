@@ -18,6 +18,12 @@ export default function ProcessRings({ size, showLabel = true }: ProcessRingsPro
         xmlns="http://www.w3.org/2000/svg"
         style={size ? { width: size } : undefined}
       >
+        <defs>
+          <linearGradient id="ring-grad" gradientUnits="userSpaceOnUse" x1="70" y1="8" x2="70" y2="52">
+            <stop offset="0%" className={styles.stopAccent} />
+            <stop offset="100%" stopColor="#ffffff" />
+          </linearGradient>
+        </defs>
         <circle cx="70" cy="30" r="22" className={`${styles.ring} ${styles.ring1}`} />
         <circle cx="70" cy="30" r="22" className={`${styles.ring} ${styles.ring2}`} />
         <circle cx="70" cy="30" r="22" className={`${styles.ring} ${styles.ring3}`} />

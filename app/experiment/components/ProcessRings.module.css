@@ -13,8 +13,12 @@
 
 .ring {
   fill: none;
-  stroke: #ffffff;
+  stroke: url(#ring-grad);
   stroke-width: 3.5px;
+}
+
+.stopAccent {
+  stop-color: var(--t-accent, rgb(186, 85, 211));
 }
 
 .ring1 { animation: slideLeftOuter 4s ease-in-out infinite; }
