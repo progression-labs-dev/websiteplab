@@ -8,6 +8,7 @@ import FindYourFit from './components/FindYourFit'
 import ProofSection from './components/ProofSection'
 import ExperimentTeamSection from './components/ExperimentTeamSection'
 import CTASection from './components/CTASection'
+import BlogSection from './components/BlogSection'
 import PlusDivider from './components/PlusDivider'
 
 export default function ExperimentPage() {
@@ -61,6 +62,13 @@ export default function ExperimentPage() {
       {/* Team marquee with de-pixelation avatars */}
       <section id="team">
         <ExperimentTeamSection />
+      </section>
+
+      <PlusDivider />
+
+      {/* Blog — Karpathy-inspired AI insights */}
+      <section id="lab">
+        <BlogSection />
       </section>
 
       <PlusDivider />

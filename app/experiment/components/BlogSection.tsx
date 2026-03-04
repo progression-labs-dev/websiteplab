@@ -14,32 +14,32 @@ interface BlogPost {
 
 const posts: BlogPost[] = [
   {
-    category: 'Strategy',
-    date: '2026-02-18',
-    title: 'Why Most AI Projects Fail Before They Start',
+    category: 'Engineering',
+    date: '2026-02-28',
+    title: 'Vibe Coding and the Death of Syntax',
     excerpt:
-      'The biggest risk isn\'t technical — it\'s strategic. We break down the patterns we see in failed AI initiatives and the framework we use to avoid them.',
+      'Karpathy coined it — programming via natural language, forgetting code exists. What this means for engineering teams and the future of software craft.',
   },
   {
-    category: 'Engineering',
-    date: '2026-01-24',
-    title: 'Building Production AI Agents: Lessons from the Field',
+    category: 'Insights',
+    date: '2026-02-12',
+    title: 'Ghost Intelligence: Why LLMs Are Not What You Think',
     excerpt:
-      'Agents that work in demos rarely survive production. Here\'s what we\'ve learned shipping agent systems across industries.',
+      'LLMs are "summoned ghosts", not gradually evolving animals. A fundamentally new type of intelligence that demands a new mental model.',
+  },
+  {
+    category: 'Strategy',
+    date: '2026-01-24',
+    title: 'RLVR: The Quiet Revolution in How Models Learn to Reason',
+    excerpt:
+      'Reinforcement Learning from Verifiable Rewards — the shift from probabilistic imitation to logical reasoning that defined 2025.',
   },
   {
     category: 'Process',
     date: '2026-01-08',
-    title: 'The AI Audit Framework We Use with Every Client',
+    title: 'The Magnitude 9 Earthquake: Engineering in the Agent Era',
     excerpt:
-      'Before we write a line of code, we run a structured audit. This is the exact framework — open-sourced for your team.',
-  },
-  {
-    category: 'Insights',
-    date: '2025-12-15',
-    title: 'From Exploration to Scale: Mapping the AI Journey',
-    excerpt:
-      'Every organisation follows a similar arc from curiosity to capability. Understanding where you are changes what you should do next.',
+      'The profession is being dramatically refactored — agents, subagents, prompts, MCP, tools, plugins. How to ride the wave instead of drowning in it.',
   },
 ]
 

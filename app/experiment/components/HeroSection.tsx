@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import BlueprintIntro from './BlueprintIntro'
 import TextScramble from './TextScramble'
 import MosaicOverlay from './MosaicOverlay'
+import AsciiOverlay from './AsciiOverlay'
 import HeroGradientGL from './HeroGradientGL'
 import ArrowIcon from './ArrowIcon'
 
@@ -17,6 +18,7 @@ const HEADLINE_TEXT =
 
 export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionProps) {
   const [mosaicActive, setMosaicActive] = useState(false)
+  const [asciiActive, setAsciiActive] = useState(false)
   const [heroReveal, setHeroReveal] = useState(false)
   const [scrambleTrigger, setScrambleTrigger] = useState(false)
   const [scrambleDone, setScrambleDone] = useState(false)
@@ -41,6 +43,9 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
 
     // Activate mosaic overlay (interactive pixel trail)
     setMosaicActive(true)
+
+    // Activate ASCII overlay (mouse-reactive text grid)
+    addTimer(() => setAsciiActive(true), 200)
 
     // Trigger hero gradient pixel reveal
     setHeroReveal(true)
@@ -67,7 +72,10 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
         {/* Layer 1: Interactive mosaic pixel grid — digital wake trail */}
         <MosaicOverlay active={mosaicActive} />
 
-        {/* Layer 2: Hero content — bottom-left inside frame */}
+        {/* Layer 2: ASCII text overlay — mouse-reactive character grid */}
+        <AsciiOverlay active={asciiActive} />
+
+        {/* Layer 3: Hero content — bottom-left inside frame */}
         <div className="exp-hero-content">
           {/* Headline with TextScramble → bold keywords after resolve */}
           {!scrambleDone ? (
