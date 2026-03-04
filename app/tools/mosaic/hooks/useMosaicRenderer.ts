@@ -360,11 +360,11 @@ export function useMosaicRenderer() {
         colorMode === 'hero' ? timeSec : undefined);
     }
 
-    // ── Hero post-processing: grain + vignette ──
-    if (colorMode === 'hero') {
+    // ── Post-processing: grain (hero + gradient) ──
+    if (colorMode === 'hero' || colorMode === 'gradient') {
       // Film grain: tiled noise texture at low opacity with overlay blend
       ctx.save();
-      ctx.globalAlpha = 0.06;
+      ctx.globalAlpha = colorMode === 'hero' ? 0.06 : 0.045; // slightly subtler for gradient
       ctx.globalCompositeOperation = 'overlay';
       const grainPattern = ctx.createPattern(getGrainCanvas(), 'repeat');
       if (grainPattern) {
@@ -372,8 +372,10 @@ export function useMosaicRenderer() {
         ctx.fillRect(0, 0, width, height);
       }
       ctx.restore();
+    }
 
-      // Vignette: radial darkening at edges
+    // ── Hero-only post-processing: vignette ──
+    if (colorMode === 'hero') {
       const cx = width / 2, cy = height / 2;
       const innerR = Math.min(width, height) * 0.35;
       const outerR = Math.max(width, height) * 0.75;

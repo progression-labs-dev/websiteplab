@@ -26,14 +26,14 @@ export function drawPixelBlock(
   brightness = 128
 ): void {
   if (soft) {
-    // Frosted glass: desaturate toward white, variable opacity by brightness
+    // Frosted glass: slight desaturation, keep vibrancy, variable opacity by brightness
     const [h, s, l] = rgbToHsl(r, g, b);
-    const softL = l + (1 - l) * 0.35;           // push lightness toward white
-    const softS = s * 0.65;                      // reduce saturation for pastel look
+    const softL = l + (1 - l) * 0.2;            // gentle lightness push (was 0.35)
+    const softS = s * 0.85;                      // retain most saturation (was 0.65)
     const [sr, sg, sb] = hslToRgb(h, softS, softL);
 
     // Brighter areas more opaque, darker areas fade out — creates depth
-    const baseAlpha = 0.45 + 0.45 * (brightness / 255); // 0.45–0.90
+    const baseAlpha = 0.55 + 0.40 * (brightness / 255); // 0.55–0.95 (was 0.45–0.90)
     ctx.fillStyle = rgbString(sr, sg, sb, baseAlpha);
     ctx.fillRect(x, y, size, size);
     return;
@@ -73,10 +73,10 @@ export function drawConvexCircle(
 ): void {
   if (soft) {
     const [h, s, l] = rgbToHsl(r, g, b);
-    const softL = l + (1 - l) * 0.35;
-    const softS = s * 0.65;
+    const softL = l + (1 - l) * 0.2;
+    const softS = s * 0.85;
     const [pr, pg, pb] = hslToRgb(h, softS, softL);
-    const baseAlpha = 0.45 + 0.45 * (brightness / 255);
+    const baseAlpha = 0.55 + 0.40 * (brightness / 255);
 
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
