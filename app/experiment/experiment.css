@@ -1643,6 +1643,27 @@ html:has(.experiment) { scroll-behavior: auto; }
   background: rgba(255, 255, 255, 0.02);
 }
 
+.exp-blog-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.exp-blog-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  transition: opacity 0.4s ease, transform 0.6s ease;
+}
+
+.exp-blog-card:hover .exp-blog-image img {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
 .exp-blog-meta {
   display: flex;
   align-items: center;

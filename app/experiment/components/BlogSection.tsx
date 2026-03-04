@@ -10,6 +10,7 @@ interface BlogPost {
   date: string
   title: string
   excerpt: string
+  image?: string
 }
 
 const posts: BlogPost[] = [
@@ -19,6 +20,7 @@ const posts: BlogPost[] = [
     title: 'Vibe Coding and the Death of Syntax',
     excerpt:
       'Karpathy coined it — programming via natural language, forgetting code exists. What this means for engineering teams and the future of software craft.',
+    image: '/blog/vibe-coding.png',
   },
   {
     category: 'Insights',
@@ -26,6 +28,7 @@ const posts: BlogPost[] = [
     title: 'Ghost Intelligence: Why LLMs Are Not What You Think',
     excerpt:
       'LLMs are "summoned ghosts", not gradually evolving animals. A fundamentally new type of intelligence that demands a new mental model.',
+    image: '/blog/ghost-intelligence.png',
   },
   {
     category: 'Strategy',
@@ -33,6 +36,7 @@ const posts: BlogPost[] = [
     title: 'RLVR: The Quiet Revolution in How Models Learn to Reason',
     excerpt:
       'Reinforcement Learning from Verifiable Rewards — the shift from probabilistic imitation to logical reasoning that defined 2025.',
+    image: '/blog/rlvr-revolution.png',
   },
   {
     category: 'Process',
@@ -40,6 +44,7 @@ const posts: BlogPost[] = [
     title: 'The Magnitude 9 Earthquake: Engineering in the Agent Era',
     excerpt:
       'The profession is being dramatically refactored — agents, subagents, prompts, MCP, tools, plugins. How to ride the wave instead of drowning in it.',
+    image: '/blog/magnitude-earthquake.png',
   },
 ]
 
@@ -102,6 +107,11 @@ export default function BlogSection() {
         {posts.map((post) => (
           <div key={post.title} className="exp-blog-card">
             <PanelCorners />
+            {post.image && (
+              <div className="exp-blog-image">
+                <img src={post.image} alt="" loading="lazy" />
+              </div>
+            )}
             <div className="exp-blog-meta">
               <span className="exp-blog-category">{post.category}</span>
               <span className="exp-blog-date">{formatDate(post.date)}</span>
