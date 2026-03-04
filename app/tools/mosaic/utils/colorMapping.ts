@@ -112,3 +112,81 @@ export function rgbToHex(r: number, g: number, b: number): string {
 export function rgbString(r: number, g: number, b: number, a = 1): string {
   return a === 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${a})`;
 }
+
+// ── Hero Gradient (ported from GLSL hero shader) ──
+
+/** Cubic smoothstep easing: 0→0, 0.5→0.5, 1→1 with smooth acceleration/deceleration */
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+/** Linear RGB interpolation (matches GLSL mix) */
+function mixRgb(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number
+): [number, number, number] {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+}
+
+// 5 brand colors cycling over 30 seconds
+const HERO_BRAND_COLORS: [number, number, number][] = [
+  [186, 85, 211],   // Orchid
+  [255, 160, 122],  // Salmon
+  [185, 233, 121],  // Green
+  [64, 224, 208],   // Turquoise
+  [0, 0, 255],      // Blue
+];
+
+const HERO_CYCLE_DURATION = 30; // seconds
+
+/**
+ * Returns the current brand color from a 30-second cycle.
+ * 5 segments (6s each), cubic smoothstep easing between colors.
+ */
+export function getHeroPeakColor(timeSec: number): [number, number, number] {
+  const t = (timeSec % HERO_CYCLE_DURATION) / HERO_CYCLE_DURATION; // 0–1
+  const segments = HERO_BRAND_COLORS.length;
+  const segIndex = Math.min(Math.floor(t * segments), segments - 1);
+  const segT = smoothstep((t * segments) - segIndex);
+  const nextIndex = (segIndex + 1) % segments;
+  return mixRgb(HERO_BRAND_COLORS[segIndex], HERO_BRAND_COLORS[nextIndex], segT);
+}
+
+/**
+ * Maps brightness (0–255) through the hero 5-zone ramp using the given peak color.
+ * Port of GLSL computeGradient(gp, peak):
+ *   0.00–0.04: near-black → deep (peak * 0.06)
+ *   0.04–0.18: deep → mid (peak * 0.35)
+ *   0.18–0.45: mid → hot (peak * 1.0)
+ *   0.45–0.72: hot → wash (50% toward white)
+ *   0.72–1.00: wash → white
+ */
+export function heroGradientColor(
+  brightness: number,
+  peakColor: [number, number, number]
+): [number, number, number] {
+  const gp = brightness / 255; // normalized 0–1
+  const black: [number, number, number] = [0, 0, 0];
+  const deep: [number, number, number] = [peakColor[0] * 0.06, peakColor[1] * 0.06, peakColor[2] * 0.06];
+  const mid: [number, number, number] = [peakColor[0] * 0.35, peakColor[1] * 0.35, peakColor[2] * 0.35];
+  const hot: [number, number, number] = peakColor;
+  const wash: [number, number, number] = mixRgb(peakColor, [255, 255, 255], 0.5);
+  const white: [number, number, number] = [255, 255, 255];
+
+  if (gp < 0.04) {
+    return mixRgb(black, deep, smoothstep(gp / 0.04));
+  } else if (gp < 0.18) {
+    return mixRgb(deep, mid, smoothstep((gp - 0.04) / 0.14));
+  } else if (gp < 0.45) {
+    return mixRgb(mid, hot, smoothstep((gp - 0.18) / 0.27));
+  } else if (gp < 0.72) {
+    return mixRgb(hot, wash, smoothstep((gp - 0.45) / 0.27));
+  } else {
+    return mixRgb(wash, white, smoothstep((gp - 0.72) / 0.28));
+  }
+}

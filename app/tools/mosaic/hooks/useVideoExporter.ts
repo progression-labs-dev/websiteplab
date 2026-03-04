@@ -129,7 +129,7 @@ export function useVideoExporter() {
 
   const startExport = useCallback(async (
     videoElement: HTMLVideoElement,
-    renderFrame: (buffer: ImageBuffer, targetCanvas: HTMLCanvasElement) => void,
+    renderFrame: (buffer: ImageBuffer, targetCanvas: HTMLCanvasElement, frameTimeSec: number) => void,
     options: ExportOptions,
   ): Promise<void> => {
     if (!supportsWebCodecs()) {
@@ -207,7 +207,7 @@ export function useVideoExporter() {
         }
 
         // 5. Render mosaic effects onto the target canvas
-        renderFrame(imageBuffer, targetCanvas);
+        renderFrame(imageBuffer, targetCanvas, frameTimeSecs);
 
         // 6. Encode the rendered frame
         await encoder.encodeFrame(targetCanvas, timestampMicros);
@@ -248,5 +248,90 @@ export function useVideoExporter() {
     setExportState(INITIAL_STATE);
   }, []);
 
-  return { exportState, startExport, cancelExport };
+  /**
+   * Export a static image with animated hero gradient as an MP4 video.
+   * Generates frames by calling renderFrame with incrementing time values.
+   */
+  const startImageExport = useCallback(async (
+    imageBuffer: ImageBuffer,
+    renderFrame: (buffer: ImageBuffer, targetCanvas: HTMLCanvasElement, frameTimeSec: number) => void,
+    options: ExportOptions,
+    duration: number,
+  ): Promise<void> => {
+    if (!supportsWebCodecs()) {
+      throw new Error(
+        'Video export requires WebCodecs (Chrome 94+ / Edge 94+). ' +
+        'This browser does not support it.'
+      );
+    }
+
+    const { width, height, fps, bitrate } = options;
+    const totalFrames = Math.floor(duration * fps);
+
+    cancelledRef.current = false;
+
+    setExportState({
+      exporting: true,
+      progress: 0,
+      currentFrame: 0,
+      totalFrames,
+      estimatedTimeLeft: -1,
+    });
+
+    const targetCanvas = document.createElement('canvas');
+    targetCanvas.width = width;
+    targetCanvas.height = height;
+
+    const encoder = await createVideoEncoder({ width, height, fps, bitrate });
+    const startTime = performance.now();
+
+    try {
+      for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+        if (cancelledRef.current) break;
+
+        const frameTimeSec = frameIndex / fps;
+        const timestampMicros = Math.round(frameTimeSec * 1_000_000);
+
+        // Render mosaic with this frame's time
+        renderFrame(imageBuffer, targetCanvas, frameTimeSec);
+
+        // Encode
+        await encoder.encodeFrame(targetCanvas, timestampMicros);
+
+        // Progress
+        const elapsed = (performance.now() - startTime) / 1000;
+        const framesCompleted = frameIndex + 1;
+        const progress = framesCompleted / totalFrames;
+        const avgSecsPerFrame = elapsed / framesCompleted;
+        const estimatedTimeLeft = Math.round(avgSecsPerFrame * (totalFrames - framesCompleted));
+
+        setExportState({
+          exporting: true,
+          progress,
+          currentFrame: framesCompleted,
+          totalFrames,
+          estimatedTimeLeft,
+        });
+      }
+
+      if (cancelledRef.current) {
+        encoder.close();
+        setExportState(INITIAL_STATE);
+        return;
+      }
+
+      const blob = await encoder.finalize();
+      encoder.close();
+      await downloadBlob(blob, `mosaic-hero-${Date.now()}.mp4`);
+
+    } catch (err) {
+      encoder.close();
+      setExportState(INITIAL_STATE);
+      throw err;
+    }
+
+    setExportState(INITIAL_STATE);
+  }, []);
+
+  return { exportState, startExport, startImageExport, cancelExport };
 }

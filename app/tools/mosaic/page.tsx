@@ -42,7 +42,7 @@ export default function MosaicToolPage() {
   const { render } = useMosaicRenderer();
 
   // Video exporter
-  const { exportState, startExport, cancelExport } = useVideoExporter();
+  const { exportState, startExport, startImageExport, cancelExport } = useVideoExporter();
 
   // Track whether the SAM model has been initialized
   const modelInitedRef = useRef(false);
@@ -152,8 +152,8 @@ export default function MosaicToolPage() {
     };
 
     // renderFrame receives the raw frame buffer and draws the mosaic onto targetCanvas
-    const renderFrame = (frameBuffer: ImageBuffer, targetCanvas: HTMLCanvasElement) => {
-      render(targetCanvas, frameBuffer, exportParams, exportMask ?? undefined);
+    const renderFrame = (frameBuffer: ImageBuffer, targetCanvas: HTMLCanvasElement, frameTimeSec: number) => {
+      render(targetCanvas, frameBuffer, exportParams, exportMask ?? undefined, frameTimeSec);
     };
 
     try {
@@ -164,14 +164,58 @@ export default function MosaicToolPage() {
     }
   }, [getVideoElement, buffer, exportResolution, exportQuality, params, mask, render, startExport]);
 
-  // Smart export: PNG for images, video for videos
+  // Hero animation export: renders 30s of hero gradient cycling on a static image
+  const handleExportHeroImage = useCallback(async () => {
+    if (!buffer) return;
+
+    let outWidth = buffer.width;
+    let outHeight = buffer.height;
+
+    if (exportResolution !== 'original') {
+      const targetShortSide = exportResolution === '1080p' ? 1080 : 720;
+      const longestSide = Math.max(buffer.width, buffer.height);
+      if (longestSide > targetShortSide) {
+        const scale = targetShortSide / longestSide;
+        outWidth = Math.round(buffer.width * scale);
+        outHeight = Math.round(buffer.height * scale);
+      }
+    }
+
+    outWidth = outWidth % 2 === 0 ? outWidth : outWidth - 1;
+    outHeight = outHeight % 2 === 0 ? outHeight : outHeight - 1;
+
+    const bitrate = Math.round(500_000 + (exportQuality / 100) * 7_500_000);
+
+    const exportParams = { ...params };
+    const exportMask = mask ? new Uint8Array(mask) : null;
+
+    const renderFrame = (frameBuffer: ImageBuffer, targetCanvas: HTMLCanvasElement, frameTimeSec: number) => {
+      render(targetCanvas, frameBuffer, exportParams, exportMask ?? undefined, frameTimeSec);
+    };
+
+    try {
+      await startImageExport(buffer, renderFrame, {
+        width: outWidth,
+        height: outHeight,
+        fps: 30,
+        bitrate,
+      }, 30); // 30s = one full gradient cycle
+    } catch (err) {
+      console.error('Hero export failed:', err);
+      alert(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [buffer, exportResolution, exportQuality, params, mask, render, startImageExport]);
+
+  // Smart export: PNG for images, video for videos, hero animation for hero+image
   const handleExport = useCallback(() => {
     if (mediaType === 'video') {
       handleExportVideo();
+    } else if (params.colorMode === 'hero') {
+      handleExportHeroImage();
     } else {
       handleExportPNG();
     }
-  }, [mediaType, handleExportVideo, handleExportPNG]);
+  }, [mediaType, params.colorMode, handleExportVideo, handleExportHeroImage, handleExportPNG]);
 
   // Canvas click handler for subject mask mode
   const handleCanvasClick = useCallback((x: number, y: number, label: 0 | 1) => {

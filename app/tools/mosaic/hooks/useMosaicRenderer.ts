@@ -1,10 +1,10 @@
 import { useCallback, useRef } from 'react';
 import { ImageBuffer, sampleColorAt, getBrightness } from '../utils/imageProcessing';
-import { multiStopGradientColor } from '../utils/colorMapping';
+import { multiStopGradientColor, getHeroPeakColor, heroGradientColor } from '../utils/colorMapping';
 import { drawPixelBlock, drawConvexCircle, drawAsciiChar } from '../utils/shapes';
 
 export type ShapeMode = 'pixel' | 'circle';
-export type ColorMode = 'original' | 'gradient';
+export type ColorMode = 'original' | 'gradient' | 'hero';
 export type BgMode = 'black' | 'white' | 'transparent';
 export type MaskMode = 'none' | 'split' | 'subject' | 'auto';
 
@@ -159,14 +159,38 @@ function isOnEffectSide(
   return dot >= 0;
 }
 
+// Lazy-init grain texture (128×128 tiled noise, created once)
+let _grainCanvas: HTMLCanvasElement | null = null;
+function getGrainCanvas(): HTMLCanvasElement {
+  if (!_grainCanvas) {
+    _grainCanvas = document.createElement('canvas');
+    _grainCanvas.width = 128;
+    _grainCanvas.height = 128;
+    const gCtx = _grainCanvas.getContext('2d')!;
+    const data = gCtx.createImageData(128, 128);
+    for (let i = 0; i < data.data.length; i += 4) {
+      const v = Math.random() * 255;
+      data.data[i] = v;
+      data.data[i + 1] = v;
+      data.data[i + 2] = v;
+      data.data[i + 3] = 255;
+    }
+    gCtx.putImageData(data, 0, 0);
+  }
+  return _grainCanvas;
+}
+
 export function useMosaicRenderer() {
   const rafId = useRef<number>(0);
+
+  const heroRafId = useRef<number>(0);
 
   const render = useCallback((
     canvas: HTMLCanvasElement,
     buffer: ImageBuffer,
     params: MosaicParams,
-    subjectMask?: Uint8Array | null
+    subjectMask?: Uint8Array | null,
+    timeSec?: number
   ) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -216,6 +240,13 @@ export function useMosaicRenderer() {
     const step = cellSize * 2 + spacing;
     const cols = Math.ceil(width / step);
     const rows = Math.ceil(height / step);
+
+    // Compute hero peak color once per frame (outside the loop)
+    const heroPeak = colorMode === 'hero' && timeSec !== undefined
+      ? getHeroPeakColor(timeSec) : null;
+
+    // Collect ASCII cells for second pass (bloom goes between shapes and ASCII)
+    const asciiCells: { cx: number; cy: number; brightness: number; fillR: number; fillG: number; fillB: number }[] = [];
 
     // For 'none' mode, fill background over entire canvas
     // For 'subject'/'auto' modes, keep the original image — only overlay mosaic on masked cells
@@ -280,6 +311,8 @@ export function useMosaicRenderer() {
         let fillR = r, fillG = g, fillB = b;
         if (colorMode === 'gradient') {
           [fillR, fillG, fillB] = multiStopGradientColor(brightness, gradientStops.map(s => s.color));
+        } else if (heroPeak) {
+          [fillR, fillG, fillB] = heroGradientColor(brightness, heroPeak);
         }
 
         // Draw background behind this cell (in split, subject, or auto mode — per-cell, not full canvas)
@@ -290,18 +323,65 @@ export function useMosaicRenderer() {
           }
         }
 
-        // Draw shape
+        // Draw shape — always use soft translucent rendering (frosted glass look)
         if (shapeMode === 'pixel') {
-          drawPixelBlock(ctx, cellX - cellSize, cellY - cellSize, cellSize * 2, fillR, fillG, fillB);
+          drawPixelBlock(ctx, cellX - cellSize, cellY - cellSize, cellSize * 2, fillR, fillG, fillB, false, true, brightness);
         } else {
-          drawConvexCircle(ctx, cellX, cellY, cellSize, fillR, fillG, fillB);
+          drawConvexCircle(ctx, cellX, cellY, cellSize, fillR, fillG, fillB, true, brightness);
         }
 
-        // ASCII overlay
+        // Store cell data for ASCII second pass (hero needs bloom between shapes and ASCII)
         if (asciiEnabled) {
-          drawAsciiChar(ctx, cellX, cellY, cellSize, brightness, asciiOpacity, fillR, fillG, fillB);
+          asciiCells.push({ cx: cellX, cy: cellY, brightness, fillR, fillG, fillB });
         }
       }
+    }
+
+    // ── Hero post-processing: bloom glow ──
+    // Blur the shapes layer before drawing ASCII on top, so ASCII stays sharp.
+    if (colorMode === 'hero') {
+      const bloomCanvas = document.createElement('canvas');
+      bloomCanvas.width = width;
+      bloomCanvas.height = height;
+      bloomCanvas.getContext('2d')!.drawImage(canvas, 0, 0);
+
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.filter = 'blur(24px)';
+      ctx.drawImage(bloomCanvas, 0, 0);
+      ctx.filter = 'none';
+      ctx.restore();
+    }
+
+    // ── ASCII second pass ──
+    for (const cell of asciiCells) {
+      drawAsciiChar(ctx, cell.cx, cell.cy, cellSize, cell.brightness, asciiOpacity,
+        cell.fillR, cell.fillG, cell.fillB,
+        colorMode === 'hero' ? timeSec : undefined);
+    }
+
+    // ── Hero post-processing: grain + vignette ──
+    if (colorMode === 'hero') {
+      // Film grain: tiled noise texture at low opacity with overlay blend
+      ctx.save();
+      ctx.globalAlpha = 0.06;
+      ctx.globalCompositeOperation = 'overlay';
+      const grainPattern = ctx.createPattern(getGrainCanvas(), 'repeat');
+      if (grainPattern) {
+        ctx.fillStyle = grainPattern;
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.restore();
+
+      // Vignette: radial darkening at edges
+      const cx = width / 2, cy = height / 2;
+      const innerR = Math.min(width, height) * 0.35;
+      const outerR = Math.max(width, height) * 0.75;
+      const vignette = ctx.createRadialGradient(cx, cy, innerR, cx, cy, outerR);
+      vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, width, height);
     }
   }, []);
 
@@ -317,9 +397,40 @@ export function useMosaicRenderer() {
     });
   }, [render]);
 
-  const cleanup = useCallback(() => {
-    cancelAnimationFrame(rafId.current);
+  /**
+   * Starts a continuous rAF loop for hero mode animation.
+   * Reads from refs (not closure values) so slider changes take effect
+   * on the next frame without restarting the loop.
+   */
+  const startHeroLoop = useCallback((
+    canvas: HTMLCanvasElement,
+    bufferRef: React.RefObject<ImageBuffer | null>,
+    paramsRef: React.RefObject<MosaicParams>,
+    maskRef: React.RefObject<Uint8Array | null | undefined>
+  ) => {
+    cancelAnimationFrame(heroRafId.current);
+
+    const loop = () => {
+      const buf = bufferRef.current;
+      const p = paramsRef.current;
+      if (buf && p) {
+        const timeSec = performance.now() / 1000;
+        render(canvas, buf, p, maskRef.current ?? undefined, timeSec);
+      }
+      heroRafId.current = requestAnimationFrame(loop);
+    };
+    heroRafId.current = requestAnimationFrame(loop);
+  }, [render]);
+
+  const stopHeroLoop = useCallback(() => {
+    cancelAnimationFrame(heroRafId.current);
+    heroRafId.current = 0;
   }, []);
 
-  return { render, renderAnimated, cleanup };
+  const cleanup = useCallback(() => {
+    cancelAnimationFrame(rafId.current);
+    cancelAnimationFrame(heroRafId.current);
+  }, []);
+
+  return { render, renderAnimated, startHeroLoop, stopHeroLoop, cleanup };
 }

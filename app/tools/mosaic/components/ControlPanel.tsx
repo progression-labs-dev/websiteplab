@@ -548,6 +548,13 @@ export default function ControlPanel({
           >
             Gradient
           </button>
+          <button
+            className={`mosaic-shape-btn ${params.colorMode === 'hero' ? 'active' : ''}`}
+            onClick={() => onChange({ colorMode: 'hero' as ColorMode })}
+            disabled={isExporting}
+          >
+            Hero
+          </button>
         </div>
         {params.colorMode === 'gradient' && (
           <>
@@ -632,8 +639,8 @@ export default function ControlPanel({
         )}
       </div>
 
-      {/* Export Settings (video only) */}
-      {mediaType === 'video' && (
+      {/* Export Settings (video or hero animation) */}
+      {(mediaType === 'video' || params.colorMode === 'hero') && (
         <div className="mosaic-section export-settings">
           <div className="mosaic-section-title">Export Settings</div>
           <div className="mosaic-slider-label" style={{ marginBottom: 8 }}>
@@ -702,7 +709,7 @@ export default function ControlPanel({
             onClick={onExport}
             disabled={!hasMedia}
           >
-            {mediaType === 'video' ? 'Export Video' : 'Export PNG'}
+            {mediaType === 'video' || params.colorMode === 'hero' ? 'Export Video' : 'Export PNG'}
           </button>
         )}
       </div>

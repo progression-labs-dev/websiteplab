@@ -30,16 +30,31 @@ const MosaicCanvas = forwardRef<MosaicCanvasHandle, MosaicCanvasProps>(
   function MosaicCanvas({ buffer, params, subjectMask, onCanvasClick, clickPoints }, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const { render, renderAnimated, cleanup } = useMosaicRenderer();
+    const { render, renderAnimated, startHeroLoop, stopHeroLoop, cleanup } = useMosaicRenderer();
+
+    // Refs to avoid stale closures in the hero animation loop
+    const bufferRef = useRef<ImageBuffer | null>(null);
+    const paramsRef = useRef<MosaicParams>(params);
+    const maskRef = useRef<Uint8Array | null | undefined>(subjectMask);
+
+    bufferRef.current = buffer;
+    paramsRef.current = params;
+    maskRef.current = subjectMask;
 
     // Re-render when params, buffer, or mask change.
-    // Call render() directly (not renderAnimated) — React already batches state updates,
-    // so by the time the effect fires all changes are applied. Direct rendering fixes
-    // video playback where RAF-deferred renders could be cancelled by the next frame.
+    // For hero mode: start/stop the continuous rAF animation loop.
+    // For other modes: one-shot render (React already batches state updates).
     useEffect(() => {
       if (!buffer || !canvasRef.current) return;
+
+      if (params.colorMode === 'hero') {
+        startHeroLoop(canvasRef.current, bufferRef, paramsRef, maskRef);
+        return () => stopHeroLoop();
+      }
+
+      stopHeroLoop();
       render(canvasRef.current, buffer, params, subjectMask);
-    }, [buffer, params, subjectMask, render]);
+    }, [buffer, params, subjectMask, render, startHeroLoop, stopHeroLoop]);
 
     // Cleanup on unmount
     useEffect(() => cleanup, [cleanup]);

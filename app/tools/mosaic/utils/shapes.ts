@@ -13,6 +13,7 @@ const ASCII_TIERS = [
 
 /**
  * Draw a flat pixel block with optional inner bevel for a tactile retro feel.
+ * When `soft` is true, renders translucent pastel blocks with no bevel — frosted glass look.
  */
 export function drawPixelBlock(
   ctx: CanvasRenderingContext2D,
@@ -20,8 +21,24 @@ export function drawPixelBlock(
   y: number,
   size: number,
   r: number, g: number, b: number,
-  bevel = true
+  bevel = true,
+  soft = false,
+  brightness = 128
 ): void {
+  if (soft) {
+    // Frosted glass: desaturate toward white, variable opacity by brightness
+    const [h, s, l] = rgbToHsl(r, g, b);
+    const softL = l + (1 - l) * 0.35;           // push lightness toward white
+    const softS = s * 0.65;                      // reduce saturation for pastel look
+    const [sr, sg, sb] = hslToRgb(h, softS, softL);
+
+    // Brighter areas more opaque, darker areas fade out — creates depth
+    const baseAlpha = 0.45 + 0.45 * (brightness / 255); // 0.45–0.90
+    ctx.fillStyle = rgbString(sr, sg, sb, baseAlpha);
+    ctx.fillRect(x, y, size, size);
+    return;
+  }
+
   ctx.fillStyle = rgbString(r, g, b);
   ctx.fillRect(x, y, size, size);
 
@@ -33,8 +50,8 @@ export function drawPixelBlock(
     ctx.fillRect(x, y, 1, size);
 
     // Bottom-right shadow (darker)
-    const [sr, sg, sb] = adjustBrightness(r, g, b, 0.6);
-    ctx.fillStyle = rgbString(sr, sg, sb, 0.45);
+    const [dr, dg, db] = adjustBrightness(r, g, b, 0.6);
+    ctx.fillStyle = rgbString(dr, dg, db, 0.45);
     ctx.fillRect(x, y + size - 1, size, 1);
     ctx.fillRect(x + size - 1, y, 1, size);
   }
@@ -43,14 +60,31 @@ export function drawPixelBlock(
 /**
  * Draw a 3D convex-shaded circle using radial gradient.
  * Highlight top-left, shadow at edge → pillowy bubble effect.
+ * When `soft` is true, renders flat translucent pastel circles — frosted glass look.
  */
 export function drawConvexCircle(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   radius: number,
-  r: number, g: number, b: number
+  r: number, g: number, b: number,
+  soft = false,
+  brightness = 128
 ): void {
+  if (soft) {
+    const [h, s, l] = rgbToHsl(r, g, b);
+    const softL = l + (1 - l) * 0.35;
+    const softS = s * 0.65;
+    const [pr, pg, pb] = hslToRgb(h, softS, softL);
+    const baseAlpha = 0.45 + 0.45 * (brightness / 255);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = rgbString(pr, pg, pb, baseAlpha);
+    ctx.fill();
+    return;
+  }
+
   // Highlight offset: 25% toward top-left
   const hlX = cx - radius * 0.25;
   const hlY = cy - radius * 0.25;
@@ -78,6 +112,14 @@ export function drawConvexCircle(
  * Bright pixels → sparse chars, dark pixels → dense chars.
  * White text with dark outline + colored glow — visible on ANY background.
  */
+/**
+ * Stable per-cell hash for phase offsets (avoids synchronised shimmer).
+ * Same as the character-selection hash but with different primes.
+ */
+function posHash(x: number, y: number): number {
+  return (((x * 6151) + (y * 83497)) >>> 0) / 0xFFFFFFFF; // 0–1
+}
+
 export function drawAsciiChar(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -85,7 +127,8 @@ export function drawAsciiChar(
   cellSize: number,
   brightness: number,
   opacity: number,
-  fillR = 128, fillG = 128, fillB = 128
+  fillR = 128, fillG = 128, fillB = 128,
+  timeSec?: number
 ): void {
   // Pick density tier — skip tier 0 (blank), so every cell gets a character.
   // Remap brightness to tiers 1–4 only.
@@ -104,13 +147,26 @@ export function drawAsciiChar(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
+  // Shimmer: when timeSec is provided, pulse glow intensity and opacity per cell
+  let effectiveOpacity = opacity;
+  let glowBlur = cellSize * 0.8;
+  let glowAlpha = 1;
+
+  if (timeSec !== undefined) {
+    const phase = posHash(cx + 1, cy + 1) * Math.PI * 2;
+    const pulse = 0.5 + 0.5 * Math.sin(timeSec * 2.5 + phase); // ~0.4 Hz
+    glowAlpha = 0.15 + 0.85 * pulse;  // 0.15–1.0  (wide swing)
+    glowBlur = 2 + 14 * pulse;        // 2–16px    (very visible bloom)
+    effectiveOpacity = opacity * (0.4 + 0.6 * pulse); // 40%–100% of base
+  }
+
   // Colored glow from the cell's own color
   const [glowR, glowG, glowB] = adjustBrightness(fillR, fillG, fillB, 1.8);
-  ctx.shadowColor = `rgb(${glowR}, ${glowG}, ${glowB})`;
-  ctx.shadowBlur = cellSize * 0.8;
+  ctx.shadowColor = `rgba(${glowR}, ${glowG}, ${glowB}, ${glowAlpha})`;
+  ctx.shadowBlur = glowBlur;
 
   // White fill
-  ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${effectiveOpacity})`;
   ctx.fillText(char, cx, cy);
 
   // Reset shadow
