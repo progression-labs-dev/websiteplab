@@ -124,7 +124,7 @@ export const DEFAULT_GRADIENT_STOPS: GradientStop[] = BRAND_PALETTES[0].stops;
 
 export const DEFAULT_PARAMS: MosaicParams = {
   shapeMode: 'circle',
-  cellSize: 12,
+  cellSize: 22,
   spacing: 0,
   threshold: 0,
   invertThreshold: false,
@@ -247,7 +247,13 @@ export function useMosaicRenderer() {
           if (maskIdx < 0 || maskIdx >= subjectMask.length || subjectMask[maskIdx] === 0) continue;
         }
 
-        const [r, g, b] = sampleColorAt(buffer, cellX, cellY);
+        // Per-column y-offset: breaks horizontal banding for organic look
+        // Mirrors the hero shader's hash(vec2(cellId.x, 0.0)) * 0.035
+        const colHash = (Math.sin(col * 127.1) * 43758.5453123) % 1;
+        const colYOffset = Math.abs(colHash) * 0.035 * cellSize;
+        const sampleY = Math.min(cellY + colYOffset, height - 1);
+
+        const [r, g, b] = sampleColorAt(buffer, cellX, sampleY);
         const brightness = getBrightness(r, g, b);
 
         // Auto brightness mask: only mosaic bright/light areas, keep dark areas as original
