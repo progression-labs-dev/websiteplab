@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import ScrollDecode from './ScrollDecode'
 
 interface BlogPost {
@@ -9,6 +9,7 @@ interface BlogPost {
   title: string
   excerpt: string
   image?: string
+  video?: string
 }
 
 const posts: BlogPost[] = [
@@ -19,6 +20,7 @@ const posts: BlogPost[] = [
     excerpt:
       'Karpathy coined it — programming via natural language, forgetting code exists. What this means for engineering teams and the future of software craft.',
     image: '/blog/vibe-coding.png',
+    video: '/blog/pink horse.mp4',
   },
   {
     category: 'Insights',
@@ -27,6 +29,7 @@ const posts: BlogPost[] = [
     excerpt:
       'LLMs are "summoned ghosts", not gradually evolving animals. A fundamentally new type of intelligence that demands a new mental model.',
     image: '/blog/ghost-intelligence.png',
+    video: '/blog/blue frog.mp4',
   },
   {
     category: 'Strategy',
@@ -35,6 +38,7 @@ const posts: BlogPost[] = [
     excerpt:
       'Reinforcement Learning from Verifiable Rewards — the shift from probabilistic imitation to logical reasoning that defined 2025.',
     image: '/blog/rlvr-revolution.png',
+    video: '/blog/green jellyfish.mp4',
   },
   {
     category: 'Process',
@@ -43,6 +47,7 @@ const posts: BlogPost[] = [
     excerpt:
       'The profession is being dramatically refactored — agents, subagents, prompts, MCP, tools, plugins. How to ride the wave instead of drowning in it.',
     image: '/blog/magnitude-earthquake.png',
+    video: '/blog/pink flower.mp4',
   },
 ]
 
@@ -53,6 +58,22 @@ function formatDate(dateStr: string): string {
 
 export default function BlogSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const video = e.currentTarget.querySelector('video')
+    if (video) {
+      video.currentTime = 0
+      video.play().catch(() => {})
+    }
+  }, [])
+
+  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const video = e.currentTarget.querySelector('video')
+    if (video) {
+      video.pause()
+      video.currentTime = 0
+    }
+  }, [])
 
   useEffect(() => {
     let ctx: { revert: () => void } | null = null
@@ -103,12 +124,27 @@ export default function BlogSection() {
 
       <div className="exp-blog-grid">
         {posts.map((post) => (
-          <a key={post.title} href="#" className="exp-blog-card">
-            {post.image && (
-              <div className="exp-blog-image">
+          <a
+            key={post.title}
+            href="#"
+            className="exp-blog-card"
+            onMouseEnter={post.video ? handleMouseEnter : undefined}
+            onMouseLeave={post.video ? handleMouseLeave : undefined}
+          >
+            <div className="exp-blog-image">
+              {post.video ? (
+                <video
+                  src={post.video}
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="exp-blog-video exp-blog-video--visible"
+                />
+              ) : post.image ? (
                 <img src={post.image} alt="" loading="lazy" />
-              </div>
-            )}
+              ) : null}
+            </div>
             <div className="exp-blog-body">
               <span className="exp-blog-category">{post.category}</span>
               <h3 className="exp-blog-title">{post.title}</h3>
