@@ -26,28 +26,17 @@ const testimonials = [
 export default function ProofSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
-  // Auto-rotate testimonials every 5s — paused when a video is expanded
+  // Auto-rotate testimonials every 5s
   useEffect(() => {
-    if (expandedIndex !== null) return
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % testimonials.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [expandedIndex])
-
-  const handleLearnMore = useCallback((index: number) => {
-    if (expandedIndex === index) {
-      setExpandedIndex(null)
-    } else {
-      setExpandedIndex(index)
-    }
-  }, [expandedIndex])
+  }, [])
 
   const handleDotClick = useCallback((index: number) => {
     setActiveIndex(index)
-    setExpandedIndex(null)
   }, [])
 
   // GSAP ScrollTrigger fade-up entrance
@@ -106,40 +95,15 @@ export default function ProofSection() {
                 <strong>{t.author}</strong> &mdash; {t.role}
               </div>
 
-              {/* Learn more button */}
-              <button
-                className="exp-proof-learn-more"
-                onClick={() => handleLearnMore(i)}
-                aria-expanded={expandedIndex === i}
-              >
-                {expandedIndex === i ? 'Close' : 'Learn more'}
-                <svg
-                  className={`exp-proof-chevron${expandedIndex === i ? ' exp-proof-chevron--open' : ''}`}
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-
-              {/* Expandable video section */}
-              <div
-                className={`exp-proof-video-wrap${expandedIndex === i ? ' exp-proof-video-wrap--open' : ''}`}
-              >
-                <div className="exp-proof-video-inner">
-                  {expandedIndex === i && (
-                    <iframe
-                      className="exp-proof-video"
-                      src={`https://www.youtube.com/embed/${t.videoId}?rel=0`}
-                      title={`${t.author} testimonial video`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  )}
-                </div>
+              {/* Video — always visible below the quote */}
+              <div className="exp-proof-video-inline">
+                <iframe
+                  className="exp-proof-video"
+                  src={`https://www.youtube.com/embed/${t.videoId}?rel=0`}
+                  title={`${t.author} testimonial video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
               </div>
             </div>
           ))}

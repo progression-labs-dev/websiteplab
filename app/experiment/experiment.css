@@ -1061,6 +1061,13 @@ html:has(.experiment) { scroll-behavior: auto; }
   padding-top: 32px;
 }
 
+/* Always-visible video below quote */
+.exp-proof-video-inline {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+}
+
 /* 16:9 responsive iframe */
 .exp-proof-video {
   width: 100%;
