@@ -347,8 +347,7 @@ export default function FindYourFit() {
   return (
     <div className="exp-12-grid exp-12-grid--half exp-finder">
       {/* Left column — label + gradient */}
-      <div ref={labelRef} className="exp-col-label exp-col-label--gradient">
-        <div className="exp-tag">Interactive</div>
+      <div ref={labelRef} className="exp-col-label exp-col-label--gradient exp-col-label--top">
         <ScrollDecode
           text="Find Your Fit"
           trigger="inView"

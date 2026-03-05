@@ -3,7 +3,7 @@
 export default function LogoMarquee() {
   return (
     <div className="exp-logo-static">
-      <div className="exp-tag">Selective Partner</div>
+      <div className="exp-tag">Select Tier Partner</div>
       <div className="exp-logo-static-row">
         {/* Inline SVG — no external file dependency */}
         <svg
