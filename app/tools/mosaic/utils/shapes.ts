@@ -1,18 +1,15 @@
 import { adjustBrightness, rgbString, rgbToHsl, hslToRgb } from './colorMapping';
 
-// Multiple character sets per density tier — picks pseudo-randomly per cell for variety.
-// 5 tiers from sparse (bright) to dense (dark), each with several character options.
-const ASCII_TIERS = [
-  [' '],                         // tier 0: brightest — blank
-  ['·', ':', '~', '-'],          // tier 1: light
-  ['+', '×', '=', '*', '÷'],    // tier 2: mid-light
-  ['#', '%', '$', '&', 'X'],    // tier 3: mid-dark
-  ['@', 'W', 'M', '█', '■'],   // tier 4: darkest — heaviest
-];
+// Hero-style charset — position-seeded random pick (no brightness tiers)
+const ASCII_CHARSET = '0123456789@#$%&*+=?<>{}[]/\\|LABS';
 
+// Deterministic hash for position-seeded character selection + fill gating
+function posHash(x: number, y: number): number {
+  return ((x * 7919 + y * 104729) >>> 0) / 4294967296; // 0-1 float
+}
 
 /**
- * Draw a flat pixel block with optional inner bevel for a tactile retro feel.
+ * Draw a flat pixel block — clean, modern, no bevel.
  */
 export function drawPixelBlock(
   ctx: CanvasRenderingContext2D,
@@ -20,24 +17,10 @@ export function drawPixelBlock(
   y: number,
   size: number,
   r: number, g: number, b: number,
-  bevel = true
+  _bevel = true
 ): void {
   ctx.fillStyle = rgbString(r, g, b);
   ctx.fillRect(x, y, size, size);
-
-  if (bevel && size >= 6) {
-    // Top-left highlight (lighter)
-    const [hr, hg, hb] = adjustBrightness(r, g, b, 1.35);
-    ctx.fillStyle = rgbString(hr, hg, hb, 0.45);
-    ctx.fillRect(x, y, size, 1);
-    ctx.fillRect(x, y, 1, size);
-
-    // Bottom-right shadow (darker)
-    const [sr, sg, sb] = adjustBrightness(r, g, b, 0.6);
-    ctx.fillStyle = rgbString(sr, sg, sb, 0.45);
-    ctx.fillRect(x, y + size - 1, size, 1);
-    ctx.fillRect(x + size - 1, y, 1, size);
-  }
 }
 
 /**
@@ -74,46 +57,46 @@ export function drawConvexCircle(
 }
 
 /**
- * Draw an ASCII character centered on a cell, chosen by brightness.
- * Bright pixels → sparse chars, dark pixels → dense chars.
- * White text with dark outline + colored glow — visible on ANY background.
+ * Draw a hero-style ASCII character: sparse fill, overlay blend, Inter font.
+ * ~40% of cells get a character; the rest are skipped for organic gaps.
+ * Uses globalCompositeOperation 'overlay' so text absorbs the background color.
  */
 export function drawAsciiChar(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   cellSize: number,
-  brightness: number,
+  _brightness: number,
   opacity: number,
-  fillR = 128, fillG = 128, fillB = 128
+  _fillR = 128, _fillG = 128, _fillB = 128
 ): void {
-  // Pick density tier — skip tier 0 (blank), so every cell gets a character.
-  // Remap brightness to tiers 1–4 only.
-  const tierIdx = Math.min(
-    ASCII_TIERS.length - 1,
-    Math.max(1, Math.floor((1 - brightness / 255) * ASCII_TIERS.length))
-  );
-  const tier = ASCII_TIERS[tierIdx];
+  // 40% fill rate — skip ~60% of cells for sparse organic look
+  const fillGate = posHash(cx, cy);
+  if (fillGate > 0.4) return;
 
-  // Pseudo-random pick within the tier based on cell position (deterministic, no flicker)
-  const hash = ((cx * 7919) + (cy * 104729)) >>> 0;
-  const char = tier[hash % tier.length];
+  // Position-seeded character from the full charset (no brightness tiers)
+  const charIdx = ((cx * 7919 + cy * 104729) >>> 0) % ASCII_CHARSET.length;
+  const char = ASCII_CHARSET[charIdx];
 
   const fontSize = Math.max(8, cellSize * 1.6);
-  ctx.font = `bold ${fontSize}px "SF Mono", "Fira Code", "Courier New", monospace`;
+  ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Colored glow from the cell's own color
-  const [glowR, glowG, glowB] = adjustBrightness(fillR, fillG, fillB, 1.8);
-  ctx.shadowColor = `rgb(${glowR}, ${glowG}, ${glowB})`;
-  ctx.shadowBlur = cellSize * 0.8;
+  // Overlay blend — text absorbs the image colors underneath
+  const prevComposite = ctx.globalCompositeOperation;
+  ctx.globalCompositeOperation = 'overlay';
+
+  // White glow (subtle, fixed 4px blur)
+  ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+  ctx.shadowBlur = 4;
 
   // White fill
   ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
   ctx.fillText(char, cx, cy);
 
-  // Reset shadow
+  // Reset
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
+  ctx.globalCompositeOperation = prevComposite;
 }

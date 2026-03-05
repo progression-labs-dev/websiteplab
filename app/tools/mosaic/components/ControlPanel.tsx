@@ -275,7 +275,7 @@ export default function ControlPanel({
           label="Cell Size"
           value={params.cellSize}
           min={2}
-          max={40}
+          max={60}
           onChange={v => onChange({ cellSize: v })}
           suffix="px"
           disabled={isExporting}
