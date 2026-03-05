@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from 'react'
 import ScrollDecode from './ScrollDecode'
-import PanelCorners from './PanelCorners'
-import ArrowIcon from './ArrowIcon'
 
 interface BlogPost {
   category: string
@@ -105,23 +103,18 @@ export default function BlogSection() {
 
       <div className="exp-blog-grid">
         {posts.map((post) => (
-          <div key={post.title} className="exp-blog-card">
-            <PanelCorners />
+          <a key={post.title} href="#" className="exp-blog-card">
             {post.image && (
               <div className="exp-blog-image">
                 <img src={post.image} alt="" loading="lazy" />
               </div>
             )}
-            <div className="exp-blog-meta">
+            <div className="exp-blog-body">
               <span className="exp-blog-category">{post.category}</span>
-              <span className="exp-blog-date">{formatDate(post.date)}</span>
+              <h3 className="exp-blog-title">{post.title}</h3>
+              <p className="exp-blog-excerpt">{post.excerpt}</p>
             </div>
-            <h3 className="exp-blog-title">{post.title}</h3>
-            <p className="exp-blog-excerpt">{post.excerpt}</p>
-            <span className="exp-blog-read-more">
-              Read more <ArrowIcon />
-            </span>
-          </div>
+          </a>
         ))}
       </div>
     </div>
