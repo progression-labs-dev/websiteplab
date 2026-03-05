@@ -835,6 +835,12 @@ html:has(.experiment) { scroll-behavior: auto; }
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+/* Push content toward top of gradient box */
+.exp-col-label--top {
+  justify-content: flex-start;
+  padding-top: 48px;
   /* Bottom edge fades into dark background — top/left/right stay sharp */
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 65%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 0%, black 65%, transparent 100%);
@@ -885,9 +891,9 @@ html:has(.experiment) { scroll-behavior: auto; }
 /* 2. The Content Wrapper (Nuclear Centering) */
 .exp-logo-static {
   position: absolute !important;
-  top: 50% !important;
+  top: 25% !important;
   left: 50% !important;
-  transform: translate(-50%, -50%) !important; /* Mathematically pins dead-center */
+  transform: translate(-50%, -50%) !important;
 
   /* Keep inner items stacked nicely */
   display: flex;
