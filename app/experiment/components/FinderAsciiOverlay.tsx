@@ -101,8 +101,12 @@ export default function FinderAsciiOverlay() {
 
         const gradientAlpha = smoothstep(-0.35, 0.65, vUvY + wave + edgePush)
 
-        if (shimmerMask > 0.01 && gradientAlpha > 0.05) {
-          const finalAlpha = shimmerMask * cell.brightness * gradientAlpha
+        // Only show where gradient is visibly colored (follows the wavy shape)
+        // Remap so ASCII fades in sharply at the wave edge, not in dark zones
+        const visibleAmount = smoothstep(0.25, 0.55, gradientAlpha)
+
+        if (shimmerMask > 0.01 && visibleAmount > 0.01) {
+          const finalAlpha = shimmerMask * cell.brightness * visibleAmount
           ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
           ctx.fillText(cell.char, px, py)
         }
