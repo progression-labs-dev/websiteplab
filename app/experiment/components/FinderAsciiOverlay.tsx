@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { SHARED_START } from './sharedTime'
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)))
@@ -56,14 +57,13 @@ export default function FinderAsciiOverlay() {
 
     initGrid()
 
-    const startTime = performance.now() / 1000
     let rafId: number
 
     // Font size scaled to fit neatly inside each block
     const fontSize = Math.round(cssBlockSize * 0.55)
 
     const render = () => {
-      const time = performance.now() / 1000 - startTime
+      const time = performance.now() / 1000 - SHARED_START
 
       ctx.clearRect(0, 0, cssWidth, cssHeight)
       ctx.font = `500 ${fontSize}px "Inter", sans-serif`

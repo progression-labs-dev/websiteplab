@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { SHARED_START } from './sharedTime';
 
 const vertexShaderSource = `
   attribute vec2 position;
@@ -223,9 +224,8 @@ export default function PixelGradientCanvas() {
 
     // Render Loop
     let animationFrameId: number;
-    const startTime = Date.now();
     const render = () => {
-      gl.uniform1f(timeLoc, (Date.now() - startTime) / 1000.0);
+      gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationFrameId = requestAnimationFrame(render);
     };
