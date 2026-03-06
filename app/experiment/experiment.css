@@ -892,10 +892,10 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 /* Grain is baked into the WebGL shader — no CSS grain needed */
 
-/* ASCII overlay inside gradient box — visible on gradient + faded pixels, not on black */
+/* ASCII overlay — visible on edges + pixel fade zone, but always clear around text */
 .exp-col-label--gradient .exp-ascii-overlay {
-  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 60%, transparent 80%);
-  mask-image: linear-gradient(to bottom, white 0%, white 60%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, white 50%, white 60%, transparent 80%);
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, white 50%, white 60%, transparent 80%);
 }
 
 .exp-col-label--gradient .exp-section-heading {
