@@ -892,6 +892,12 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 /* Grain is baked into the WebGL shader — no CSS grain needed */
 
+/* ASCII overlay inside gradient box — visible on gradient + faded pixels, not on black */
+.exp-col-label--gradient .exp-ascii-overlay {
+  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 60%, transparent 80%);
+  mask-image: linear-gradient(to bottom, white 0%, white 60%, transparent 80%);
+}
+
 .exp-col-label--gradient .exp-section-heading {
   font-weight: 300;
   font-size: var(--exp-h1);
