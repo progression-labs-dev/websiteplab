@@ -88,17 +88,26 @@ export default function FinderAsciiOverlay() {
         shimmerDist = Math.min(shimmerDist, 1.0 - shimmerDist)
         const shimmerMask = Math.exp(-shimmerDist * shimmerDist * 120.0) * 0.6
 
-        // Fade out ASCII in lower dark areas — match the shader's alpha fade
-        const wave = Math.sin(vUvX * 3.5 + 1.2) * 0.06
-                   + Math.sin(vUvX * 7.0 + 3.7) * 0.03
-                   + Math.cos(vUvX * 5.0 + 0.5) * 0.04
-        const leftPush = Math.max(0, 1.0 - vUvX / 0.5) * 0.25
-        const rightPush = Math.max(0, 1.0 - (1.0 - vUvX) / 0.4) * 0.10
+        // Animated wavy fade — synced with shader's u_time wave math
+        const wave = Math.sin(vUvX * 3.5 + 1.2 + time * 0.6) * 0.12
+                   + Math.sin(vUvX * 8.0 + 3.7 - time * 0.45) * 0.07
+                   + Math.cos(vUvX * 5.5 + 0.5 + time * 0.35) * 0.08
+                   + Math.sin(vUvX * 12.0 + time * 0.8) * 0.03
+
+        // Left side extends further down — matching shader
+        const leftPush = Math.max(0, 1.0 - smoothstep(0.0, 0.6, vUvX)) * 0.45
+        const rightPush = Math.max(0, 1.0 - smoothstep(0.6, 1.0, vUvX)) * 0.10
         const edgePush = leftPush + rightPush
+
         const gradientAlpha = smoothstep(-0.35, 0.65, vUvY + wave + edgePush)
 
-        if (shimmerMask > 0.01 && gradientAlpha > 0.05) {
-          const finalAlpha = shimmerMask * cell.brightness * gradientAlpha
+        // Edge proximity — characters cluster along the wavy boundary
+        // gradientAlpha ~0.5 = right at the edge, 0 or 1 = far from edge
+        const edgeBand = 1.0 - Math.abs(gradientAlpha - 0.5) * 2.0 // 1 at edge, 0 away
+        const edgeFocus = smoothstep(0.0, 0.6, edgeBand) // soften the falloff
+
+        if (shimmerMask > 0.01 && gradientAlpha > 0.05 && edgeFocus > 0.05) {
+          const finalAlpha = shimmerMask * cell.brightness * edgeFocus
           ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
           ctx.fillText(cell.char, px, py)
         }
