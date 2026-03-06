@@ -862,7 +862,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   border-radius: 0;
 }
 
-/* Fine grid lines — barely visible, vanishes in dark areas */
+/* Fine grid lines — only visible where the gradient has color, fades with it */
 .exp-col-label--gradient::before {
   content: '';
   position: absolute;
@@ -886,6 +886,8 @@ html:has(.experiment) { scroll-behavior: auto; }
       transparent 1px,
       transparent 14px
     );
+  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 40%, transparent 65%);
+  mask-image: linear-gradient(to bottom, white 0%, white 40%, transparent 65%);
 }
 
 /* Grain is baked into the WebGL shader — no CSS grain needed */

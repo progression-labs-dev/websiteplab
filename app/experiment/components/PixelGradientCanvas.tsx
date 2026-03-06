@@ -77,17 +77,17 @@ const fragmentShaderSource = `
     float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
     vec3 peak = mix(peakA, peakB, colorMix);
 
-    // Luminance ramp: dark at bottom, vibrant at top
+    // Luminance ramp: extends further down but doesn't wash out the top
     vec3 deep = peak * 0.08;
-    vec3 mid  = peak * 0.4;
+    vec3 mid  = peak * 0.35;
 
-    float t1 = smoothstep(0.00, 0.12, gp);
-    float t2 = smoothstep(0.08, 0.30, gp);
-    float t3 = smoothstep(0.20, 0.65, gp);
+    float t1 = smoothstep(0.00, 0.10, gp);
+    float t2 = smoothstep(0.05, 0.25, gp);
+    float t3 = smoothstep(0.15, 0.55, gp);
 
     vec3 color = mix(vec3(0.004), deep, t1);
     color = mix(color, mid, t2);
-    color = mix(color, peak, t3);
+    color = mix(color, peak * 0.8, t3);
     return color;
   }
 
@@ -142,17 +142,17 @@ const fragmentShaderSource = `
     // === Alpha — solid at top, wavy fade toward bottom ===
     float y = pixelUv.y;
 
-    // Wavy edge with overlapping sine waves
-    float wave = sin(pixelUv.x * 3.5 + 1.2) * 0.10
-               + sin(pixelUv.x * 7.0 + 3.7) * 0.05
-               + cos(pixelUv.x * 5.0 + 0.5) * 0.07;
+    // Wavy edge — visible movement but tighter amplitude
+    float wave = sin(pixelUv.x * 3.5 + 1.2 + u_time * 0.25) * 0.06
+               + sin(pixelUv.x * 7.0 + 3.7 - u_time * 0.18) * 0.03
+               + cos(pixelUv.x * 5.0 + 0.5 + u_time * 0.20) * 0.04;
 
-    // Left/right edges extend further down
-    float edgePush = (1.0 - smoothstep(0.0, 0.3, pixelUv.x))
-                   + (1.0 - smoothstep(0.7, 1.0, pixelUv.x));
-    edgePush *= 0.12;
+    // Left side extends much further down, right side a bit
+    float leftPush = (1.0 - smoothstep(0.0, 0.5, pixelUv.x)) * 0.25;
+    float rightPush = (1.0 - smoothstep(0.6, 1.0, pixelUv.x)) * 0.10;
+    float edgePush = leftPush + rightPush;
 
-    float alpha = smoothstep(0.0, 0.65, y + wave + edgePush);
+    float alpha = smoothstep(-0.35, 0.65, y + wave + edgePush);
 
     gl_FragColor = vec4(color, alpha);
   }
