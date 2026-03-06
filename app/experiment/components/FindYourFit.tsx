@@ -6,6 +6,7 @@ import ArrowIcon from './ArrowIcon'
 import StepIcons from './StepIcons'
 import { useColorCycle } from './useColorCycle'
 import PixelGradientCanvas from './PixelGradientCanvas'
+import FinderAsciiOverlay from './FinderAsciiOverlay'
 
 const TYPING_SPEED = 35 // ms per character
 
@@ -351,6 +352,8 @@ export default function FindYourFit() {
       <div ref={labelRef} className="exp-col-label exp-col-label--gradient exp-col-label--top">
         {/* WebGL pixel gradient canvas — sits behind text */}
         <PixelGradientCanvas />
+        {/* ASCII characters that appear with the shimmer sweep */}
+        <FinderAsciiOverlay />
         {/* Text content — sits on top */}
         <div className="exp-col-label-content">
           <ScrollDecode
