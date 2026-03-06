@@ -101,13 +101,8 @@ export default function FinderAsciiOverlay() {
 
         const gradientAlpha = smoothstep(-0.35, 0.65, vUvY + wave + edgePush)
 
-        // Edge proximity — characters cluster along the wavy boundary
-        // gradientAlpha ~0.5 = right at the edge, 0 or 1 = far from edge
-        const edgeBand = 1.0 - Math.abs(gradientAlpha - 0.5) * 2.0 // 1 at edge, 0 away
-        const edgeFocus = smoothstep(0.0, 0.6, edgeBand) // soften the falloff
-
-        if (shimmerMask > 0.01 && gradientAlpha > 0.05 && edgeFocus > 0.05) {
-          const finalAlpha = shimmerMask * cell.brightness * edgeFocus
+        if (shimmerMask > 0.01 && gradientAlpha > 0.05) {
+          const finalAlpha = shimmerMask * cell.brightness * gradientAlpha
           ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
           ctx.fillText(cell.char, px, py)
         }
