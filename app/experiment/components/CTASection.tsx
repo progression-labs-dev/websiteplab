@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import ScrollDecode from './ScrollDecode'
-import WavesCanvas from './WavesCanvas'
 import ArrowIcon from './ArrowIcon'
-import FooterGradientText from './FooterGradientText'
+import FooterGradient from './FooterGradientText'
 
 export default function CTASection() {
   const ctaRef = useRef<HTMLDivElement>(null)
@@ -79,35 +78,40 @@ export default function CTASection() {
         </div>
       </section>
 
-      {/* Pre-footer: logo + copyright + social (Isidor .pre-footer) */}
-      <div className="exp-pre-footer">
-        <div className="exp-pre-footer-logo">
-          <img
-            src="/logo-white.png"
-            alt="Progression Labs"
-            style={{ height: 20, width: 'auto', opacity: 0.5 }}
-          />
-          <span>Progression Labs</span>
-        </div>
-
-        <div className="exp-pre-footer-copy">
-          &copy; 2026 Progression Labs
-        </div>
-
-        <div className="exp-pre-footer-social">
-          <a
-            href="https://linkedin.com/company/progressionlabs"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            LinkedIn
-          </a>
-        </div>
-      </div>
-
-      {/* Footer: large gradient text */}
+      {/* Footer — gradient atmosphere fading up from bottom */}
       <footer className="exp-footer">
-        <FooterGradientText />
+        <FooterGradient />
+
+        {/* Pre-footer info — sits above the gradient */}
+        <div className="exp-pre-footer">
+          <div className="exp-pre-footer-logo">
+            <img
+              src="/logo-white.png"
+              alt="Progression Labs"
+              style={{ height: 20, width: 'auto', opacity: 0.5 }}
+            />
+            <span>Progression Labs</span>
+          </div>
+
+          <div className="exp-pre-footer-copy">
+            &copy; 2026 Progression Labs
+          </div>
+
+          <div className="exp-pre-footer-social">
+            <a
+              href="https://linkedin.com/company/progressionlabs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              LinkedIn
+            </a>
+          </div>
+        </div>
+
+        {/* Brand name — atmospheric, not a text fill */}
+        <div className="exp-footer-brand">
+          <span className="exp-footer-brand-text">Progression Labs</span>
+        </div>
       </footer>
     </>
   )

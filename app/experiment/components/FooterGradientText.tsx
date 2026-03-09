@@ -10,6 +10,7 @@ const vertexShaderSource = `
   }
 `
 
+// Atmospheric gradient that fades UP from the bottom — inverted from Find Your Fit
 const fragmentShaderSource = `
   precision highp float;
   uniform vec2 u_resolution;
@@ -32,16 +33,14 @@ const fragmentShaderSource = `
 
   float ssmooth(float t) { return t * t * (3.0 - 2.0 * t); }
 
-  // Brand palette — same 5 colors as hero
   vec3 brandColor(int i) {
-    if (i == 0) return vec3(0.729, 0.333, 0.827); // Orchid
-    if (i == 1) return vec3(1.000, 0.627, 0.478); // Salmon
-    if (i == 2) return vec3(0.725, 0.914, 0.475); // Green
-    if (i == 3) return vec3(0.251, 0.878, 0.816); // Turquoise
-    return vec3(0.000, 0.000, 1.000);              // Blue
+    if (i == 0) return vec3(0.729, 0.333, 0.827);
+    if (i == 1) return vec3(1.000, 0.627, 0.478);
+    if (i == 2) return vec3(0.725, 0.914, 0.475);
+    if (i == 3) return vec3(0.251, 0.878, 0.816);
+    return vec3(0.000, 0.000, 1.000);
   }
 
-  // 9-state color cycle over 45s — same as hero
   void cycleColors(float time, out vec3 peakA, out vec3 peakB) {
     vec3 cO = brandColor(0); vec3 cS = brandColor(1);
     vec3 cG = brandColor(2); vec3 cT = brandColor(3); vec3 cB = brandColor(4);
@@ -67,33 +66,27 @@ const fragmentShaderSource = `
   }
 
   vec3 computeGradient(vec2 uv, float time, vec3 peakA, vec3 peakB) {
-    float gp = uv.y;
+    // Flip Y so gradient is brightest at bottom
+    float gp = 1.0 - uv.y;
 
-    float n1 = vnoise(uv * 1.8 + vec2(time * 0.10, time * 0.07));
-    float n2 = vnoise(uv * 3.5 + vec2(-time * 0.08, time * 0.12));
-    float n3 = vnoise(uv * 6.0 + vec2(time * 0.15, -time * 0.06));
-    float swirl = n1 * 0.5 + n2 * 0.3 + n3 * 0.2;
+    float n1 = vnoise(uv * 1.2 + vec2(time * 0.06, time * 0.04));
+    float n2 = vnoise(uv * 2.5 + vec2(-time * 0.05, time * 0.07));
+    float swirl = n1 * 0.6 + n2 * 0.4;
 
     float verticalBias = smoothstep(0.05, 0.95, gp);
-    float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
+    float colorMix = clamp(verticalBias + (swirl - 0.5) * 0.4, 0.0, 1.0);
     vec3 peak = mix(peakA, peakB, colorMix);
 
-    // Luminance ramp — full range, bright and vivid
-    vec3 deep = peak * 0.15;
-    vec3 mid  = peak * 0.5;
-    vec3 wash = mix(peak, vec3(1.0), 0.4);
+    vec3 deep = peak * 0.08;
+    vec3 mid  = peak * 0.35;
 
     float t1 = smoothstep(0.00, 0.10, gp);
-    float t2 = smoothstep(0.06, 0.24, gp);
+    float t2 = smoothstep(0.05, 0.25, gp);
     float t3 = smoothstep(0.15, 0.55, gp);
-    float t4 = smoothstep(0.45, 0.85, gp);
-    float t5 = smoothstep(0.75, 1.00, gp);
 
     vec3 color = mix(vec3(0.004), deep, t1);
     color = mix(color, mid, t2);
-    color = mix(color, peak, t3);
-    color = mix(color, wash, t4);
-    color = mix(color, vec3(1.0), t5);
+    color = mix(color, peak * 0.8, t3);
     return color;
   }
 
@@ -106,7 +99,7 @@ const fragmentShaderSource = `
     vec2 cellId = floor(uv * grid);
     vec2 pixelUv = (cellId + 0.5) / grid;
 
-    float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
+    float colOffset = hash(vec2(cellId.x, 0.0)) * 0.025;
     pixelUv.y += colOffset;
 
     vec3 peakA, peakB;
@@ -116,6 +109,18 @@ const fragmentShaderSource = `
     vec3 pixelColor = computeGradient(pixelUv, u_time, peakA, peakB);
     pixelColor += (hash(cellId) - 0.5) * 0.035;
 
+    // Edge mask — pixelated at edges, smooth in center
+    float edgeL = smoothstep(0.0, 0.25, uv.x);
+    float edgeR = smoothstep(1.0, 0.75, uv.x);
+    float edgeT = smoothstep(1.0, 0.75, uv.y);
+    float edgeB = smoothstep(0.0, 0.30, uv.y);
+    float interior = edgeL * edgeR * edgeT * edgeB;
+
+    // Brightness-driven pixelation at edges
+    float intensity = max(smoothColor.r, max(smoothColor.g, smoothColor.b));
+    float edgeProximity = 1.0 - interior;
+    float brightPixel = smoothstep(0.15, 0.5, intensity) * edgeProximity * 0.8;
+
     // Diagonal shimmer
     float diag = (uv.x + 1.0 - uv.y) * 0.5;
     float shimmerPos = fract(u_time * 0.25);
@@ -123,17 +128,34 @@ const fragmentShaderSource = `
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
     float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
 
-    vec3 color = mix(smoothColor, pixelColor, shimmerMask);
+    float pixelAmount = max(max(1.0 - interior, brightPixel), shimmerMask);
+    vec3 color = mix(smoothColor, pixelColor, pixelAmount);
 
     // Grain
     float grain = (hash(gl_FragCoord.xy + u_time * 0.3) - 0.5) * 0.04;
     color += grain;
 
-    gl_FragColor = vec4(color, 1.0);
+    // Alpha — fades UP from bottom (inverted: solid at bottom, transparent at top)
+    float y = 1.0 - pixelUv.y;
+
+    // Wavy edge with organic movement
+    float wave = sin(pixelUv.x * 3.5 + 1.2 + u_time * 0.6) * 0.10
+               + sin(pixelUv.x * 8.0 + 3.7 - u_time * 0.45) * 0.06
+               + cos(pixelUv.x * 5.5 + 0.5 + u_time * 0.35) * 0.07
+               + sin(pixelUv.x * 12.0 + u_time * 0.8) * 0.03;
+
+    // Right side extends further up
+    float rightPush = (smoothstep(0.4, 1.0, pixelUv.x)) * 0.15;
+    float leftPush = (1.0 - smoothstep(0.0, 0.5, pixelUv.x)) * 0.08;
+    float edgePush = leftPush + rightPush;
+
+    float alpha = smoothstep(-0.25, 0.55, y + wave + edgePush);
+
+    gl_FragColor = vec4(color, alpha);
   }
 `
 
-export default function FooterGradientText() {
+export default function FooterGradient() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -200,20 +222,16 @@ export default function FooterGradientText() {
   }, [])
 
   return (
-    <div className="exp-footer-gradient-text">
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          display: 'block',
-        }}
-      />
-      <h2 className="exp-footer-gradient-heading">
-        Progression Labs
-      </h2>
-    </div>
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        display: 'block',
+        zIndex: 0,
+      }}
+    />
   )
 }
