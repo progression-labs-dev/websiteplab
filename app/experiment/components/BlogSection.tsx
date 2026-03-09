@@ -20,7 +20,7 @@ const posts: BlogPost[] = [
     excerpt:
       'Karpathy coined it — programming via natural language, forgetting code exists. What this means for engineering teams and the future of software craft.',
     image: '/blog/vibe-coding.png',
-    video: '/blog/pink horse.mp4',
+    video: '/blog/blue + white horse.mp4',
   },
   {
     category: 'Insights',
@@ -29,7 +29,7 @@ const posts: BlogPost[] = [
     excerpt:
       'LLMs are "summoned ghosts", not gradually evolving animals. A fundamentally new type of intelligence that demands a new mental model.',
     image: '/blog/ghost-intelligence.png',
-    video: '/blog/blue frog.mp4',
+    video: '/blog/green + yellow frog.mp4',
   },
   {
     category: 'Strategy',
@@ -38,7 +38,7 @@ const posts: BlogPost[] = [
     excerpt:
       'Reinforcement Learning from Verifiable Rewards — the shift from probabilistic imitation to logical reasoning that defined 2025.',
     image: '/blog/rlvr-revolution.png',
-    video: '/blog/green jellyfish.mp4',
+    video: '/blog/vibrant green flower.mp4',
   },
   {
     category: 'Process',
@@ -47,7 +47,7 @@ const posts: BlogPost[] = [
     excerpt:
       'The profession is being dramatically refactored — agents, subagents, prompts, MCP, tools, plugins. How to ride the wave instead of drowning in it.',
     image: '/blog/magnitude-earthquake.png',
-    video: '/blog/pink flower.mp4',
+    video: '/blog/salmon pink jelly mp4.mp4',
   },
 ]
 
