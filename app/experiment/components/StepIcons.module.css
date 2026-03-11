@@ -15,15 +15,26 @@
   height: 100%;
   overflow: visible;
   opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: scale(0.92) translateY(-8px);
+  filter: blur(3px);
+  /* Smooth exit — gentle fade up */
+  transition:
+    opacity 0.5s ease-in-out,
+    transform 0.5s ease-in-out,
+    filter 0.4s ease-in-out;
   pointer-events: none;
 }
 
 .active {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateY(0);
+  filter: blur(0px);
   pointer-events: auto;
+  /* Smooth enter — gentle spring, delayed so exit fades first */
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s,
+    transform 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) 0.3s,
+    filter 0.5s ease-out 0.3s;
 }
 
 .stopAccent {
@@ -39,9 +50,10 @@
   stroke-width: 3.5px;
 }
 
-.stackTop { animation: bounceTop 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
-.stackMid { animation: bounceMid 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
-.stackBot { animation: bounceBot 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+.stackTop, .stackMid, .stackBot { animation: none; }
+.active .stackTop { animation: bounceTop 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+.active .stackMid { animation: bounceMid 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+.active .stackBot { animation: bounceBot 2s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
 
 /*
   0%–25% and 75%–100% = Perfectly flat at rest (all overlap).
@@ -71,10 +83,11 @@
   stroke-width: 3.5px;
 }
 
-.ring1 { animation: slideLeftOuter 3s ease-in-out infinite; }
-.ring2 { animation: slideLeftInner 3s ease-in-out infinite; }
-.ring3 { animation: slideRightInner 3s ease-in-out infinite; }
-.ring4 { animation: slideRightOuter 3s ease-in-out infinite; }
+.ring1, .ring2, .ring3, .ring4 { animation: none; }
+.active .ring1 { animation: slideLeftOuter 3s ease-in-out infinite; }
+.active .ring2 { animation: slideLeftInner 3s ease-in-out infinite; }
+.active .ring3 { animation: slideRightInner 3s ease-in-out infinite; }
+.active .ring4 { animation: slideRightOuter 3s ease-in-out infinite; }
 
 @keyframes slideLeftOuter {
   0%, 15%, 85%, 100% { transform: translateX(0); }
@@ -123,24 +136,28 @@
 .circleLeft {
   transform-origin: 80px 85px;
   transform: rotate(-90deg);
-  animation: drawLeft 4s ease-in-out infinite;
+  animation: none;
 }
 .circleRight {
   transform-origin: 120px 85px;
   transform: rotate(-90deg);
-  animation: drawRight 4s ease-in-out infinite;
+  animation: none;
 }
 .circleBottom {
   transform-origin: 100px 122px;
   transform: rotate(90deg);
-  animation: drawBottom 4s ease-in-out infinite;
+  animation: none;
 }
+.active .circleLeft { animation: drawLeft 4s ease-in-out infinite; }
+.active .circleRight { animation: drawRight 4s ease-in-out infinite; }
+.active .circleBottom { animation: drawBottom 4s ease-in-out infinite; }
 
 .vennCenter {
   fill: url(#venn-grad);
   opacity: 0;
-  animation: fillCenter 4s ease-in-out infinite;
+  animation: none;
 }
+.active .vennCenter { animation: fillCenter 4s ease-in-out infinite; }
 
 @keyframes drawLeft {
   0%, 2%    { stroke-dashoffset: 239; opacity: 0; }

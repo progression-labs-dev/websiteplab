@@ -12,6 +12,7 @@ const fragmentShaderSource = `
   precision highp float;
   uniform vec2 u_resolution;
   uniform float u_time;
+  uniform float u_dpr;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
@@ -69,14 +70,14 @@ const fragmentShaderSource = `
   vec3 computeGradient(vec2 uv, float time, vec3 peakA, vec3 peakB) {
     float gp = uv.y;
 
-    // Color swirl between peakA and peakB — 3 octaves like hero
-    float n1 = vnoise(uv * 1.8 + vec2(time * 0.10, time * 0.07));
-    float n2 = vnoise(uv * 3.5 + vec2(-time * 0.08, time * 0.12));
-    float n3 = vnoise(uv * 6.0 + vec2(time * 0.15, -time * 0.06));
-    float swirl = n1 * 0.5 + n2 * 0.3 + n3 * 0.2;
+    // Color swirl between peakA and peakB — faster, wider movement
+    float n1 = vnoise(uv * 1.4 + vec2(time * 0.18, time * 0.13));
+    float n2 = vnoise(uv * 2.8 + vec2(-time * 0.15, time * 0.20));
+    float n3 = vnoise(uv * 5.0 + vec2(time * 0.22, -time * 0.12));
+    float swirl = n1 * 0.45 + n2 * 0.35 + n3 * 0.2;
 
-    float verticalBias = smoothstep(0.05, 0.95, gp);
-    float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
+    float verticalBias = smoothstep(0.0, 1.0, gp);
+    float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.4, 0.0, 1.0);
     vec3 peak = mix(peakA, peakB, colorMix);
 
     // Full gradient — visible pixel tint at bottom, vivid color at top
@@ -120,51 +121,54 @@ const fragmentShaderSource = `
     vec3 pixelColor = computeGradient(pixelUv, u_time, peakA, peakB);
     pixelColor += (hash(cellId) - 0.5) * 0.035;
 
-    // === EDGE MASK — wide pixel border, smooth only in deep center ===
+    // === EDGE MASK — pixel border on sides/top, open bottom ===
     float edgeL = smoothstep(0.0, 0.25, uv.x);
     float edgeR = smoothstep(1.0, 0.75, uv.x);
     float edgeT = smoothstep(1.0, 0.75, uv.y);
-    float edgeB = smoothstep(0.0, 0.30, uv.y);
-    float interior = edgeL * edgeR * edgeT * edgeB;
+    float interior = edgeL * edgeR * edgeT; // No bottom mask — bottom stays open
 
-    // === BRIGHTNESS-DRIVEN PIXELATION — disperses color blobs at edges ===
-    // Use max channel instead of perceptual luminance so blue is treated equally
+    // === BRIGHTNESS-DRIVEN PIXELATION ===
     float intensity = max(smoothColor.r, max(smoothColor.g, smoothColor.b));
-    float edgeProximity = 1.0 - interior; // 0 in center, 1 at edges
+    float edgeProximity = 1.0 - interior;
     float brightPixel = smoothstep(0.15, 0.5, intensity) * edgeProximity * 0.8;
 
     // === DIAGONAL SHIMMER ===
     float diag = (uv.x + 1.0 - uv.y) * 0.5;
-    float shimmerPos = fract(u_time * 0.25);
+    float shimmerPos = fract(u_time * 0.2);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
-    float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
+    float shimmerMask = exp(-shimmerDist * shimmerDist * 100.0) * 0.6;
 
     // Combine: edges + bright areas + shimmer all push toward pixel blocks
     float pixelAmount = max(max(1.0 - interior, brightPixel), shimmerMask);
 
-    // The pixel color IS the "ASCII" — flat blocky colors vs smooth gradient
-    vec3 color = mix(smoothColor, pixelColor, pixelAmount);
+    // Fade pixelation to smooth in dark areas so grid doesn't show against black bg
+    float darkFade = smoothstep(0.02, 0.10, max(smoothColor.r, max(smoothColor.g, smoothColor.b)));
+    float finalPixelAmount = pixelAmount * darkFade;
 
-    // === GRAIN — subtle texture, not visible ===
+    vec3 color = mix(smoothColor, pixelColor, finalPixelAmount);
+
+    // === GRAIN — subtle texture ===
     float grain = (hash(gl_FragCoord.xy + u_time * 0.3) - 0.5) * 0.025;
     color += grain;
 
-    // === Alpha — solid at top, wavy fade toward bottom ===
+    // === Alpha — solid at top, wavy fade ending at container bottom ===
     float y = pixelUv.y;
 
-    // Wavy edge — deeper dips, organic living movement
-    float wave = sin(pixelUv.x * 3.5 + 1.2 + u_time * 0.6) * 0.18
-               + sin(pixelUv.x * 8.0 + 3.7 - u_time * 0.45) * 0.10
-               + cos(pixelUv.x * 5.5 + 0.5 + u_time * 0.35) * 0.12
-               + sin(pixelUv.x * 12.0 + u_time * 0.8) * 0.05;
+    // Organic waves across full width
+    float wave = sin(pixelUv.x * 2.5 + 0.8 + u_time * 0.4) * 0.15
+               + sin(pixelUv.x * 5.5 + 3.2 - u_time * 0.35) * 0.10
+               + cos(pixelUv.x * 4.0 + 1.5 + u_time * 0.28) * 0.12
+               + sin(pixelUv.x * 9.0 + u_time * 0.55) * 0.06;
 
-    // Both sides extend further down — pixels reach the bottom
-    float leftPush = (1.0 - smoothstep(0.0, 0.75, pixelUv.x)) * 0.85;
-    float rightPush = (1.0 - smoothstep(0.4, 1.0, pixelUv.x)) * 0.25;
-    float edgePush = leftPush + rightPush;
+    float edgePush = 0.55 + (1.0 - smoothstep(0.0, 1.0, pixelUv.x)) * 0.12;
 
-    float alpha = smoothstep(-0.55, 0.50, y + wave + edgePush);
+    // Gradient extends deep — alpha fades near the very bottom
+    float alpha = smoothstep(-0.65, 0.35, y + wave + edgePush);
+
+    // Kill alpha on very dark pixels so no grid shows against black bg
+    float brightness = max(color.r, max(color.g, color.b));
+    alpha *= smoothstep(0.0, 0.04, brightness);
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -215,13 +219,16 @@ export default function PixelGradientCanvas() {
 
     const resolutionLoc = gl.getUniformLocation(program, 'u_resolution');
     const timeLoc = gl.getUniformLocation(program, 'u_time');
+    const dprLoc = gl.getUniformLocation(program, 'u_dpr');
 
     // Handle Resize
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      const dpr = window.devicePixelRatio;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
+      gl.uniform1f(dprLoc, dpr);
     };
     window.addEventListener('resize', resize);
     resize();

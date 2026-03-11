@@ -827,7 +827,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   background: transparent;
   padding: 48px 40px;
   border: none;
-  min-height: 400px;
+  min-height: 500px;
   display: flex;
   flex-direction: column;
   justify-content: center;
