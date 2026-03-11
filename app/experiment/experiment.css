@@ -164,7 +164,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   content: '';
   position: absolute;
   top: 56px; /* Start below nav height — creates clean nav/hero boundary */
-  bottom: 0;
+  bottom: 280px; /* Stop before the footer area (pre-footer + brand) */
   left: 80px;
   right: 80px;
   border-left: 1px dashed rgba(255, 255, 255, 0.12);
@@ -572,6 +572,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 /* --- Section Heading --- */
 .exp-section-heading {
+  font-family: 'Inter', sans-serif;
   font-size: var(--exp-h2);
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -1551,7 +1552,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-team-section {
   max-width: var(--exp-container);
   margin: 0 auto;
-  padding: var(--exp-section-pad) 32px;
+  padding: var(--exp-section-pad) 80px;
 }
 
 .exp-team-header {
@@ -1694,7 +1695,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-blog-section {
   max-width: var(--exp-container);
   margin: 0 auto;
-  padding: var(--exp-section-pad) 32px;
+  padding: var(--exp-section-pad) 80px;
 }
 
 .exp-blog-header {
@@ -1850,6 +1851,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-pre-footer-logo span {
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -1858,6 +1860,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-pre-footer-copy {
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   color: var(--exp-text-secondary);
   letter-spacing: 0.04em;
@@ -1871,6 +1874,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-pre-footer-social a {
+  font-family: 'Inter', sans-serif;
   color: var(--exp-text-secondary);
   text-decoration: none;
   font-size: 11px;

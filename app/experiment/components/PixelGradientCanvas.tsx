@@ -79,18 +79,19 @@ const fragmentShaderSource = `
     float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
     vec3 peak = mix(peakA, peakB, colorMix);
 
-    // 4-zone luminance ramp — vivid dual colors, no white washout
-    vec3 deep = peak * 0.06;
+    // Full gradient — visible pixel tint at bottom, vivid color at top
+    vec3 deep = peak * 0.08;
     vec3 mid  = peak * 0.35;
-    vec3 wash = mix(peak, vec3(1.0), 0.2);
+    vec3 bright = peak * 0.7;
+    vec3 wash = mix(peak, vec3(1.0), 0.12);
 
-    float t1 = smoothstep(0.00, 0.10, gp);
-    float t2 = smoothstep(0.06, 0.24, gp);
-    float t3 = smoothstep(0.15, 0.55, gp);
-    float t4 = smoothstep(0.60, 0.95, gp);
+    float t1 = smoothstep(0.0, 0.15, gp);
+    float t2 = smoothstep(0.10, 0.35, gp);
+    float t3 = smoothstep(0.25, 0.60, gp);
+    float t4 = smoothstep(0.65, 0.95, gp);
 
-    vec3 color = mix(vec3(0.004), deep, t1);
-    color = mix(color, mid, t2);
+    vec3 color = mix(deep, mid, t1);
+    color = mix(color, bright, t2);
     color = mix(color, peak, t3);
     color = mix(color, wash, t4);
     return color;
@@ -145,8 +146,8 @@ const fragmentShaderSource = `
     // The pixel color IS the "ASCII" — flat blocky colors vs smooth gradient
     vec3 color = mix(smoothColor, pixelColor, pixelAmount);
 
-    // === GRAIN — baked into shader so it only appears where gradient has alpha ===
-    float grain = (hash(gl_FragCoord.xy + u_time * 0.3) - 0.5) * 0.06;
+    // === GRAIN — subtle texture, not visible ===
+    float grain = (hash(gl_FragCoord.xy + u_time * 0.3) - 0.5) * 0.025;
     color += grain;
 
     // === Alpha — solid at top, wavy fade toward bottom ===
