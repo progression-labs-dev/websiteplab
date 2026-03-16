@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/experiment',
+        permanent: false,
+      },
+    ]
+  },
   experimental: {
     serverComponentsExternalPackages: ['onnxruntime-node'],
     outputFileTracingExcludes: {
