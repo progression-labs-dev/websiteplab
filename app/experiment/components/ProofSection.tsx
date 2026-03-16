@@ -7,19 +7,16 @@ const testimonials = [
     quote: "They've gone beyond just a number of engineers that I'm outsourcing AI for. They truly have been a thought partner, someone that's been very dependable and someone who helped us shape our strategy.",
     author: 'Dipak Patel',
     role: 'CEO of Globo',
-    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
   {
     quote: 'Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn\'t think were possible.',
     author: 'Sarah Chen',
     role: 'CTO of TechVentures',
-    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
   {
     quote: 'Working with Progression Labs has been a game-changer. They brought deep expertise and a collaborative approach that made all the difference in our AI journey.',
     author: 'Michael Roberts',
     role: 'VP Engineering at DataFlow',
-    videoId: 'dQw4w9WgXcQ', // TODO: replace with real video ID
   },
 ]
 
@@ -95,16 +92,6 @@ export default function ProofSection() {
                 <strong>{t.author}</strong> &mdash; {t.role}
               </div>
 
-              {/* Video — always visible below the quote */}
-              <div className="exp-proof-video-inline">
-                <iframe
-                  className="exp-proof-video"
-                  src={`https://www.youtube.com/embed/${t.videoId}?rel=0`}
-                  title={`${t.author} testimonial video`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
             </div>
           ))}
         </div>
