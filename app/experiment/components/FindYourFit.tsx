@@ -8,6 +8,7 @@ import { useColorCycle } from './useColorCycle'
 import PixelGradientCanvas from './PixelGradientCanvas'
 import FinderAsciiOverlay from './FinderAsciiOverlay'
 import { BRAINSTORM_HREF, openBrainstormEmail } from './brainstormMailto'
+import posthog from 'posthog-js'
 
 const TYPING_SPEED = 35 // ms per character
 
@@ -252,12 +253,24 @@ export default function FindYourFit() {
   // Stagger result lines when step 2 is reached
   useEffect(() => {
     if (step !== 2) return
+    // Track the recommendation shown
+    if (selectedRole && selectedJourney) {
+      const rec = recommendations[`${selectedRole}-${selectedJourney}`]
+      posthog.capture('finder_recommendation_shown', {
+        role: roles.find(r => r.id === selectedRole)?.label,
+        role_id: selectedRole,
+        journey: journeys.find(j => j.id === selectedJourney)?.label,
+        journey_id: selectedJourney,
+        recommendation: rec?.title,
+        services: rec?.services,
+      })
+    }
     const timers: ReturnType<typeof setTimeout>[] = []
     for (let i = 1; i <= 5; i++) {
       timers.push(setTimeout(() => setResultLines(i), 400 + i * 150))
     }
     return () => timers.forEach(t => clearTimeout(t))
-  }, [step])
+  }, [step, selectedRole, selectedJourney])
 
   // Typing effect — returns a promise that resolves when typing completes
   const typeText = useCallback((text: string): Promise<void> => {
@@ -316,6 +329,7 @@ export default function FindYourFit() {
 
   const handleRoleSelect = useCallback(async (role: Role) => {
     const label = roles.find(r => r.id === role)?.label || role
+    posthog.capture('finder_role_selected', { role: label, role_id: role })
     setSelectedRole(role)
     await typeText(label)
     await new Promise(r => setTimeout(r, 350))
@@ -325,13 +339,20 @@ export default function FindYourFit() {
 
   const handleJourneySelect = useCallback(async (journey: Journey) => {
     const label = journeys.find(j => j.id === journey)?.label || journey
+    const roleLabel = roles.find(r => r.id === selectedRole)?.label || selectedRole
+    posthog.capture('finder_journey_selected', {
+      journey: label,
+      journey_id: journey,
+      role: roleLabel,
+      role_id: selectedRole,
+    })
     setSelectedJourney(journey)
     await typeText(label)
     await new Promise(r => setTimeout(r, 350))
     setTypedText('')
     setResultLines(0)
     animateTransition(() => setStep(2))
-  }, [animateTransition, typeText])
+  }, [animateTransition, typeText, selectedRole])
 
   const handleReset = useCallback(() => {
     animateTransition(() => {
@@ -472,11 +493,25 @@ export default function FindYourFit() {
                 </div>
               </div>
               <div className={`exp-terminal-line${resultLines >= 5 ? ' exp-terminal-line--visible' : ''}`}>
-                <a href={BRAINSTORM_HREF} onClick={openBrainstormEmail} className="exp-btn-filled" style={{ marginTop: 16 }}>
+                <a href={BRAINSTORM_HREF} onClick={(e) => {
+                  posthog.capture('finder_cta_clicked', {
+                    cta_text: recommendation.cta,
+                    role: roles.find(r => r.id === selectedRole)?.label,
+                    journey: journeys.find(j => j.id === selectedJourney)?.label,
+                    recommendation: recommendation.title,
+                  })
+                  openBrainstormEmail(e)
+                }} className="exp-btn-filled" style={{ marginTop: 16 }}>
                   {recommendation.cta} <ArrowIcon />
                 </a>
               </div>
-              <button className="exp-terminal-reset" onClick={handleReset}>
+              <button className="exp-terminal-reset" onClick={() => {
+                posthog.capture('finder_reset', {
+                  role: roles.find(r => r.id === selectedRole)?.label,
+                  journey: journeys.find(j => j.id === selectedJourney)?.label,
+                })
+                handleReset()
+              }}>
                 &gt; reset
               </button>
             </div>
