@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useFeatureFlagVariantKey } from '@posthog/react'
+import posthog from 'posthog-js'
 import BlueprintIntro from './BlueprintIntro'
 import TextScramble from './TextScramble'
 import MosaicOverlay from './MosaicOverlay'
@@ -14,10 +16,34 @@ interface HeroSectionProps {
   onBrandReveal: () => void
 }
 
-const HEADLINE_TEXT =
-  "We're building custom AI agents that scale for the most complex problems in the real world"
+const HERO_VARIANTS = {
+  control: {
+    headline: "We're building custom AI agents that scale for the most complex problems in the real world",
+    headlineJsx: (
+      <>
+        We&apos;re building <strong>custom AI agents</strong> that scale
+        for the <strong>most complex problems</strong> in the{' '}
+        <strong>real world</strong>
+      </>
+    ),
+    cta: 'Request a brainstorm',
+  },
+  variant: {
+    headline: "Your team, supercharged with AI agents that actually ship to production",
+    headlineJsx: (
+      <>
+        Your team, <strong>supercharged</strong> with AI agents
+        that actually <strong>ship to production</strong>
+      </>
+    ),
+    cta: 'Book a free strategy call',
+  },
+} as const
 
 export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionProps) {
+  const flagVariant = useFeatureFlagVariantKey('hero-ab-test')
+  const variant = flagVariant === 'variant' ? HERO_VARIANTS.variant : HERO_VARIANTS.control
+
   const [mosaicActive, setMosaicActive] = useState(false)
   const [asciiActive, setAsciiActive] = useState(false)
   const [heroReveal, setHeroReveal] = useState(false)
@@ -81,7 +107,7 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
           {/* Headline with TextScramble → bold keywords after resolve */}
           {!scrambleDone ? (
             <TextScramble
-              text={HEADLINE_TEXT}
+              text={variant.headline}
               trigger="load"
               triggerWhen={scrambleTrigger}
               duration={1200}
@@ -90,9 +116,7 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
             />
           ) : (
             <h1 className="exp-hero-headline">
-              We&apos;re building <strong>custom AI agents</strong> that scale
-              for the <strong>most complex problems</strong> in the{' '}
-              <strong>real world</strong>
+              {variant.headlineJsx}
             </h1>
           )}
 
@@ -105,8 +129,15 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
               transition: 'opacity 0.6s ease, transform 0.6s ease',
             }}
           >
-            <a href={BRAINSTORM_HREF} onClick={openBrainstormEmail} className="exp-btn-filled">
-              Request a brainstorm <ArrowIcon />
+            <a href={BRAINSTORM_HREF} onClick={(e) => {
+              posthog.capture('hero_cta_clicked', {
+                variant: flagVariant || 'control',
+                cta_text: variant.cta,
+                headline: variant.headline,
+              })
+              openBrainstormEmail(e)
+            }} className="exp-btn-filled">
+              {variant.cta} <ArrowIcon />
             </a>
             <a href="#work" className="exp-btn-outline">
               See our work <ArrowIcon />
