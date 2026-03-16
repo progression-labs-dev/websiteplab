@@ -10,6 +10,7 @@ import ProofSection from './components/ProofSection'
 import CTASection from './components/CTASection'
 import BlogSection from './components/BlogSection'
 import PlusDivider from './components/PlusDivider'
+import PostHogTracker from './components/PostHogTracker'
 
 export default function ExperimentPage() {
   const navRef = useRef<HTMLElement>(null)
@@ -35,6 +36,7 @@ export default function ExperimentPage() {
 
   return (
     <>
+      <PostHogTracker />
       <ExperimentNav ref={navRef} showBrand={showBrand} />
       <HeroSection onNavReveal={handleNavReveal} onBrandReveal={handleBrandReveal} />
 
