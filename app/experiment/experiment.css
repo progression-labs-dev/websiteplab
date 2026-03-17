@@ -2666,3 +2666,102 @@ html:has(.experiment) { scroll-behavior: auto; }
     padding: 16px;
   }
 }
+
+/* ============================================
+   Terminal Boot Intro (.exp-boot-*)
+   Minimal: command → welcome+shimmer → bar → sign-off
+   ============================================ */
+
+.exp-boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.exp-boot-terminal {
+  font-family: var(--exp-mono);
+  font-size: clamp(13px, 1.2vw, 16px);
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.55);
+  max-width: 580px;
+  width: 90%;
+}
+
+.exp-boot-line {
+  white-space: pre;
+  min-height: 2em;
+}
+
+.exp-boot-cmd { color: rgba(255, 255, 255, 0.4); }
+.exp-boot-prompt { color: rgba(255, 255, 255, 0.55); }
+.exp-boot-progress { color: #34d399; }
+.exp-boot-signoff {
+  display: inline-block;
+  font-weight: 600;
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffffff 30%,
+    #e0e7ff 45%,
+    #a8d4ff 50%,
+    #e0e7ff 55%,
+    #ffffff 70%,
+    #ffffff 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: exp-boot-glow 2.2s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+@keyframes exp-boot-glow {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ── Shimmer — blue-to-white gradient sweep ── */
+
+.exp-boot-shimmer {
+  display: inline-block;
+  font-weight: 600;
+  background: linear-gradient(
+    90deg,
+    #4a9eff 0%,
+    #4a9eff 30%,
+    #a8d4ff 45%,
+    #ffffff 50%,
+    #a8d4ff 55%,
+    #4a9eff 70%,
+    #4a9eff 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: exp-boot-shimmer 2.2s ease-in-out infinite;
+}
+
+@keyframes exp-boot-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ── Blinking block cursor ── */
+
+.exp-boot-typing::after {
+  content: '█';
+  color: rgba(255, 255, 255, 0.6);
+  animation: exp-boot-blink 530ms steps(2) infinite;
+}
+
+@keyframes exp-boot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

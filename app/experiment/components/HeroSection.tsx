@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useFeatureFlagVariantKey } from '@posthog/react'
 import posthog from 'posthog-js'
-import BlueprintIntro from './BlueprintIntro'
 import TextScramble from './TextScramble'
 import MosaicOverlay from './MosaicOverlay'
 import AsciiOverlay from './AsciiOverlay'
@@ -57,38 +56,22 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
     return id
   }, [])
 
-  const handleBlueprintComplete = useCallback(() => {
-    // Blueprint overlay has faded — reveal everything
-
-    // Nav appears immediately
+  // Reveal everything immediately on mount (no intro overlay)
+  useEffect(() => {
     onNavReveal()
-
-    // Brand text fades in after brief pause
     addTimer(() => onBrandReveal(), 200)
-
-    // Activate mosaic overlay (interactive pixel trail)
     setMosaicActive(true)
-
-    // Activate ASCII overlay (mouse-reactive text grid)
     addTimer(() => setAsciiActive(true), 200)
-
-    // Trigger hero gradient pixel reveal
     setHeroReveal(true)
-
-    // Trigger TextScramble after brief delay
     addTimer(() => setScrambleTrigger(true), 300)
-
-    // Swap to bold-keyword headline after scramble resolves
     addTimer(() => setScrambleDone(true), 300 + 1200)
-
-    // Show CTA buttons after scramble + brief pause
     addTimer(() => setShowButtons(true), 300 + 1200 + 100)
+
+    return () => { timersRef.current.forEach(clearTimeout) }
   }, [onNavReveal, onBrandReveal, addTimer])
 
   return (
     <section className="exp-hero">
-      {/* Full-screen blueprint P-logo intro animation */}
-      <BlueprintIntro onComplete={handleBlueprintComplete} />
 
       <div className="exp-hero-frame">
         {/* Layer 0: WebGL hue-cycling gradient with pixel reveal */}
