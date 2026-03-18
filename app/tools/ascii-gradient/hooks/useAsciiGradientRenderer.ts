@@ -52,10 +52,7 @@ function drawGlowingAscii(
   const charIdx = ((cx * 7919 + cy * 104729) >>> 0) % ASCII_CHARSET.length;
   const char = ASCII_CHARSET[charIdx];
 
-  const fontSize = Math.max(8, cellSize * 1.6);
-  ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  // NOTE: font/textAlign/textBaseline are set once before the grid loop in render()
 
   // Screen blend — additively blends glow onto background
   const prevComposite = ctx.globalCompositeOperation;
@@ -80,6 +77,7 @@ export function useAsciiGradientRenderer() {
   const rafId = useRef<number>(0);
   const centroidRef = useRef<Centroid | null>(null);
   const lastMaskRef = useRef<Uint8Array | null>(null);
+  const offscreenRef = useRef<HTMLCanvasElement | null>(null);
 
   const render = useCallback((
     canvas: HTMLCanvasElement,
@@ -119,16 +117,15 @@ export function useAsciiGradientRenderer() {
     }
     const centroid = centroidRef.current ?? undefined;
 
-    // Layer 1: Draw original image as base layer
-    const offscreen = document.createElement('canvas');
+    // Layer 1: Draw original image as base layer (reuse offscreen canvas)
+    if (!offscreenRef.current) {
+      offscreenRef.current = document.createElement('canvas');
+    }
+    const offscreen = offscreenRef.current;
     offscreen.width = width;
     offscreen.height = height;
     const offCtx = offscreen.getContext('2d')!;
-    const imgData = new ImageData(
-      new Uint8ClampedArray(buffer.data),
-      width,
-      height
-    );
+    const imgData = new ImageData(buffer.data, width, height);
     offCtx.putImageData(imgData, 0, 0);
     ctx.drawImage(offscreen, 0, 0);
 
@@ -137,13 +134,21 @@ export function useAsciiGradientRenderer() {
 
     // Layer 2 + 3: Grid iteration — frosted pixel blocks with glowing ASCII
     const step = cellSize * 2;
-    const stopColors = gradientStops.map(s => s.color);
+    const stopColors = gradientStops.length > 0
+      ? gradientStops.map(s => s.color)
+      : [[0, 0, 255] as [number, number, number], [245, 245, 245] as [number, number, number]];
+
+    // Set font properties once before loop (avoids parsing font string per character)
+    const fontSize = Math.max(8, cellSize * 1.6);
+    ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
     for (let cellY = cellSize; cellY < height; cellY += step) {
       for (let cellX = cellSize; cellX < width; cellX += step) {
         // Subject mask check: convert cell coords to mask space, skip if not in mask
-        const mx = Math.round(cellX * maskW / width);
-        const my = Math.round(cellY * maskH / height);
+        const mx = Math.min(Math.round(cellX * maskW / width), maskW - 1);
+        const my = Math.min(Math.round(cellY * maskH / height), maskH - 1);
         const idx = my * maskW + mx;
         if (idx < 0 || idx >= subjectMask.length || subjectMask[idx] === 0) continue;
 
