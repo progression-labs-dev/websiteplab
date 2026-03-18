@@ -125,7 +125,7 @@ export function useAsciiGradientRenderer() {
     offscreen.width = width;
     offscreen.height = height;
     const offCtx = offscreen.getContext('2d')!;
-    const imgData = new ImageData(buffer.data, width, height);
+    const imgData = new ImageData(new Uint8ClampedArray(buffer.data), width, height);
     offCtx.putImageData(imgData, 0, 0);
     ctx.drawImage(offscreen, 0, 0);
 
