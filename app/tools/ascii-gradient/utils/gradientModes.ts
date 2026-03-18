@@ -88,12 +88,12 @@ export function getGradientPosition(
       return (cellY / imageHeight) * 255;
 
     case 'radial': {
-      if (!centroid || maskW == null || maskH == null) {
+      if (!centroid || !maskW || !maskH) {
         return 128;
       }
       // Convert cell coords from image space to mask space
-      const mx = (cellX / imageWidth) * maskW;
-      const my = (cellY / imageHeight) * maskH;
+      const mx = cellX * maskW / imageWidth;
+      const my = cellY * maskH / imageHeight;
       const dist = Math.sqrt((mx - centroid.cx) ** 2 + (my - centroid.cy) ** 2);
       return Math.min((dist / centroid.maxDist) * 255, 255);
     }
