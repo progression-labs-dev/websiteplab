@@ -209,13 +209,17 @@ export default function AsciiGradientPage() {
             />
           </div>
         ) : (
-          <div className="ag-upload-prompt">
+          <div
+            className="ag-upload-prompt"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ cursor: 'pointer' }}
+          >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <p>Drop an image here or upload</p>
+            <p>Drop an image here or click to upload</p>
             <span>PNG, JPG, WebP supported</span>
           </div>
         )}
