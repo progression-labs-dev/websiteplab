@@ -285,6 +285,44 @@ export default function AsciiGradientPage() {
           </div>
         </div>
 
+        {/* Brightness Cutoff */}
+        <div className="ag-section">
+          <div className="ag-section-title">Brightness Cutoff</div>
+          <div className="ag-slider-group">
+            <div className="ag-slider-label">
+              <span>Lighter areas only</span>
+              <span>{params.brightnessCutoff}</span>
+            </div>
+            <input
+              type="range"
+              className="ag-slider"
+              min={0}
+              max={200}
+              value={params.brightnessCutoff}
+              onChange={(e) => setParams(prev => ({ ...prev, brightnessCutoff: Number(e.target.value) }))}
+            />
+          </div>
+        </div>
+
+        {/* Film Grain */}
+        <div className="ag-section">
+          <div className="ag-section-title">Film Grain</div>
+          <div className="ag-slider-group">
+            <div className="ag-slider-label">
+              <span>Intensity</span>
+              <span>{Math.round(params.grainOpacity * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              className="ag-slider"
+              min={0}
+              max={20}
+              value={Math.round(params.grainOpacity * 100)}
+              onChange={(e) => setParams(prev => ({ ...prev, grainOpacity: Number(e.target.value) / 100 }))}
+            />
+          </div>
+        </div>
+
         {/* Gradient Mode */}
         <div className="ag-section">
           <div className="ag-section-title">Gradient Mode</div>

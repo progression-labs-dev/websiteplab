@@ -16,6 +16,8 @@ export interface AsciiGradientParams {
   asciiDensity: number;      // 0.2-0.9, default 0.4
   gradientMode: GradientMode;
   gradientStops: GradientStop[];
+  brightnessCutoff: number;  // 0-255, only render on pixels brighter than this
+  grainOpacity: number;      // 0-1, film grain intensity
 }
 
 export const DEFAULT_ASCII_GRADIENT_PARAMS: AsciiGradientParams = {
@@ -27,6 +29,8 @@ export const DEFAULT_ASCII_GRADIENT_PARAMS: AsciiGradientParams = {
     { color: [0, 0, 255], label: 'Blue' },
     { color: [245, 245, 245], label: 'White Smoke' },
   ],
+  brightnessCutoff: 80,
+  grainOpacity: 0.06,
 };
 
 /**
@@ -92,7 +96,7 @@ export function useAsciiGradientRenderer() {
     canvas.width = width;
     canvas.height = height;
 
-    const { cellSize, asciiDensity, gradientMode, gradientStops } = params;
+    const { cellSize, asciiDensity, gradientMode, gradientStops, brightnessCutoff, grainOpacity } = params;
 
     // Compute mask lookup dimensions — handles resolution mismatch during video playback.
     // The mask may have been computed at full resolution while the buffer is at preview scale.
@@ -156,6 +160,9 @@ export function useAsciiGradientRenderer() {
         const [r, g, b] = sampleColorAt(buffer, cellX, cellY);
         const brightness = getBrightness(r, g, b);
 
+        // Brightness cutoff — skip dark areas, only render on lighter regions
+        if (brightness < brightnessCutoff) continue;
+
         // Layer 2: Frosted glass pixel block
         drawPixelBlock(ctx, cellX - cellSize, cellY - cellSize, cellSize * 2, r, g, b);
 
@@ -169,6 +176,29 @@ export function useAsciiGradientRenderer() {
         // Layer 3: Glowing ASCII character
         drawGlowingAscii(ctx, cellX, cellY, cellSize, asciiDensity, gradR, gradG, gradB, brightness);
       }
+    }
+
+    // Layer 4: Film grain overlay
+    if (grainOpacity > 0) {
+      const grainData = ctx.createImageData(width, height);
+      const pixels = grainData.data;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const v = Math.random() * 255;
+        pixels[i] = v;
+        pixels[i + 1] = v;
+        pixels[i + 2] = v;
+        pixels[i + 3] = 255;
+      }
+      // Draw grain to offscreen, then composite with overlay blend
+      offscreen.width = width;
+      offscreen.height = height;
+      const grainCtx = offscreen.getContext('2d')!;
+      grainCtx.putImageData(grainData, 0, 0);
+      ctx.globalAlpha = grainOpacity;
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.drawImage(offscreen, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
     }
   }, []);
 
