@@ -394,6 +394,8 @@ export interface Testimonial {
   quote: string
   author: string
   role: string
+  /** Optional link to a full case study page for this customer. */
+  caseStudyHref?: string
 }
 
 export const TESTIMONIALS: Testimonial[] = [
@@ -401,6 +403,7 @@ export const TESTIMONIALS: Testimonial[] = [
     quote: "They've gone beyond just a number of engineers that I'm outsourcing AI for. They truly have been a thought partner, someone that's been very dependable and someone who helped us shape our strategy.",
     author: 'Dipak Patel',
     role: 'CEO of Globo',
+    caseStudyHref: '/customers/globo',
   },
   {
     quote: "Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn't think were possible.",

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { TESTIMONIALS } from '../data/siteContent'
 
 const testimonials = TESTIMONIALS
@@ -77,6 +78,37 @@ export default function ProofSection() {
                 <strong>{t.author}</strong> &mdash; {t.role}
               </div>
 
+              {t.caseStudyHref ? (
+                <div style={{ marginTop: 24 }}>
+                  <Link
+                    href={t.caseStudyHref}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontFamily: 'var(--exp-mono)',
+                      fontSize: 11,
+                      letterSpacing: '0.16em',
+                      textTransform: 'uppercase',
+                      color: 'var(--exp-text-secondary)',
+                      textDecoration: 'none',
+                      paddingBottom: 2,
+                      borderBottom: '1px solid var(--alpha-25)',
+                      transition: 'color 0.2s ease, border-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--exp-text-primary)'
+                      e.currentTarget.style.borderBottomColor = 'var(--alpha-60)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--exp-text-secondary)'
+                      e.currentTarget.style.borderBottomColor = 'var(--alpha-25)'
+                    }}
+                  >
+                    Read the case study <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

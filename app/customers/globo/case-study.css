@@ -1,0 +1,430 @@
+/* ============================================
+   Globo Case Study — page-specific styles
+   All scoped under .experiment so they inherit
+   the site's existing tokens, frame, and grain.
+   ============================================ */
+
+/* ============================================
+   HERO GRADIENT BANNER + LOCKUP
+   ============================================ */
+
+.experiment .hero-banner {
+  position: relative;
+  margin: 56px 80px 0 80px; /* contained inside the .experiment::before dashed frame */
+  height: 240px;
+  overflow: hidden;
+  background: #010101;
+  border: 1px dashed var(--alpha-12);
+}
+
+.experiment .hero-banner-gl-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.experiment .hero-banner-gl-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* CSS-only fallback gradient before WebGL inits */
+.experiment .hero-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg,
+    #010101 0%,
+    #0d1530 18%,
+    #1a3a8c 38%,
+    #4a7ed4 60%,
+    #b3cdee 82%,
+    #ffffff 100%);
+}
+
+/* Grain/noise overlay (matches site hero treatment) */
+.experiment .hero-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+}
+
+.experiment .hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0,0,0,0.40) 0%, transparent 75%),
+    linear-gradient(0deg, rgba(0,0,0,0.30) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.15) 100%);
+}
+
+.experiment .hero-banner-lockup {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px;
+}
+.experiment .hero-banner-logo {
+  display: block;
+  filter: brightness(0) invert(1) drop-shadow(0 1px 8px rgba(0,0,0,0.45));
+}
+.experiment .hero-banner-logo--pl { height: 26px; width: auto; }
+.experiment .hero-banner-logo--globo { height: 34px; width: auto; }
+.experiment .hero-banner-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.55);
+}
+
+@media (max-width: 1024px) {
+  .experiment .hero-banner { margin: 56px 40px 0 40px; height: 220px; }
+}
+@media (max-width: 768px) {
+  .experiment .hero-banner { margin: 56px 20px 0 20px; height: 180px; }
+  .experiment .hero-banner-lockup { gap: 20px; }
+  .experiment .hero-banner-logo--pl { height: 22px; }
+  .experiment .hero-banner-logo--globo { height: 28px; }
+  .experiment .hero-banner-divider { height: 26px; }
+}
+
+/* ============================================
+   STORY HERO TEXT
+   ============================================ */
+
+.experiment .story-hero {
+  position: relative;
+  padding: 96px 80px 56px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.experiment .story-hero-inner { max-width: 920px; }
+
+.experiment .story-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  margin-bottom: 40px;
+}
+.experiment .story-eyebrow .dot {
+  width: 6px; height: 6px;
+  background: #2cd3a4;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #2cd3a4;
+  animation: case-study-pulse 2.5s ease-in-out infinite;
+}
+.experiment .story-eyebrow .sep { color: var(--exp-text-tertiary); font-weight: 300; }
+
+@keyframes case-study-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+.experiment .story-h1 {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--exp-h1);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  margin: 0 0 28px 0;
+  max-width: 680px;
+  text-transform: none;
+}
+.experiment .story-h1 strong { font-weight: 600; color: #ffffff; }
+.experiment .story-h1 em {
+  font-style: normal;
+  font-weight: 400;
+  color: #4169e1;
+}
+
+.experiment .story-lede {
+  /* Subtitle — slightly larger than body, same grey, weight 400 */
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--exp-text-secondary);
+  margin: 0 0 40px 0;
+  max-width: 720px;
+  letter-spacing: -0.01em;
+}
+
+.experiment .story-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--alpha-12);
+  max-width: 920px;
+}
+.experiment .story-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 24px;
+}
+.experiment .story-meta-item .k {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exp-text-tertiary);
+}
+.experiment .story-meta-item .v {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--exp-text-secondary);
+  font-weight: 400;
+}
+
+/* ============================================
+   STATS STRIP
+   ============================================ */
+
+.experiment .story-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 80px;
+  align-items: end;
+}
+.experiment .story-stat {
+  padding: 0 24px;
+  position: relative;
+}
+.experiment .story-stat:not(:first-child) { border-left: 1px dashed var(--alpha-12); }
+.experiment .story-stat-num {
+  font-family: "Inter", sans-serif;
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--exp-text-primary);
+}
+.experiment .story-stat-suffix {
+  font-size: 0.5em;
+  font-weight: 300;
+  color: var(--exp-text-secondary);
+}
+.experiment .story-stat-label {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--exp-text-secondary);
+  max-width: 280px;
+}
+.experiment .story-stat-label .muted {
+  color: var(--exp-text-tertiary);
+  display: block;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* ============================================
+   STORY SECTIONS
+   ============================================ */
+
+.experiment .story-section {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 80px;
+  align-items: start;
+}
+
+.experiment .story-section-label {
+  position: sticky;
+  top: 100px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  padding-top: 8px;
+}
+
+.experiment .story-section-body { max-width: 680px; }
+.experiment .story-section-body > p {
+  /* Body — single size, grey, weight 400 */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
+  margin: 0 0 20px 0;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.experiment .story-section-body > p strong { font-weight: 600; color: var(--exp-text-primary); }
+.experiment .story-section-body > p em {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-style: italic;
+  color: var(--exp-text-secondary);
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.experiment .story-h2 {
+  font-family: "Inter", sans-serif;
+  font-size: var(--exp-h2);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 28px 0;
+  color: var(--exp-text-primary);
+  max-width: 26ch;
+}
+.experiment .story-h2 strong { font-weight: 600; }
+.experiment .story-h2 em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--exp-text-secondary);
+}
+
+/* ============================================
+   CRITERIA BLOCK
+   ============================================ */
+
+.experiment .criteria {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  border-top: 1px dashed var(--alpha-12);
+}
+.experiment .criterion {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px dashed var(--alpha-12);
+  align-items: start;
+}
+.experiment .criterion-id {
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--exp-text-tertiary);
+  padding-top: 4px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.experiment .criterion-title {
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: var(--exp-text-primary);
+  letter-spacing: 0;
+  grid-column: 2;
+}
+.experiment .criterion-desc {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
+  margin: 0;
+  font-weight: 400;
+  font-style: italic;
+  grid-column: 2;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================
+   PULL QUOTE
+   ============================================ */
+
+.experiment .story-quote-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 96px 80px;
+  text-align: left;
+}
+.experiment .story-quote {
+  /* Match live-site .exp-quote: 20-32px, weight 300, line-height 1.5 */
+  font-family: "Inter", sans-serif;
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--exp-text-primary);
+  max-width: 920px;
+  margin: 0 0 24px 0;
+  position: relative;
+}
+.experiment .story-quote em {
+  font-style: normal;
+  color: #4169e1;
+}
+.experiment .story-quote-author {
+  /* Match live-site .exp-quote-author: 14px Inter weight 400, no caps */
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--exp-text-secondary);
+}
+.experiment .story-quote-line {
+  width: 32px;
+  height: 1px;
+  background: var(--alpha-30);
+}
+.experiment .story-quote-author strong { color: var(--exp-text-primary); font-weight: 600; }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .experiment .story-hero { padding: 132px 40px 48px 40px; }
+  .experiment .story-meta { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
+  .experiment .story-stats { padding: 48px 40px; gap: 24px; }
+  .experiment .story-stat { padding: 0 12px; }
+  .experiment .story-stat:not(:first-child) { border-left: none; }
+  .experiment .story-section { grid-template-columns: 1fr; gap: 32px; padding: 64px 40px; }
+  .experiment .story-section-label { position: static; }
+  .experiment .story-quote-section { padding: 64px 40px; }
+}
+
+@media (max-width: 640px) {
+  .experiment .story-hero { padding: 120px 20px 40px 20px; }
+  .experiment .story-h1 { max-width: none; }
+  .experiment .story-meta { grid-template-columns: 1fr 1fr; }
+  .experiment .story-stats { grid-template-columns: 1fr; padding: 32px 20px; gap: 32px; }
+  .experiment .story-stat { padding: 24px 0; border-top: 1px dashed var(--alpha-12); }
+  .experiment .story-stat:first-child { border-top: none; padding-top: 0; }
+  .experiment .story-section { padding: 48px 20px; gap: 24px; }
+  .experiment .story-quote-section { padding: 48px 20px; }
+  .experiment .criterion { grid-template-columns: 40px 1fr; gap: 16px; }
+}

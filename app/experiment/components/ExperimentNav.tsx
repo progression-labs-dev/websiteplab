@@ -8,14 +8,26 @@ import { NAV_LINKS } from '../data/siteContent'
 
 interface ExperimentNavProps {
   showBrand?: boolean
+  /** Appended after the brand wordmark, e.g. "Customer Story". */
+  contextLabel?: string
+  /** Overrides the default nav links from siteContent. */
+  links?: { label: string; href: string }[]
+  /** When true, skips the opacity:0 starting state used by homepage intro animation. */
+  instantReveal?: boolean
+  /** Overrides the CTA button href (defaults to #contact). */
+  ctaHref?: string
 }
 
 const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
-  function ExperimentNav({ showBrand = false }, ref) {
+  function ExperimentNav(
+    { showBrand = false, contextLabel, links, instantReveal = false, ctaHref = '#contact' },
+    ref,
+  ) {
     const { toggleTheme, isDark } = useTheme()
+    const navLinks = links ?? NAV_LINKS
 
     return (
-      <nav ref={ref} className="exp-nav" style={{ opacity: 0 }}>
+      <nav ref={ref} className="exp-nav" style={{ opacity: instantReveal ? 1 : 0 }}>
         {/* Column 1: SVG P-logo + Brand name */}
         <div className="exp-nav-logo-group">
           <div className="exp-nav-logo">
@@ -32,11 +44,42 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
           >
             Progression Labs
           </span>
+          {contextLabel ? (
+            <>
+              <span
+                aria-hidden="true"
+                style={{
+                  color: 'var(--exp-text-tertiary)',
+                  fontFamily: 'var(--exp-mono)',
+                  fontWeight: 400,
+                  margin: '0 12px',
+                  opacity: showBrand ? 1 : 0,
+                  transition: 'opacity 0.6s var(--exp-ease)',
+                }}
+              >
+                /
+              </span>
+              <span
+                style={{
+                  color: 'var(--exp-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13,
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  textTransform: 'none',
+                  opacity: showBrand ? 1 : 0,
+                  transition: 'opacity 0.6s var(--exp-ease)',
+                }}
+              >
+                {contextLabel}
+              </span>
+            </>
+          ) : null}
         </div>
 
         {/* Column 2: Centered links with shuffle hover */}
         <ul className="exp-nav-links">
-          {NAV_LINKS.map(({ label, href }) => (
+          {navLinks.map(({ label, href }) => (
             <li key={href}>
               <ShuffleHover
                 text={label}
@@ -69,7 +112,7 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
         </button>
         */}
         <div className="exp-nav-cta">
-          <a href="#contact" className="exp-btn-outline">
+          <a href={ctaHref} className="exp-btn-outline">
             Get in touch <ArrowIcon />
           </a>
         </div>
