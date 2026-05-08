@@ -152,17 +152,19 @@
 .experiment .story-h1 em {
   font-style: normal;
   font-weight: 400;
-  color: #6db4ff;
+  color: #4169e1;
 }
 
 .experiment .story-lede {
+  /* Subtitle — slightly larger than body, same grey, weight 400 */
   font-family: "Inter", sans-serif;
-  font-size: clamp(17px, calc(13.333px + 0.347vw), 21px);
+  font-size: 18px;
   line-height: 1.55;
-  font-weight: 500;
-  color: #d4cdda;
+  font-weight: 400;
+  color: var(--exp-text-secondary);
   margin: 0 0 40px 0;
   max-width: 720px;
+  letter-spacing: -0.01em;
 }
 
 .experiment .story-meta {
@@ -190,7 +192,7 @@
 .experiment .story-meta-item .v {
   font-family: "Inter", sans-serif;
   font-size: 14px;
-  color: var(--exp-text-primary);
+  color: var(--exp-text-secondary);
   font-weight: 400;
 }
 
@@ -233,11 +235,11 @@
   font-family: "Inter", sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--exp-text-primary);
+  color: var(--exp-text-secondary);
   max-width: 280px;
 }
 .experiment .story-stat-label .muted {
-  color: var(--exp-text-secondary);
+  color: var(--exp-text-tertiary);
   display: block;
   font-size: 13px;
   margin-top: 2px;
@@ -271,19 +273,14 @@
 
 .experiment .story-section-body { max-width: 680px; }
 .experiment .story-section-body > p {
-  /* Match live site body: 15-17px Inter weight 400 with -0.01em tightening */
+  /* Body — single size, grey, weight 400 */
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: clamp(15px, calc(13px + 0.222vw), 17px);
-  line-height: 1.6;
-  color: var(--exp-text-primary);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
   margin: 0 0 20px 0;
   font-weight: 400;
   letter-spacing: -0.01em;
-}
-.experiment .story-section-body > p:first-of-type {
-  font-size: clamp(17px, calc(14.333px + 0.222vw), 19px);
-  line-height: 1.55;
-  font-weight: 400;
 }
 .experiment .story-section-body > p strong { font-weight: 600; color: var(--exp-text-primary); }
 .experiment .story-section-body > p em {
@@ -291,6 +288,7 @@
   font-style: italic;
   color: var(--exp-text-secondary);
   font-weight: 400;
+  opacity: 0.85;
 }
 
 .experiment .story-h2 {
@@ -349,14 +347,14 @@
 }
 .experiment .criterion-desc {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 17px;
-  line-height: 1.6;
-  color: #ffffff;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
   margin: 0;
   font-weight: 400;
   font-style: italic;
   grid-column: 2;
-  opacity: 0.92;
+  letter-spacing: -0.01em;
 }
 
 /* ============================================
@@ -383,7 +381,7 @@
 }
 .experiment .story-quote em {
   font-style: normal;
-  color: #6db4ff;
+  color: #4169e1;
 }
 .experiment .story-quote-author {
   /* Match live-site .exp-quote-author: 14px Inter weight 400, no caps */
