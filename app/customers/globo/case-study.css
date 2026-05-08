@@ -271,24 +271,25 @@
 
 .experiment .story-section-body { max-width: 680px; }
 .experiment .story-section-body > p {
+  /* Match live site body: 15-17px Inter weight 400 with -0.01em tightening */
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: var(--exp-body);
-  line-height: 1.65;
-  color: #ffffff;
+  font-size: clamp(15px, calc(13px + 0.222vw), 17px);
+  line-height: 1.6;
+  color: var(--exp-text-primary);
   margin: 0 0 20px 0;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 .experiment .story-section-body > p:first-of-type {
-  font-size: clamp(20px, calc(15.333px + 0.347vw), 24px);
+  font-size: clamp(17px, calc(14.333px + 0.222vw), 19px);
   line-height: 1.55;
-  font-weight: 500;
+  font-weight: 400;
 }
-.experiment .story-section-body > p strong { font-weight: 700; color: #ffffff; }
+.experiment .story-section-body > p strong { font-weight: 600; color: var(--exp-text-primary); }
 .experiment .story-section-body > p em {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   font-style: italic;
-  color: #d4cdda;
+  color: var(--exp-text-secondary);
   font-weight: 400;
 }
 
@@ -369,14 +370,15 @@
   text-align: left;
 }
 .experiment .story-quote {
+  /* Match live-site .exp-quote: 20-32px, weight 300, line-height 1.5 */
   font-family: "Inter", sans-serif;
-  font-size: clamp(22px, 2.4vw, 36px);
+  font-size: clamp(20px, 2.5vw, 32px);
   font-weight: 300;
-  line-height: 1.4;
+  line-height: 1.5;
   letter-spacing: -0.01em;
   color: var(--exp-text-primary);
   max-width: 920px;
-  margin: 0 0 32px 0;
+  margin: 0 0 24px 0;
   position: relative;
 }
 .experiment .story-quote em {
@@ -384,13 +386,15 @@
   color: #6db4ff;
 }
 .experiment .story-quote-author {
+  /* Match live-site .exp-quote-author: 14px Inter weight 400, no caps */
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  font-family: var(--exp-mono);
-  font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: none;
   color: var(--exp-text-secondary);
 }
 .experiment .story-quote-line {
@@ -398,7 +402,7 @@
   height: 1px;
   background: var(--alpha-30);
 }
-.experiment .story-quote-author strong { color: var(--exp-text-primary); font-weight: 500; }
+.experiment .story-quote-author strong { color: var(--exp-text-primary); font-weight: 600; }
 
 /* ============================================
    RESPONSIVE

@@ -63,10 +63,10 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
                 style={{
                   color: 'var(--exp-text-secondary)',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 400,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
+                  letterSpacing: 0,
+                  textTransform: 'none',
                   opacity: showBrand ? 1 : 0,
                   transition: 'opacity 0.6s var(--exp-ease)',
                 }}
