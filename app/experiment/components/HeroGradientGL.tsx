@@ -103,25 +103,43 @@ const fragmentShader = `
     vec3 cTurquoise = vec3(0.251, 0.878, 0.816); // #40E0D0
     vec3 cBlue      = vec3(0.000, 0.000, 1.000); // #0000FF
 
-    // 9 states over 45s cycle — singles and dual-color pairings
-    // Each state is a [bottom, top] pair; singles have both the same.
-    float cycleSec = 45.0;
+    // Extended palette — peak pairs for 5 additional themed states
+    vec3 cGold        = vec3(0.722, 0.671, 0.220); // #B8AB38  Ancient Gild peakA
+    vec3 cVanilla     = vec3(0.878, 0.843, 0.580); // #E0D794  Ancient Gild peakB
+    vec3 cWine        = vec3(0.435, 0.114, 0.106); // #6F1D1B  Vintage Hearth peakA
+    vec3 cAshGrey     = vec3(0.678, 0.741, 0.671); // #ADBDAB  Vintage Hearth peakB
+    vec3 cBurntPeach  = vec3(0.886, 0.447, 0.357); // #E2725B  Terracotta Sunset peakA
+    vec3 cSoftApricot = vec3(1.000, 0.855, 0.725); // #FFDAB9  Terracotta Sunset peakB
+    vec3 cInferno     = vec3(0.667, 0.000, 0.012); // #AA0003  Scarlet Glacier peakA
+    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863); // #BFB4DC  Scarlet Glacier peakB
+    vec3 cMagenta     = vec3(1.000, 0.000, 1.000); // #FF00FF  Retro Future peakA
+    vec3 cYellow      = vec3(1.000, 1.000, 0.000); // #FFFF00  Retro Future peakB
+
+    // 14 states over 70s cycle — original 9 plus 5 new palettes inserted at tonally
+    // compatible positions. Each state's to-pair matches the next state's from-pair
+    // so smoothstep transitions are continuous everywhere.
+    float cycleSec = 70.0;
     float progress = mod(uTime, cycleSec) / cycleSec;
-    float segProgress = progress * 9.0;
+    float segProgress = progress * 14.0;
     int segIndex = int(floor(segProgress));
     float t = ssmooth(segProgress - floor(segProgress));
 
     // Current state pair [fromA, fromB] → next state pair [toA, toB]
     vec3 fromA, fromB, toA, toB;
-    if (segIndex == 0)      { fromA = cOrchid;    fromB = cOrchid;    toA = cBlue;      toB = cSalmon;    } // orchid → blue+salmon
-    else if (segIndex == 1) { fromA = cBlue;      fromB = cSalmon;    toA = cGreen;     toB = cGreen;     } // blue+salmon → green
-    else if (segIndex == 2) { fromA = cGreen;     fromB = cGreen;     toA = cOrchid;    toB = cTurquoise; } // green → orchid+turquoise
-    else if (segIndex == 3) { fromA = cOrchid;    fromB = cTurquoise; toA = cSalmon;    toB = cSalmon;    } // orchid+turquoise → salmon
-    else if (segIndex == 4) { fromA = cSalmon;    fromB = cSalmon;    toA = cBlue;      toB = cTurquoise; } // salmon → blue+turquoise
-    else if (segIndex == 5) { fromA = cBlue;      fromB = cTurquoise; toA = cBlue;      toB = cBlue;      } // blue+turquoise → blue
-    else if (segIndex == 6) { fromA = cBlue;      fromB = cBlue;      toA = cOrchid;    toB = cGreen;     } // blue → orchid+green
-    else if (segIndex == 7) { fromA = cOrchid;    fromB = cGreen;     toA = cTurquoise; toB = cTurquoise; } // orchid+green → turquoise
-    else                    { fromA = cTurquoise; fromB = cTurquoise; toA = cOrchid;    toB = cOrchid;    } // turquoise → orchid (loop)
+    if (segIndex == 0)       { fromA = cOrchid;     fromB = cOrchid;      toA = cBlue;        toB = cSalmon;      } // orchid → blue+salmon
+    else if (segIndex == 1)  { fromA = cBlue;       fromB = cSalmon;      toA = cGreen;       toB = cGreen;       } // blue+salmon → green
+    else if (segIndex == 2)  { fromA = cGreen;      fromB = cGreen;       toA = cGold;        toB = cVanilla;     } // green → Ancient Gild
+    else if (segIndex == 3)  { fromA = cGold;       fromB = cVanilla;     toA = cOrchid;      toB = cTurquoise;   } // Ancient Gild → orchid+turquoise (bridge)
+    else if (segIndex == 4)  { fromA = cOrchid;     fromB = cTurquoise;   toA = cSalmon;      toB = cSalmon;      } // orchid+turquoise → salmon
+    else if (segIndex == 5)  { fromA = cSalmon;     fromB = cSalmon;      toA = cBurntPeach;  toB = cSoftApricot; } // salmon → Terracotta Sunset
+    else if (segIndex == 6)  { fromA = cBurntPeach; fromB = cSoftApricot; toA = cWine;        toB = cAshGrey;     } // Terracotta → Vintage Hearth
+    else if (segIndex == 7)  { fromA = cWine;       fromB = cAshGrey;     toA = cBlue;        toB = cTurquoise;   } // Vintage Hearth → blue+turquoise (bridge)
+    else if (segIndex == 8)  { fromA = cBlue;       fromB = cTurquoise;   toA = cBlue;        toB = cBlue;        } // blue+turquoise → blue
+    else if (segIndex == 9)  { fromA = cBlue;       fromB = cBlue;        toA = cInferno;     toB = cPeriwinkle;  } // blue → Scarlet Glacier
+    else if (segIndex == 10) { fromA = cInferno;    fromB = cPeriwinkle;  toA = cMagenta;     toB = cYellow;      } // Scarlet → Retro Future
+    else if (segIndex == 11) { fromA = cMagenta;    fromB = cYellow;      toA = cOrchid;      toB = cGreen;       } // Retro Future → orchid+green (bridge)
+    else if (segIndex == 12) { fromA = cOrchid;     fromB = cGreen;       toA = cTurquoise;   toB = cTurquoise;   } // orchid+green → turquoise
+    else                     { fromA = cTurquoise;  fromB = cTurquoise;   toA = cOrchid;      toB = cOrchid;      } // turquoise → orchid (loop)
 
     vec3 peakA = mix(fromA, toA, t);
     vec3 peakB = mix(fromB, toB, t);
@@ -132,7 +150,7 @@ const fragmentShader = `
     // ═══ 2. DUAL TEXTURES: smooth + pixelated ═══
     vec3 smoothColor = getGradientColor(vUv);
 
-    float blockPx = 45.0; // ~45px square blocks
+    float blockPx = 32.0; // ~32px square blocks
     vec2 grid = uResolution / blockPx;
     vec2 cellId = floor(vUv * grid);
     vec2 pixelUv = cellId / grid;

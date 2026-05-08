@@ -4,8 +4,9 @@ import { useEffect, useRef } from 'react'
 import { SHARED_START } from './sharedTime'
 
 const CHARS = '0123456789@#$%&*+=?<>{}[]/\\|LABS'
-const SHADER_BLOCK_PX = 45 // Must match blockPx in PixelGradientCanvas shader
+const SHADER_BLOCK_PX = 32 // CSS px — matches blockPx in PixelGradientCanvas shader (DPR-independent)
 const FILL_CHANCE = 0.4
+const FONT_SIZE = 12 // Matches AsciiOverlay (hero) so both ASCII layers feel identical
 
 export default function FinderAsciiOverlay() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -16,8 +17,7 @@ export default function FinderAsciiOverlay() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const dpr = window.devicePixelRatio || 1
-    const cssBlockSize = SHADER_BLOCK_PX / dpr
+    const cssBlockSize = SHADER_BLOCK_PX
 
     // Find the sibling WebGL canvas to sample actual rendered pixels
     const glCanvas = canvas.parentElement?.querySelector('canvas:not(.exp-ascii-overlay)') as HTMLCanvasElement | null
@@ -63,7 +63,7 @@ export default function FinderAsciiOverlay() {
     initGrid()
 
     let rafId: number
-    const fontSize = Math.round(cssBlockSize * 0.55)
+    const fontSize = FONT_SIZE
 
     const render = () => {
       const time = performance.now() / 1000 - SHARED_START

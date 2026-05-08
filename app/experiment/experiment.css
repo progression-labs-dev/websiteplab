@@ -369,22 +369,22 @@ html:has(.experiment) { scroll-behavior: auto; }
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   transition: opacity 0.5s var(--exp-ease);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
   font-family: 'Inter', sans-serif;
 }
 
 .exp-nav-logo-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin-left: 12px;
 }
 
 .exp-nav-logo {
-  width: 26px;
-  height: 26px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,10 +399,10 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 .exp-nav-brand {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--exp-text-primary);
   white-space: nowrap;
   transition: opacity 0.6s var(--exp-ease);
@@ -421,9 +421,9 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-nav-links a {
   color: var(--exp-text-secondary);
   text-decoration: none;
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
   transition: color 0.2s ease;
 }
 
@@ -436,6 +436,12 @@ html:has(.experiment) { scroll-behavior: auto; }
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.exp-nav-cta .exp-btn-outline {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
 }
 
 .exp-theme-toggle {
@@ -851,7 +857,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 /* Text content sits above the WebGL canvas with dark scrim for readability */
 .exp-col-label-content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.35) 0%,
@@ -864,6 +870,18 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 /* Fine grid lines — only visible where the gradient has color, fades with it */
+/* SVG feTurbulence grain — same grain treatment as .exp-hero-frame::after */
+.exp-col-label--gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+}
+
 .exp-col-label--gradient::before {
   content: '';
   position: absolute;
@@ -1925,13 +1943,25 @@ html:has(.experiment) { scroll-behavior: auto; }
   overflow: hidden;
 }
 
+/* SVG feTurbulence grain — same grain treatment as .exp-hero-frame::after */
+.exp-footer::after {
+  content: '';
+  position: absolute;
+  inset: 0 80px;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+}
+
 .exp-footer > canvas {
   pointer-events: none;
 }
 
 .exp-footer .exp-pre-footer {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   border-top: 1px dashed rgba(255, 255, 255, 0.12);
   border-bottom: none;
   padding: 24px 96px;
@@ -1940,7 +1970,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 .exp-footer-brand {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   padding: 40px 80px 40px;
   text-align: right;
 }

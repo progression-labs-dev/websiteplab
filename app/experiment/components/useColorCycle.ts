@@ -5,25 +5,42 @@ import { SHARED_START } from './sharedTime'
 
 // Brand palette — same 5 colors as hero shader
 const cO: [number, number, number] = [186, 85, 211]   // Orchid
-const cS: [number, number, number] = [255, 160, 122]   // Salmon
-const cG: [number, number, number] = [185, 233, 121]   // Green
-const cT: [number, number, number] = [64, 224, 208]     // Turquoise
-const cB: [number, number, number] = [0, 0, 255]        // Blue
+const cS: [number, number, number] = [255, 160, 122]  // Salmon
+const cG: [number, number, number] = [185, 233, 121]  // Green
+const cT: [number, number, number] = [64, 224, 208]   // Turquoise
+const cB: [number, number, number] = [0, 0, 255]      // Blue
 
-// 9-state dual-color cycle — mirrors hero shader exactly
+// Extended palette — peak pairs for 5 themed states (mirrors shader cGold/cVanilla/etc.)
+const cGold: [number, number, number]        = [184, 171, 56]   // #B8AB38
+const cVanilla: [number, number, number]     = [224, 215, 148]  // #E0D794
+const cWine: [number, number, number]        = [111, 29, 27]    // #6F1D1B
+const cAshGrey: [number, number, number]     = [173, 189, 171]  // #ADBDAB
+const cBurntPeach: [number, number, number]  = [226, 114, 91]   // #E2725B
+const cSoftApricot: [number, number, number] = [255, 218, 185]  // #FFDAB9
+const cInferno: [number, number, number]     = [170, 0, 3]      // #AA0003
+const cPeriwinkle: [number, number, number]  = [191, 180, 220]  // #BFB4DC
+const cMagenta: [number, number, number]     = [255, 0, 255]    // #FF00FF
+const cYellow: [number, number, number]      = [255, 255, 0]    // #FFFF00
+
+// 14-state dual-color cycle — mirrors hero/FYF/footer shaders exactly
 const STATES: [[number,number,number],[number,number,number],[number,number,number],[number,number,number]][] = [
-  [cO, cO, cB, cS], // 0: Orchid → Blue + Salmon
-  [cB, cS, cG, cG], // 1: Blue + Salmon → Green
-  [cG, cG, cO, cT], // 2: Green → Orchid + Turquoise
-  [cO, cT, cS, cS], // 3: Orchid + Turquoise → Salmon
-  [cS, cS, cB, cT], // 4: Salmon → Blue + Turquoise
-  [cB, cT, cB, cB], // 5: Blue + Turquoise → Blue
-  [cB, cB, cO, cG], // 6: Blue → Orchid + Green
-  [cO, cG, cT, cT], // 7: Orchid + Green → Turquoise
-  [cT, cT, cO, cO], // 8: Turquoise → Orchid
+  [cO,          cO,           cB,          cS],          // 0
+  [cB,          cS,           cG,          cG],          // 1
+  [cG,          cG,           cGold,       cVanilla],    // 2  → Ancient Gild
+  [cGold,       cVanilla,     cO,          cT],          // 3  bridge
+  [cO,          cT,           cS,          cS],          // 4
+  [cS,          cS,           cBurntPeach, cSoftApricot],// 5  → Terracotta Sunset
+  [cBurntPeach, cSoftApricot, cWine,       cAshGrey],    // 6  → Vintage Hearth
+  [cWine,       cAshGrey,     cB,          cT],          // 7  bridge
+  [cB,          cT,           cB,          cB],          // 8
+  [cB,          cB,           cInferno,    cPeriwinkle], // 9  → Scarlet Glacier
+  [cInferno,    cPeriwinkle,  cMagenta,    cYellow],     // 10 → Retro Future
+  [cMagenta,    cYellow,      cO,          cG],          // 11 bridge
+  [cO,          cG,           cT,          cT],          // 12
+  [cT,          cT,           cO,          cO],          // 13
 ]
 
-const CYCLE_SEC = 45
+const CYCLE_SEC = 70
 function ssmooth(t: number) { return t * t * (3 - 2 * t) }
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
@@ -37,8 +54,8 @@ let rafId: number | null = null
 function tick() {
   const elapsed = performance.now() / 1000 - SHARED_START
   const progress = ((elapsed % CYCLE_SEC) + CYCLE_SEC) % CYCLE_SEC / CYCLE_SEC
-  const segProgress = progress * 9
-  const segIndex = Math.min(Math.floor(segProgress), 8)
+  const segProgress = progress * 14
+  const segIndex = Math.min(Math.floor(segProgress), 13)
   const t = ssmooth(segProgress - Math.floor(segProgress))
 
   const [fA, fB, tA, tB] = STATES[segIndex]

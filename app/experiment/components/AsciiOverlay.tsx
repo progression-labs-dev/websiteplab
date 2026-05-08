@@ -8,8 +8,9 @@ interface AsciiOverlayProps {
 
 // Expanded character set for more organic texture
 const CHARS = '0123456789@#$%&*+=?<>{}[]/\\|LABS'
-const BLOCK_SIZE = 45 // Matches 'float blockPx = 45.0;' in HeroGradientGL
+const BLOCK_SIZE = 32 // Matches 'float blockPx = 32.0;' in HeroGradientGL
 const FILL_CHANCE = 0.4
+const FONT_SIZE = 12 // Scaled from 14 to keep proportion with the smaller block grid
 
 export default function AsciiOverlay({ active }: AsciiOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -71,7 +72,7 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
       const aspect = width / height
 
       ctx.clearRect(0, 0, width, height)
-      ctx.font = `500 14px "Inter", sans-serif`
+      ctx.font = `500 ${FONT_SIZE}px "Inter", sans-serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
