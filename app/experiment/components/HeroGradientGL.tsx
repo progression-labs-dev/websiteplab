@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SHARED_START } from './sharedTime'
+import { useTheme } from './ThemeProvider'
 
 interface HeroGradientGLProps {
   revealTrigger: boolean
@@ -25,6 +26,7 @@ const fragmentShader = `
   uniform vec2 uResolution;      // container size in px
   uniform vec2 uMouse;           // damped mouse position in UV space (0-1)
   uniform float uMouseActive;    // 0 = not hovering, 1 = hovering (GSAP-animated)
+  uniform float uLightMode;      // 0 = dark (black floor/white wash), 1 = light (peak*0.25 floor / parchment wash)
 
   varying vec2 vUv;
 
@@ -73,7 +75,51 @@ const fragmentShader = `
     float protection = smoothstep(0.0, 0.25, gp);
     gp = clamp(gp + wave * protection, 0.0, 1.0);
 
-    // ── Smooth luminance ramp: overlapping smoothsteps eliminate visible seams ──
+    // Light mode: deep, hue-preserving companion at the canvas top → vibrant
+    // peak in the upper-mid → pastel tint in the lower-mid → parchment at the
+    // bottom. The deepPeak formula is HUE-PRESERVING: for warm peaks where R
+    // >= G AND there's yellow content (min(R,G) > B), we reduce G to shift the
+    // hue toward red (so yellow → amber, not muddy olive). Cool/green/magenta
+    // peaks are left in place because they don't suffer the yellow-olive
+    // problem. After the hue shift we darken and slightly saturation-boost
+    // (subtract a fraction of the min channel) so every cycle state has a
+    // clean rich deep colour, never a grey/dirty mid-tone.
+    if (uLightMode > 0.5) {
+      vec3 parchment = vec3(0.957, 0.945, 0.918);   // #F4F1EA
+      vec3 tint      = mix(peak, parchment, 0.6);   // light pastel of peak hue
+
+      // Hue-preserving shifts: warm-yellow peaks (R >= G) drop G toward red;
+      // green peaks (G > R) drop R toward forest. Both prevent muddy olive when
+      // the peak is yellow or yellow-green (brand cGreen).
+      float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
+      float yellowShift = warmBias * step(peak.g, peak.r);        // R >= G
+      float greenShift  = warmBias * step(peak.r, peak.g) * (1.0 - step(peak.g, peak.r));  // R < G strictly
+      vec3 hueShifted = vec3(
+        peak.r * (1.0 - greenShift * 0.50),
+        peak.g * (1.0 - yellowShift * 0.55),
+        peak.b
+      );
+
+      // Darken and saturation-boost (subtract part of min channel to keep hue rich)
+      vec3 darkened  = hueShifted * 0.45;
+      float minCh    = min(min(darkened.r, darkened.g), darkened.b);
+      vec3 deepPeak  = max(darkened - vec3(minCh * 0.55), vec3(0.0));
+
+      // Wide tint→peak transition so the gradient is continuously varying
+      // across the canvas. This gives the pixel-mosaic per-column samples
+      // different colours at every height (instead of a flat peak zone where
+      // neighbouring columns sample identical peak and the mosaic vanishes).
+      float t1 = smoothstep(0.00, 0.08, gp);   // parchment → tint (thin bottom band)
+      float t2 = smoothstep(0.05, 0.80, gp);   // tint → peak (wide continuous transition)
+      float t3 = smoothstep(0.88, 1.00, gp);   // peak → deepPeak (thin top strip)
+
+      vec3 color = mix(parchment, tint, t1);
+      color = mix(color, peak, t2);
+      color = mix(color, deepPeak, t3);
+      return color;
+    }
+
+    // Dark mode: original 5-zone ramp — UNCHANGED from the live site.
     vec3 deep = peak * 0.06;
     vec3 mid  = peak * 0.35;
     vec3 wash = mix(peak, vec3(1.0), 0.5);
@@ -155,10 +201,28 @@ const fragmentShader = `
     vec2 cellId = floor(vUv * grid);
     vec2 pixelUv = cellId / grid;
     // Per-COLUMN y-offset: each column samples a slightly different gradient position
-    // Breaks horizontal banding while keeping vertical coherence within each column
+    // Breaks horizontal banding while keeping vertical coherence within each column.
+    // Light mode amplifies the offset 3× so neighbouring blocks sample meaningfully
+    // different vertical positions even where the gradient slope is gentle (the wide
+    // tint→peak band that otherwise makes the mosaic vanish).
     float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
-    pixelUv.y += colOffset;
+    float actualOffset = mix(colOffset, colOffset * 3.0, uLightMode);
+    pixelUv.y += actualOffset;
     vec3 pixelColor = getGradientColor(pixelUv);
+
+    // Light mode: mix each block toward a saturated reference sampled from the
+    // deepPeak zone (gp = 0.90..0.98) of the same column. A multiplicative
+    // jitter wasn't enough on the bright tint/parchment areas — when pixelColor
+    // is near (0.95, 0.94, 0.92) scaling it by 0.85..1.15 barely changes it.
+    // Mixing toward an actual saturated hue gives every block visible dark/light
+    // contrast regardless of how flat the underlying smooth gradient is here,
+    // so the diagonal shimmer band now reads end-to-end like it does in dark mode.
+    if (uLightMode > 0.5) {
+      float blockHash = hash(cellId);
+      vec2 satUv = vec2(pixelUv.x, mix(0.90, 0.98, blockHash));
+      vec3 satRef = getGradientColor(satUv);
+      pixelColor = mix(pixelColor, satRef, 0.30 + 0.35 * blockHash);
+    }
 
     // ═══ 3. ORGANIC REVEAL MASK (Gaussian falloff) ═══
     float aspect = uResolution.x / uResolution.y;
@@ -167,8 +231,11 @@ const fragmentShader = `
     float mouseMask = exp(-dist * dist * 18.0) * uMouseActive;
 
     // ─── Ambient diagonal shimmer (sweeps top-left → bottom-right) ───
+    // Slow the sweep in light mode (0.18 vs 0.25 = ~5.5s vs 4s cycle) so the
+    // band is more perceptible as moving across the canvas.
     float diag = (vUv.x + 1.0 - vUv.y) * 0.5;
-    float shimmerPos = fract(uTime * 0.25);
+    float shimmerSpeed = mix(0.25, 0.18, uLightMode);
+    float shimmerPos = fract(uTime * shimmerSpeed);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
     float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
@@ -186,15 +253,17 @@ const fragmentShader = `
       float noise = hash(cell);
       float sweep = 1.0 - vUv.y;
       float threshold = noise * 0.3 + sweep * 0.7;
-      vec3 darkColor = vec3(0.14);
+      // Reveal palette adapts to mode so the parchment page doesn't flash dark.
+      vec3 baseColor = mix(vec3(0.004), vec3(0.957, 0.945, 0.918), uLightMode);
+      vec3 dimColor  = mix(vec3(0.14),  vec3(0.85),                 uLightMode);
 
       if (uRevealProgress > threshold + 0.08) {
         // Fully revealed — show blended gradient
       } else if (uRevealProgress > threshold) {
-        gl_FragColor = vec4(darkColor, 1.0);
+        gl_FragColor = vec4(dimColor, 1.0);
         return;
       } else {
-        gl_FragColor = vec4(vec3(0.004), 1.0);
+        gl_FragColor = vec4(baseColor, 1.0);
         return;
       }
     }
@@ -204,6 +273,7 @@ const fragmentShader = `
 `
 
 export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
+  const { isDark } = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
@@ -249,6 +319,7 @@ export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
         uResolution: { value: new THREE.Vector2(width, height) },
         uMouse: { value: new THREE.Vector2(0.5, 0.5) },
         uMouseActive: { value: 0 },
+        uLightMode: { value: isDark ? 0 : 1 },
       },
     })
     materialRef.current = material
@@ -365,6 +436,12 @@ export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
       })
     }
   }, [])
+
+  // Sync uLightMode uniform to current theme
+  useEffect(() => {
+    if (!materialRef.current) return
+    materialRef.current.uniforms.uLightMode.value = isDark ? 0 : 1
+  }, [isDark])
 
   // Trigger page-load reveal animation via GSAP
   useEffect(() => {

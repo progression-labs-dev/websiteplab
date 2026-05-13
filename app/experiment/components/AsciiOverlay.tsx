@@ -76,6 +76,14 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
+      // Theme-aware ink: white on dark bg, electric royal blue on parchment.
+      // Light mode also boosts the alpha multiplier so royal blue actually reads
+      // against the high-luminance parchment background — at the default 0.6 mask
+      // it would otherwise come through as a barely-visible pale blue tint.
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light'
+      const inkRgb = isLight ? '30, 91, 255' : '255, 255, 255'
+      const inkAlphaMul = isLight ? 1.6 : 1.0
+
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i]
 
@@ -105,8 +113,8 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
 
         // ONLY DRAW if the mask is actually active (no lingering background text)
         if (mask > 0.01) {
-          const finalAlpha = mask * cell.brightness
-          ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
+          const finalAlpha = Math.min(mask * cell.brightness * inkAlphaMul, 1.0)
+          ctx.fillStyle = `rgba(${inkRgb}, ${finalAlpha})`
           ctx.fillText(cell.char, px, py)
         }
       }

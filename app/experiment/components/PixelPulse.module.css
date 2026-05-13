@@ -5,7 +5,7 @@
   align-items: center;
   width: var(--pp-size);
   height: var(--pp-size);
-  background: #000;
+  background: var(--exp-bg);
 }
 
 .grid {
@@ -17,7 +17,7 @@
 }
 
 .box {
-  background: #fff;
+  background: var(--exp-text-primary);
   border-radius: 0;
   animation: pixelPulse 1.2s infinite ease-in-out;
 }

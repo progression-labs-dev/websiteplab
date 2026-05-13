@@ -87,10 +87,24 @@ export default function CTASection() {
         {/* Pre-footer info — sits above the gradient */}
         <div className="exp-pre-footer">
           <div className="exp-pre-footer-logo">
-            <img
-              src="/logo-white.png"
-              alt="Progression Labs"
-              style={{ height: 20, width: 'auto', opacity: 0.5 }}
+            <span
+              role="img"
+              aria-label="Progression Labs"
+              style={{
+                display: 'inline-block',
+                width: 20,
+                height: 20,
+                opacity: 0.7,
+                backgroundColor: 'var(--exp-text-primary)',
+                WebkitMaskImage: 'url(/logo-white.png)',
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: 'url(/logo-white.png)',
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+              }}
             />
             <span>Progression Labs</span>
           </div>

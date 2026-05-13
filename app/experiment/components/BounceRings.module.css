@@ -44,7 +44,7 @@
 }
 
 .label {
-  color: #ffffff;
+  color: var(--exp-text-primary);
   font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: 500;

@@ -81,46 +81,47 @@
   --exp-logo-invert: brightness(0) invert(1);
 }
 
-/* ─── Light Mode Overrides ─── */
+/* ─── Light Mode Overrides — Parchment + Electric Royal Blue ─── */
 [data-theme="light"] {
-  --exp-white: #1a1a1a;
-  --exp-black: #fafafa;
-  --exp-gray: #555555;
+  --exp-white: #1E5BFF;          /* electric royal — primary ink */
+  --exp-black: #F4F1EA;          /* parchment — bg / filled-button text */
+  --exp-gray: #2A3168;           /* deep ink for secondary content */
 
-  --exp-border: rgba(0, 0, 0, 0.1);
-  --exp-border-hover: rgba(0, 0, 0, 0.15);
-  --exp-bracket: rgba(0, 0, 0, 0.2);
+  --exp-border: rgba(30, 91, 255, 0.55);      /* electric royal dashed frame, more visible */
+  --exp-border-hover: rgba(30, 91, 255, 0.75);
+  --exp-bracket: rgba(30, 91, 255, 0.55);
 
-  --alpha-02: rgba(0, 0, 0, 0.02);
-  --alpha-03: rgba(0, 0, 0, 0.03);
-  --alpha-04: rgba(0, 0, 0, 0.04);
-  --alpha-05: rgba(0, 0, 0, 0.05);
-  --alpha-06: rgba(0, 0, 0, 0.06);
-  --alpha-08: rgba(0, 0, 0, 0.08);
-  --alpha-10: rgba(0, 0, 0, 0.1);
-  --alpha-12: rgba(0, 0, 0, 0.12);
-  --alpha-15: rgba(0, 0, 0, 0.15);
-  --alpha-18: rgba(0, 0, 0, 0.18);
-  --alpha-20: rgba(0, 0, 0, 0.2);
-  --alpha-25: rgba(0, 0, 0, 0.25);
-  --alpha-30: rgba(0, 0, 0, 0.3);
-  --alpha-35: rgba(0, 0, 0, 0.35);
-  --alpha-45: rgba(0, 0, 0, 0.45);
-  --alpha-50: rgba(0, 0, 0, 0.5);
-  --alpha-60: rgba(0, 0, 0, 0.6);
-  --alpha-80: rgba(0, 0, 0, 0.8);
+  /* General ink alpha — electric royal so dashed lines and accents pop */
+  --alpha-02: rgba(30, 91, 255, 0.04);
+  --alpha-03: rgba(30, 91, 255, 0.05);
+  --alpha-04: rgba(30, 91, 255, 0.06);
+  --alpha-05: rgba(30, 91, 255, 0.07);
+  --alpha-06: rgba(30, 91, 255, 0.08);
+  --alpha-08: rgba(30, 91, 255, 0.10);
+  --alpha-10: rgba(30, 91, 255, 0.14);
+  --alpha-12: rgba(30, 91, 255, 0.50);        /* dashed border lines — very visible */
+  --alpha-15: rgba(30, 91, 255, 0.20);
+  --alpha-18: rgba(30, 91, 255, 0.24);
+  --alpha-20: rgba(30, 91, 255, 0.28);
+  --alpha-25: rgba(30, 91, 255, 0.32);
+  --alpha-30: rgba(30, 91, 255, 0.40);
+  --alpha-35: rgba(30, 91, 255, 0.48);
+  --alpha-45: rgba(30, 91, 255, 0.55);
+  --alpha-50: rgba(30, 91, 255, 0.62);
+  --alpha-60: rgba(30, 91, 255, 0.72);
+  --alpha-80: rgba(30, 91, 255, 0.88);
 
-  --exp-bg: #fafafa;
-  --exp-surface: rgba(0, 0, 0, 0.02);
-  --exp-surface-hover: rgba(0, 0, 0, 0.08);
-  --exp-text-primary: #1a1a1a;
-  --exp-text-secondary: #555555;
-  --exp-text-tertiary: rgba(0, 0, 0, 0.45);
+  --exp-bg: #F4F1EA;             /* parchment */
+  --exp-surface: rgba(30, 91, 255, 0.05);
+  --exp-surface-hover: rgba(30, 91, 255, 0.10);
+  --exp-text-primary: #1E5BFF;   /* electric royal */
+  --exp-text-secondary: #2A3168;
+  --exp-text-tertiary: rgba(42, 49, 104, 0.65);
 
-  --exp-hero-overlay: linear-gradient(to top, rgba(255, 255, 255, 0.65), transparent);
-  --exp-hero-frame-bg: #fafafa;
+  --exp-hero-overlay: linear-gradient(to top, rgba(244, 241, 234, 0.70), transparent);
+  --exp-hero-frame-bg: #F4F1EA;
 
-  --exp-scanner-curtain: #1a1a1a;
+  --exp-scanner-curtain: #1E5BFF;
 
   --exp-logo-invert: brightness(0);
 }
@@ -167,8 +168,8 @@ html:has(.experiment) { scroll-behavior: auto; }
   bottom: 0;
   left: 80px;
   right: 80px;
-  border-left: 1px dashed rgba(255, 255, 255, 0.12);
-  border-right: 1px dashed rgba(255, 255, 255, 0.12);
+  border-left: 1px dashed var(--alpha-12);
+  border-right: 1px dashed var(--alpha-12);
   pointer-events: none;
   z-index: 3;
 }
@@ -233,7 +234,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   padding: 0;
   height: 0;
   background: none;
-  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  border-top: 1px dashed var(--alpha-12);
   margin-left: 80px;
   margin-right: 80px;
   margin-top: -1px; /* overlap with section above to close sub-pixel gaps */
@@ -272,11 +273,11 @@ html:has(.experiment) { scroll-behavior: auto; }
   position: relative;
   width: 100%;
   min-height: calc(100dvh - 152px); /* 72px top + 80px bottom padding */
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed var(--alpha-12);
   border-radius: 0;
   overflow: hidden;
   /* Canvas handles the animated hue-cycling gradient — this is just a fallback */
-  background: #010101;
+  background: var(--exp-hero-frame-bg);
 }
 
 /* Text readability overlay — strong dark gradient at bottom for WCAG AA contrast */
@@ -290,6 +291,14 @@ html:has(.experiment) { scroll-behavior: auto; }
   background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.5) 40%, transparent 100%);
   z-index: 1;
   pointer-events: none;
+}
+
+/* Light mode: the shader's colour ramp already fades to parchment at the
+   bottom, so we don't need a CSS overlay here. Hiding the ::before so the
+   pixel shimmer and ASCII overlay are visible across the full canvas
+   instead of being covered in the bottom half. */
+[data-theme="light"] .exp-hero-frame::before {
+  display: none;
 }
 
 /* Static grain/noise overlay via SVG feTurbulence */
@@ -478,7 +487,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--alpha-30);
   border-radius: 0;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
@@ -486,18 +495,18 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-btn-outline:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--alpha-60);
+  background: var(--alpha-05);
 }
 
 .exp-btn-outline--secondary {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--alpha-15);
   color: var(--exp-text-secondary);
   font-size: 10px;
 }
 
 .exp-btn-outline--secondary:hover {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--alpha-35);
   color: var(--exp-text-primary);
 }
 
@@ -520,7 +529,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-btn-filled:hover {
-  background: #e0e0e0;
+  background: color-mix(in oklab, var(--exp-text-primary), #000 12%);
 }
 
 .exp-btn-filled:hover .exp-arrow-icon,
@@ -922,11 +931,11 @@ html:has(.experiment) { scroll-behavior: auto; }
   font-size: var(--exp-h1);
   line-height: 1.35;
   margin-bottom: 16px;
-  color: #fff;
+  color: var(--exp-text-primary);
 }
 
 .exp-col-label--gradient .exp-label-desc {
-  color: #fff;
+  color: var(--exp-text-primary);
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 24px;

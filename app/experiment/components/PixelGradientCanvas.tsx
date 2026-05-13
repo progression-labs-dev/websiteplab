@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { SHARED_START } from './sharedTime';
+import { useTheme } from './ThemeProvider';
 
 const vertexShaderSource = `
   attribute vec2 position;
@@ -14,6 +15,7 @@ const fragmentShaderSource = `
   precision highp float;
   uniform vec2 u_resolution; // CSS pixels (DPR-independent, matches HeroGradientGL.uResolution)
   uniform float u_time;
+  uniform float u_light_mode; // 0 = dark, 1 = light (parchment floor + wash)
   varying vec2 vUv;
 
   float hash(vec2 p) {
@@ -104,7 +106,38 @@ const fragmentShaderSource = `
     float protection = smoothstep(0.0, 0.25, gp);
     gp = clamp(gp + wave * protection, 0.0, 1.0);
 
-    // 5-zone luminance ramp (matches HeroGradientGL)
+    // Light mode: hue-preserving deep companion at top → peak → tint →
+    // parchment at bottom (matches HeroGradientGL). Yellow-shift fix prevents
+    // muddy olive when the peak has R ≈ G.
+    if (u_light_mode > 0.5) {
+      vec3 parchment = vec3(0.957, 0.945, 0.918);
+      vec3 tint      = mix(peak, parchment, 0.6);
+
+      float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
+      float yellowShift = warmBias * step(peak.g, peak.r);
+      float greenShift  = warmBias * step(peak.r, peak.g) * (1.0 - step(peak.g, peak.r));
+      vec3 hueShifted = vec3(
+        peak.r * (1.0 - greenShift * 0.50),
+        peak.g * (1.0 - yellowShift * 0.55),
+        peak.b
+      );
+
+      vec3 darkened  = hueShifted * 0.45;
+      float minCh    = min(min(darkened.r, darkened.g), darkened.b);
+      vec3 deepPeak  = max(darkened - vec3(minCh * 0.55), vec3(0.0));
+
+      // Wide tint→peak so pixel-mosaic has variation across the whole canvas.
+      float t1 = smoothstep(0.00, 0.08, gp);
+      float t2 = smoothstep(0.05, 0.80, gp);
+      float t3 = smoothstep(0.88, 1.00, gp);
+
+      vec3 color = mix(parchment, tint, t1);
+      color = mix(color, peak, t2);
+      color = mix(color, deepPeak, t3);
+      return color;
+    }
+
+    // Dark mode: original 5-zone ramp — UNCHANGED from the live site.
     vec3 deep = peak * 0.06;
     vec3 mid  = peak * 0.35;
     vec3 wash = mix(peak, vec3(1.0), 0.5);
@@ -132,11 +165,14 @@ const fragmentShaderSource = `
     vec2 cellId = floor(uv * grid);
     vec2 pixelUv = cellId / grid + vec2(0.5) / grid;
 
-    // Per-column y-offset — matches hero (0.035)
+    // Per-column y-offset — matches hero (0.035). Light mode amplifies 3× so
+    // neighbouring blocks sample meaningfully different vertical positions across
+    // the wide tint→peak transition where the gradient slope is otherwise gentle.
     float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
-    pixelUv.y += colOffset;
+    float actualOffset = mix(colOffset, colOffset * 3.0, u_light_mode);
+    pixelUv.y += actualOffset;
 
-    // === Color cycling (same 9-state 45s cycle as hero) ===
+    // === Color cycling (same 14-state 70s cycle as hero) ===
     vec3 peakA, peakB;
     cycleColors(u_time, peakA, peakB);
 
@@ -146,9 +182,23 @@ const fragmentShaderSource = `
     // Pixelated color (per-block — only revealed during shimmer)
     vec3 pixelColor = computeGradient(pixelUv, u_time, peakA, peakB);
 
+    // Light mode: mix each block toward a saturated deepPeak reference (gp =
+    // 0.90..0.98) of the same column. Multiplicative jitter wasn't enough on
+    // the bright tint/parchment area — it left blocks visually indistinguishable
+    // from neighbours. Mixing toward an actual saturated hue gives every block
+    // strong dark/light contrast regardless of how flat the smooth gradient is,
+    // so the diagonal shimmer reads end-to-end like in dark mode.
+    if (u_light_mode > 0.5) {
+      float blockHash = hash(cellId);
+      vec2 satUv = vec2(pixelUv.x, mix(0.90, 0.98, blockHash));
+      vec3 satRef = computeGradient(satUv, u_time, peakA, peakB);
+      pixelColor = mix(pixelColor, satRef, 0.30 + 0.35 * blockHash);
+    }
+
     // === DIAGONAL SHIMMER — only mask, matches hero's no-mouse case ===
     float diag = (uv.x + 1.0 - uv.y) * 0.5;
-    float shimmerPos = fract(u_time * 0.25);
+    float shimmerSpeed = mix(0.25, 0.18, u_light_mode);
+    float shimmerPos = fract(u_time * shimmerSpeed);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
     float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
@@ -170,7 +220,12 @@ const fragmentShaderSource = `
     float rightPush = (1.0 - smoothstep(0.4, 1.0, pixelUv.x)) * 0.25;
     float edgePush = leftPush + rightPush;
 
-    float alpha = smoothstep(-0.55, 0.50, y + wave + edgePush);
+    // Dark mode keeps the wavy/pixelated alpha mask (atmospheric fade into black bg).
+    // Light mode forces alpha=1.0 — the colour ramp already fades to parchment at
+    // the bottom, so any blocky alpha variation just shows up as grey pixel
+    // artefacts against the parchment page bg.
+    float darkAlpha = smoothstep(-0.55, 0.50, y + wave + edgePush);
+    float alpha = mix(darkAlpha, 1.0, u_light_mode);
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -178,6 +233,13 @@ const fragmentShaderSource = `
 
 export default function PixelGradientCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { isDark } = useTheme();
+  const lightModeRef = useRef(isDark ? 0 : 1);
+
+  // Keep the ref in sync so the render loop reads the current theme value.
+  useEffect(() => {
+    lightModeRef.current = isDark ? 0 : 1;
+  }, [isDark]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -221,6 +283,7 @@ export default function PixelGradientCanvas() {
 
     const resolutionLoc = gl.getUniformLocation(program, 'u_resolution');
     const timeLoc = gl.getUniformLocation(program, 'u_time');
+    const lightModeLoc = gl.getUniformLocation(program, 'u_light_mode');
 
     // Handle Resize — viewport in device px, but pass CSS px to shader so the grid
     // is DPR-independent (matches HeroGradientGL.uResolution semantics)
@@ -237,6 +300,7 @@ export default function PixelGradientCanvas() {
     let animationFrameId: number;
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START);
+      gl.uniform1f(lightModeLoc, lightModeRef.current);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationFrameId = requestAnimationFrame(render);
     };
