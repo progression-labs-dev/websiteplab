@@ -86,7 +86,6 @@ const fragmentShader = `
     // clean rich deep colour, never a grey/dirty mid-tone.
     if (uLightMode > 0.5) {
       vec3 parchment = vec3(0.957, 0.945, 0.918);   // #F4F1EA
-      vec3 tint      = mix(peak, parchment, 0.6);   // light pastel of peak hue
 
       // Hue-preserving shifts: warm-yellow peaks (R >= G) drop G toward red;
       // green peaks (G > R) drop R toward forest. Both prevent muddy olive when
@@ -105,17 +104,25 @@ const fragmentShader = `
       float minCh    = min(min(darkened.r, darkened.g), darkened.b);
       vec3 deepPeak  = max(darkened - vec3(minCh * 0.55), vec3(0.0));
 
-      // Wide tint→peak transition so the gradient is continuously varying
-      // across the canvas. This gives the pixel-mosaic per-column samples
-      // different colours at every height (instead of a flat peak zone where
-      // neighbouring columns sample identical peak and the mosaic vanishes).
-      float t1 = smoothstep(0.00, 0.08, gp);   // parchment → tint (thin bottom band)
-      float t2 = smoothstep(0.05, 0.80, gp);   // tint → peak (wide continuous transition)
-      float t3 = smoothstep(0.88, 1.00, gp);   // peak → deepPeak (thin top strip)
+      // 5-zone ramp analogous to dark mode (line 122-138), inverted tonal
+      // direction (parchment bottom → deepest top). Transition widths copy
+      // dark mode exactly so the gradient has continuous slope at every gp,
+      // making the per-column y-offset mosaic visible across the full canvas.
+      vec3 wash      = mix(peak, parchment, 0.85);   // barely-tinted parchment
+      vec3 tint      = mix(peak, parchment, 0.55);   // clear pastel of peak hue
+      vec3 ultraDeep = deepPeak * 0.65;              // darker than deepPeak
 
-      vec3 color = mix(parchment, tint, t1);
-      color = mix(color, peak, t2);
-      color = mix(color, deepPeak, t3);
+      float t1 = smoothstep(0.00, 0.10, gp);  // parchment → wash
+      float t2 = smoothstep(0.06, 0.24, gp);  // wash → tint
+      float t3 = smoothstep(0.15, 0.55, gp);  // tint → peak
+      float t4 = smoothstep(0.45, 0.85, gp);  // peak → deepPeak
+      float t5 = smoothstep(0.75, 1.00, gp);  // deepPeak → ultraDeep
+
+      vec3 color = mix(parchment, wash, t1);
+      color = mix(color, tint, t2);
+      color = mix(color, peak, t3);
+      color = mix(color, deepPeak, t4);
+      color = mix(color, ultraDeep, t5);
       return color;
     }
 
@@ -202,27 +209,9 @@ const fragmentShader = `
     vec2 pixelUv = cellId / grid;
     // Per-COLUMN y-offset: each column samples a slightly different gradient position
     // Breaks horizontal banding while keeping vertical coherence within each column.
-    // Light mode amplifies the offset 3× so neighbouring blocks sample meaningfully
-    // different vertical positions even where the gradient slope is gentle (the wide
-    // tint→peak band that otherwise makes the mosaic vanish).
     float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
-    float actualOffset = mix(colOffset, colOffset * 3.0, uLightMode);
-    pixelUv.y += actualOffset;
+    pixelUv.y += colOffset;
     vec3 pixelColor = getGradientColor(pixelUv);
-
-    // Light mode: mix each block toward a saturated reference sampled from the
-    // deepPeak zone (gp = 0.90..0.98) of the same column. A multiplicative
-    // jitter wasn't enough on the bright tint/parchment areas — when pixelColor
-    // is near (0.95, 0.94, 0.92) scaling it by 0.85..1.15 barely changes it.
-    // Mixing toward an actual saturated hue gives every block visible dark/light
-    // contrast regardless of how flat the underlying smooth gradient is here,
-    // so the diagonal shimmer band now reads end-to-end like it does in dark mode.
-    if (uLightMode > 0.5) {
-      float blockHash = hash(cellId);
-      vec2 satUv = vec2(pixelUv.x, mix(0.90, 0.98, blockHash));
-      vec3 satRef = getGradientColor(satUv);
-      pixelColor = mix(pixelColor, satRef, 0.30 + 0.35 * blockHash);
-    }
 
     // ═══ 3. ORGANIC REVEAL MASK (Gaussian falloff) ═══
     float aspect = uResolution.x / uResolution.y;
