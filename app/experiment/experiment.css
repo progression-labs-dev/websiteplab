@@ -1061,6 +1061,11 @@ html:has(.experiment) { scroll-behavior: auto; }
   display: block;
 }
 
+/* AWS logo on the parchment body — royal blue ink instead of white-alpha. */
+[data-theme="light"] .exp-logo-static-img {
+  color: rgba(30, 91, 255, 0.75);
+}
+
 .exp-marquee {
   overflow: hidden;
   /* Edge fade masks for seamless loop illusion */
