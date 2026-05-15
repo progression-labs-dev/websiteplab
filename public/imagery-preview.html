@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Imagery Preview — Subject silhouette variants</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f5f5f5;
+      --muted: #8a8a8a;
+      --line: #1f1f1f;
+    }
+    * { box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--fg); margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif; }
+    main { max-width: 1600px; margin: 0 auto; padding: 48px 32px 96px; }
+    h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    p.lede { color: var(--muted); margin: 0 0 40px; max-width: 720px; line-height: 1.5; }
+    section { margin-bottom: 48px; padding: 24px 0 0; border-top: 1px solid var(--line); }
+    section header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+    section h2 { font-size: 18px; font-weight: 600; margin: 0; }
+    section .meta { color: var(--muted); font-size: 14px; }
+    section .pick { color: #b9e979; font-size: 13px; padding: 2px 8px; border: 1px solid #2a4a18; border-radius: 999px; }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    figure { margin: 0; }
+    figure img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #000; border-radius: 8px; border: 1px solid var(--line); }
+    figcaption { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    figcaption a { color: var(--muted); text-decoration: none; }
+    figcaption a:hover { color: var(--fg); }
+    figcaption .winner { color: #b9e979; }
+    .current-row figure img { aspect-ratio: 1 / 1; object-fit: contain; background: #050505; }
+    code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: #ddd; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Subject-silhouette variants — Nano Banana Pro</h1>
+  <p class="lede">
+    Four subjects × three variants each. Variant 3 (highlighted in green) was the strongest across every subject — random scattered ASCII rather than the alphabet-chart layout that bled into v1/v2. Click any image to open at full size.
+  </p>
+
+  <section>
+    <header>
+      <h2>Galloping Horse</h2>
+      <span class="meta">palette: <code>purple</code> · post: Vibe Coding</span>
+    </header>
+    <div class="row">
+      <figure><a href="/blog/horse-v1.png" target="_blank"><img src="/blog/horse-v1.png" alt="horse v1" /></a><figcaption><span>v1</span><span>chart ASCII</span></figcaption></figure>
+      <figure><a href="/blog/horse-v2.png" target="_blank"><img src="/blog/horse-v2.png" alt="horse v2" /></a><figcaption><span>v2</span><span>chart ASCII</span></figcaption></figure>
+      <figure><a href="/blog/horse-v3.png" target="_blank"><img src="/blog/horse-v3.png" alt="horse v3" /></a><figcaption><span class="winner">v3 ★</span><span class="winner">scattered ASCII</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <h2>Perched Owl</h2>
+      <span class="meta">palette: <code>green</code> · post: Ghost Intelligence</span>
+    </header>
+    <div class="row">
+      <figure><a href="/blog/owl-v1.png" target="_blank"><img src="/blog/owl-v1.png" alt="owl v1" /></a><figcaption><span>v1</span><span>photographic</span></figcaption></figure>
+      <figure><a href="/blog/owl-v2.png" target="_blank"><img src="/blog/owl-v2.png" alt="owl v2" /></a><figcaption><span>v2</span><span>photographic</span></figcaption></figure>
+      <figure><a href="/blog/owl-v3.png" target="_blank"><img src="/blog/owl-v3.png" alt="owl v3" /></a><figcaption><span class="winner">v3 ★</span><span class="winner">true mosaic</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <h2>Rising Phoenix</h2>
+      <span class="meta">palette: <code>sunset</code> · post: RLVR Revolution</span>
+    </header>
+    <div class="row">
+      <figure><a href="/blog/phoenix-v1.png" target="_blank"><img src="/blog/phoenix-v1.png" alt="phoenix v1" /></a><figcaption><span>v1</span><span>chart ASCII</span></figcaption></figure>
+      <figure><a href="/blog/phoenix-v2.png" target="_blank"><img src="/blog/phoenix-v2.png" alt="phoenix v2" /></a><figcaption><span>v2</span><span>poster mockup — reject</span></figcaption></figure>
+      <figure><a href="/blog/phoenix-v3.png" target="_blank"><img src="/blog/phoenix-v3.png" alt="phoenix v3" /></a><figcaption><span class="winner">v3 ★</span><span class="winner">scattered ASCII</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <h2>Drifting Jellyfish</h2>
+      <span class="meta">palette: <code>salmon</code> · post: Magnitude Earthquake</span>
+    </header>
+    <div class="row">
+      <figure><a href="/blog/jellyfish-v1.png" target="_blank"><img src="/blog/jellyfish-v1.png" alt="jellyfish v1" /></a><figcaption><span>v1</span><span>tentacle detail kept</span></figcaption></figure>
+      <figure><a href="/blog/jellyfish-v2.png" target="_blank"><img src="/blog/jellyfish-v2.png" alt="jellyfish v2" /></a><figcaption><span>v2</span><span>bell pixelated</span></figcaption></figure>
+      <figure><a href="/blog/jellyfish-v3.png" target="_blank"><img src="/blog/jellyfish-v3.png" alt="jellyfish v3" /></a><figcaption><span class="winner">v3 ★</span><span class="winner">closest match</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <header>
+      <h2>For comparison — current images on the site</h2>
+      <span class="meta">.mp4 files used today in BlogSection.tsx</span>
+    </header>
+    <div class="row current-row">
+      <figure><video src="/blog/blue-white-horse.mp4" autoplay muted loop playsinline></video><figcaption><span>blue-white-horse.mp4</span><span>Vibe Coding</span></figcaption></figure>
+      <figure><video src="/blog/green-yellow-frog.mp4" autoplay muted loop playsinline></video><figcaption><span>green-yellow-frog.mp4</span><span>Ghost Intelligence</span></figcaption></figure>
+      <figure><video src="/blog/vibrant-green-flower.mp4" autoplay muted loop playsinline></video><figcaption><span>vibrant-green-flower.mp4</span><span>RLVR Revolution</span></figcaption></figure>
+    </div>
+  </section>
+</main>
+</body>
+</html>

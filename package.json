@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen:imagery": "bun run scripts/gen-imagery/generate.ts",
+    "gen:imagery:proc": "bun run scripts/gen-imagery/procedural.ts"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@google/genai": "^2.3.0",
     "@gsap/react": "^2.1.2",
     "@huggingface/transformers": "^3.8.1",
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@napi-rs/canvas": "^1.0.0",
     "@posthog/react": "^1.8.2",
     "@types/three": "^0.183.1",
     "gsap": "^3.12.5",

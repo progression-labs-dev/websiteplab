@@ -3,5 +3,7 @@ node_modules/
 .next/
 out/
 .env
+.env*.local
 *.log
 screenshots/
+.playwright-mcp/
