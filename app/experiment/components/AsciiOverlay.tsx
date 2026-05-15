@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { SHARED_START } from './sharedTime'
 
 interface AsciiOverlayProps {
   active: boolean
@@ -60,7 +61,6 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
 
     initGrid()
 
-    const startTime = performance.now() / 1000
     let rafId: number
 
     const render = () => {
@@ -68,7 +68,9 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
       mouseY += (targetY - mouseY) * 0.08
       mouseActive += (targetActive - mouseActive) * 0.1
 
-      const time = performance.now() / 1000 - startTime
+      // Use SHARED_START so the shimmer phase matches the WebGL shader's uTime —
+      // overlay and underlying gradient stay perfectly in sync.
+      const time = performance.now() / 1000 - SHARED_START
       const aspect = width / height
 
       ctx.clearRect(0, 0, width, height)
@@ -76,13 +78,9 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
-      // Theme-aware ink: white on dark bg, electric royal blue on parchment.
-      // Light mode also boosts the alpha multiplier so royal blue actually reads
-      // against the high-luminance parchment background — at the default 0.6 mask
-      // it would otherwise come through as a barely-visible pale blue tint.
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light'
-      const inkRgb = isLight ? '30, 91, 255' : '255, 255, 255'
-      const inkAlphaMul = isLight ? 1.6 : 1.0
+      // White ink in both modes — matches the hero shader's shimmer aesthetic.
+      const inkRgb = '255, 255, 255'
+      const inkAlphaMul = 1.0
 
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i]

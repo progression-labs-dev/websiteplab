@@ -82,9 +82,9 @@ export default function FinderAsciiOverlay() {
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
-      // Theme-aware ink: white on dark bg, electric royal blue on parchment.
+      // White ink in both modes — matches the shader's shimmer aesthetic.
       const isLight = document.documentElement.getAttribute('data-theme') === 'light'
-      const inkRgb = isLight ? '30, 91, 255' : '255, 255, 255'
+      const inkRgb = '255, 255, 255'
 
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i]

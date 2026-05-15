@@ -41,6 +41,20 @@ export default function ExperimentPage() {
     return () => window.removeEventListener('scroll', track)
   }, [])
 
+  // Hybrid design: hero fades out as the user scrolls past its first
+  // viewport-height. Updates a CSS variable that .exp-hero-sticky reads
+  // for its opacity. By the time scrollY === innerHeight, the hero is
+  // fully transparent and the parchment world below is in view.
+  useEffect(() => {
+    const onScroll = () => {
+      const progress = Math.min(1, Math.max(0, window.scrollY / window.innerHeight))
+      document.documentElement.style.setProperty('--hero-fade', String(1 - progress))
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // Hard-cut scroll sync: capture percentage before swap, apply after
   useEffect(() => {
     if (prevModeRef.current === viewMode) return
@@ -84,37 +98,48 @@ export default function ExperimentPage() {
       {/* Both views always mounted — hard cut via display swap in single render frame */}
       <div style={{ display: isMachine ? 'none' : 'contents' }}>
         <ExperimentNav ref={navRef} showBrand={showBrand} />
-        <div data-section="hero">
-          <HeroSection onNavReveal={handleNavReveal} onBrandReveal={handleBrandReveal} />
+
+        {/* Sticky hero — pinned to viewport top for one viewport-height so
+            the parchment body below it scrolls up over it (instead of the
+            hero scrolling out the top). */}
+        <div className="exp-hero-sticky">
+          <div data-section="hero">
+            <HeroSection onNavReveal={handleNavReveal} onBrandReveal={handleBrandReveal} />
+          </div>
         </div>
 
-        <div className="exp-logo-carousel">
-          <LogoMarquee />
+        {/* Parchment body rises up over the sticky hero. Higher z-index +
+            soft alpha-fade at its top edge create the "off-white comes up
+            from below" effect as the user scrolls. */}
+        <div data-theme="light" className="exp-light-wrapper">
+          <div className="exp-logo-carousel">
+            <LogoMarquee />
+          </div>
+
+          <PlusDivider />
+
+          <section id="services" data-section="services">
+            <FindYourFit />
+          </section>
+
+          <PlusDivider />
+
+          <section id="work" data-section="work">
+            <ProofSection />
+          </section>
+
+          <PlusDivider />
+
+          <section id="lab" data-section="lab">
+            <BlogSection />
+          </section>
+
+          <PlusDivider />
+
+          <section id="contact" data-section="contact">
+            <CTASection />
+          </section>
         </div>
-
-        <PlusDivider />
-
-        <section id="services" data-section="services">
-          <FindYourFit />
-        </section>
-
-        <PlusDivider />
-
-        <section id="work" data-section="work">
-          <ProofSection />
-        </section>
-
-        <PlusDivider />
-
-        <section id="lab" data-section="lab">
-          <BlogSection />
-        </section>
-
-        <PlusDivider />
-
-        <section id="contact" data-section="contact">
-          <CTASection />
-        </section>
       </div>
 
       <div style={{ display: isMachine ? 'contents' : 'none' }}>

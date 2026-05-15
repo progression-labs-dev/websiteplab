@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { SHARED_START } from './sharedTime'
-import { useTheme } from './ThemeProvider'
 
 interface HeroGradientGLProps {
   revealTrigger: boolean
@@ -64,10 +63,27 @@ const fragmentShader = `
     float swirl = n1 * 0.5 + n2 * 0.3 + n3 * 0.2;
 
     // Very wide vertical transition — colors can appear almost anywhere,
-    // noise pushes ±0.5 so the boundary is completely diffuse
+    // noise pushes the boundary so it's completely diffuse.
     float verticalBias = smoothstep(0.05, 0.95, gp);
     float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
-    vec3 peak = mix(peakA, peakB, colorMix);
+
+    // Dark mode: peak is a swirl-modulated blend of peakA and peakB — the dark
+    // ramp mutes pure-peak regions, so the swirl reads as subtle cloud shapes
+    // within muted colors. Looks good.
+    //
+    // Light mode: drop the peakA/peakB spatial split entirely and use peakA
+    // throughout. Reason: the new 5-zone light ramp keeps peak saturated
+    // through gp 0.15-0.85 (most of the canvas), so the swirl-modulated
+    // peakA↔peakB boundary wobbles visibly as a "blob" (e.g. green pushing
+    // down into pink on orchid+green, segment 12). Even at very low swirl
+    // strength the boundary position itself shifts ~7% of canvas height
+    // when peakA and peakB are hue-opposite, which the user reads as a
+    // visible blob moving around. Single-peak eliminates the boundary, so
+    // the gradient becomes a smooth vertical ramp through one peak hue.
+    // Each segment's character is preserved via peakA's per-state value
+    // (cycles through the brand palette). The luminance wave below adds
+    // subtle organic variation that doesn't depend on peakA/peakB contrast.
+    vec3 peak = mix(mix(peakA, peakB, colorMix), peakA, uLightMode);
 
     // ── Subtle luminance wave: bands aren't perfectly horizontal ──
     // Protected at the bottom so the dark zone never shifts
@@ -146,53 +162,37 @@ const fragmentShader = `
   }
 
   // ═══ 1. PURE COLOR GENERATION ═══
-  // Self-contained: takes any UV, returns the gradient color at that point
-  // including time-based brand color cycling with dual-color pairings.
+  // Blue-centric cycle: peakA is always royal blue. peakB cycles through
+  // complementary accents (turquoise, baby pink, peach, periwinkle, light
+  // orange) with the gradient returning to pure blue between each accent
+  // so the overarching theme stays blue. 10 segments over a 50s cycle.
   vec3 getGradientColor(vec2 uv) {
-    // Progression Labs brand palette
-    vec3 cOrchid    = vec3(0.729, 0.333, 0.827); // #BA55D3
-    vec3 cSalmon    = vec3(1.000, 0.627, 0.478); // #FFA07A
-    vec3 cGreen     = vec3(0.725, 0.914, 0.475); // #B9E979
-    vec3 cTurquoise = vec3(0.251, 0.878, 0.816); // #40E0D0
-    vec3 cBlue      = vec3(0.000, 0.000, 1.000); // #0000FF
+    vec3 cBlue        = vec3(0.000, 0.000, 1.000); // #0000FF royal blue
+    vec3 cTurquoise   = vec3(0.251, 0.878, 0.816); // #40E0D0 cool accent
+    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863); // #BFB4DC cool accent
+    vec3 cBabyPink    = vec3(1.000, 0.785, 0.866); // #FFC8DD warm accent
+    vec3 cPeach       = vec3(1.000, 0.855, 0.725); // #FFDAB9 warm accent
+    vec3 cLightOrange = vec3(1.000, 0.627, 0.478); // #FFA07A warm accent
 
-    // Extended palette — peak pairs for 5 additional themed states
-    vec3 cGold        = vec3(0.722, 0.671, 0.220); // #B8AB38  Ancient Gild peakA
-    vec3 cVanilla     = vec3(0.878, 0.843, 0.580); // #E0D794  Ancient Gild peakB
-    vec3 cWine        = vec3(0.435, 0.114, 0.106); // #6F1D1B  Vintage Hearth peakA
-    vec3 cAshGrey     = vec3(0.678, 0.741, 0.671); // #ADBDAB  Vintage Hearth peakB
-    vec3 cBurntPeach  = vec3(0.886, 0.447, 0.357); // #E2725B  Terracotta Sunset peakA
-    vec3 cSoftApricot = vec3(1.000, 0.855, 0.725); // #FFDAB9  Terracotta Sunset peakB
-    vec3 cInferno     = vec3(0.667, 0.000, 0.012); // #AA0003  Scarlet Glacier peakA
-    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863); // #BFB4DC  Scarlet Glacier peakB
-    vec3 cMagenta     = vec3(1.000, 0.000, 1.000); // #FF00FF  Retro Future peakA
-    vec3 cYellow      = vec3(1.000, 1.000, 0.000); // #FFFF00  Retro Future peakB
-
-    // 14 states over 70s cycle — original 9 plus 5 new palettes inserted at tonally
-    // compatible positions. Each state's to-pair matches the next state's from-pair
-    // so smoothstep transitions are continuous everywhere.
-    float cycleSec = 70.0;
+    float cycleSec = 50.0;
     float progress = mod(uTime, cycleSec) / cycleSec;
-    float segProgress = progress * 14.0;
+    float segProgress = progress * 10.0;
     int segIndex = int(floor(segProgress));
     float t = ssmooth(segProgress - floor(segProgress));
 
-    // Current state pair [fromA, fromB] → next state pair [toA, toB]
+    // Each segment's to-pair matches the next segment's from-pair so the
+    // transitions are continuous and the cycle loops cleanly.
     vec3 fromA, fromB, toA, toB;
-    if (segIndex == 0)       { fromA = cOrchid;     fromB = cOrchid;      toA = cBlue;        toB = cSalmon;      } // orchid → blue+salmon
-    else if (segIndex == 1)  { fromA = cBlue;       fromB = cSalmon;      toA = cGreen;       toB = cGreen;       } // blue+salmon → green
-    else if (segIndex == 2)  { fromA = cGreen;      fromB = cGreen;       toA = cGold;        toB = cVanilla;     } // green → Ancient Gild
-    else if (segIndex == 3)  { fromA = cGold;       fromB = cVanilla;     toA = cOrchid;      toB = cTurquoise;   } // Ancient Gild → orchid+turquoise (bridge)
-    else if (segIndex == 4)  { fromA = cOrchid;     fromB = cTurquoise;   toA = cSalmon;      toB = cSalmon;      } // orchid+turquoise → salmon
-    else if (segIndex == 5)  { fromA = cSalmon;     fromB = cSalmon;      toA = cBurntPeach;  toB = cSoftApricot; } // salmon → Terracotta Sunset
-    else if (segIndex == 6)  { fromA = cBurntPeach; fromB = cSoftApricot; toA = cWine;        toB = cAshGrey;     } // Terracotta → Vintage Hearth
-    else if (segIndex == 7)  { fromA = cWine;       fromB = cAshGrey;     toA = cBlue;        toB = cTurquoise;   } // Vintage Hearth → blue+turquoise (bridge)
-    else if (segIndex == 8)  { fromA = cBlue;       fromB = cTurquoise;   toA = cBlue;        toB = cBlue;        } // blue+turquoise → blue
-    else if (segIndex == 9)  { fromA = cBlue;       fromB = cBlue;        toA = cInferno;     toB = cPeriwinkle;  } // blue → Scarlet Glacier
-    else if (segIndex == 10) { fromA = cInferno;    fromB = cPeriwinkle;  toA = cMagenta;     toB = cYellow;      } // Scarlet → Retro Future
-    else if (segIndex == 11) { fromA = cMagenta;    fromB = cYellow;      toA = cOrchid;      toB = cGreen;       } // Retro Future → orchid+green (bridge)
-    else if (segIndex == 12) { fromA = cOrchid;     fromB = cGreen;       toA = cTurquoise;   toB = cTurquoise;   } // orchid+green → turquoise
-    else                     { fromA = cTurquoise;  fromB = cTurquoise;   toA = cOrchid;      toB = cOrchid;      } // turquoise → orchid (loop)
+    if (segIndex == 0)       { fromA = cBlue; fromB = cBlue;         toA = cBlue; toB = cTurquoise;   }
+    else if (segIndex == 1)  { fromA = cBlue; fromB = cTurquoise;    toA = cBlue; toB = cBlue;        }
+    else if (segIndex == 2)  { fromA = cBlue; fromB = cBlue;         toA = cBlue; toB = cBabyPink;    }
+    else if (segIndex == 3)  { fromA = cBlue; fromB = cBabyPink;     toA = cBlue; toB = cBlue;        }
+    else if (segIndex == 4)  { fromA = cBlue; fromB = cBlue;         toA = cBlue; toB = cPeach;       }
+    else if (segIndex == 5)  { fromA = cBlue; fromB = cPeach;        toA = cBlue; toB = cBlue;        }
+    else if (segIndex == 6)  { fromA = cBlue; fromB = cBlue;         toA = cBlue; toB = cPeriwinkle;  }
+    else if (segIndex == 7)  { fromA = cBlue; fromB = cPeriwinkle;   toA = cBlue; toB = cBlue;        }
+    else if (segIndex == 8)  { fromA = cBlue; fromB = cBlue;         toA = cBlue; toB = cLightOrange; }
+    else                     { fromA = cBlue; fromB = cLightOrange;  toA = cBlue; toB = cBlue;        }
 
     vec3 peakA = mix(fromA, toA, t);
     vec3 peakB = mix(fromB, toB, t);
@@ -223,7 +223,7 @@ const fragmentShader = `
     // Slow the sweep in light mode (0.18 vs 0.25 = ~5.5s vs 4s cycle) so the
     // band is more perceptible as moving across the canvas.
     float diag = (vUv.x + 1.0 - vUv.y) * 0.5;
-    float shimmerSpeed = mix(0.25, 0.18, uLightMode);
+    float shimmerSpeed = 0.25;
     float shimmerPos = fract(uTime * shimmerSpeed);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
@@ -262,7 +262,8 @@ const fragmentShader = `
 `
 
 export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
-  const { isDark } = useTheme()
+  // Hero is locked to dark mode in the hybrid design — the page below
+  // transitions to parchment, but the hero gradient itself stays dark.
   const containerRef = useRef<HTMLDivElement>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
@@ -308,7 +309,7 @@ export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
         uResolution: { value: new THREE.Vector2(width, height) },
         uMouse: { value: new THREE.Vector2(0.5, 0.5) },
         uMouseActive: { value: 0 },
-        uLightMode: { value: isDark ? 0 : 1 },
+        uLightMode: { value: 0 },
       },
     })
     materialRef.current = material
@@ -425,12 +426,6 @@ export default function HeroGradientGL({ revealTrigger }: HeroGradientGLProps) {
       })
     }
   }, [])
-
-  // Sync uLightMode uniform to current theme
-  useEffect(() => {
-    if (!materialRef.current) return
-    materialRef.current.uniforms.uLightMode.value = isDark ? 0 : 1
-  }, [isDark])
 
   // Trigger page-load reveal animation via GSAP
   useEffect(() => {

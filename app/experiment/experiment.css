@@ -81,6 +81,14 @@
   --exp-logo-invert: brightness(0) invert(1);
 }
 
+/* Re-apply `color: var(--exp-text-primary)` inside [data-theme="light"] so
+   inner elements get the royal-blue ink. Otherwise they inherit a resolved
+   `color: white` from .experiment further up the tree, defeating the
+   variable override. */
+[data-theme="light"] {
+  color: var(--exp-text-primary);
+}
+
 /* ─── Light Mode Overrides — Parchment + Electric Royal Blue ─── */
 [data-theme="light"] {
   --exp-white: #1E5BFF;          /* electric royal — primary ink */
@@ -133,15 +141,22 @@ html, body { margin: 0; padding: 0; }
 
 body:has(.experiment) {
   overflow: visible !important;
+  /* Hybrid design: page surface is parchment regardless of section theme.
+     Hero canvas sits on top with its own dark gradient and fades into this
+     parchment surface via the wavy alpha mask at its bottom edge. */
+  background: #F4F1EA !important;
 }
 
 /* Fix: globals.css sets scroll-behavior:smooth which conflicts with Lenis —
    both try to smooth-scroll simultaneously, causing micro-jitter. Override to auto. */
 html:has(.experiment) { scroll-behavior: auto; }
 
-/* --- Root Wrapper --- */
+/* --- Root Wrapper ---
+   Hybrid design: page surface is parchment. The hero canvas paints its own
+   dark gradient over the top section and fades into this parchment via the
+   wavy alpha mask at its bottom edge. */
 .experiment {
-  background: var(--exp-bg);
+  background: #F4F1EA;
   color: var(--exp-text-primary);
   min-height: 100vh;
   overflow: clip;
@@ -369,7 +384,11 @@ html:has(.experiment) { scroll-behavior: auto; }
   left: 0;
   right: 0;
   z-index: 50;
-  background: var(--exp-bg);
+  /* Solid bg — dark at the top of the page (over the hero), parchment
+     after scrolling past it (data-over-light="true"). Solid block, no
+     translucency, so content scrolling underneath the nav doesn't bleed
+     through visually. */
+  background: #010101;
   backdrop-filter: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0 80px;
@@ -377,11 +396,61 @@ html:has(.experiment) { scroll-behavior: auto; }
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  transition: opacity 0.5s var(--exp-ease);
+  transition: opacity 0.5s var(--exp-ease),
+              background-color 0.3s var(--exp-ease),
+              border-color 0.3s var(--exp-ease),
+              color 0.3s var(--exp-ease);
   font-size: 13px;
   text-transform: none;
   letter-spacing: 0;
   font-family: 'Inter', sans-serif;
+}
+
+/* Once scrolled past the hero, the nav sits over the parchment body — swap
+   text/border to the royal-blue light-mode palette so contrast holds, and
+   swap the nav's own solid bg to parchment so it's a clean block instead of
+   a black bar over light content. The logo span uses an inline
+   `backgroundColor` (the mask fill colour), so we need !important here to
+   override it without changing the JSX. */
+.exp-nav[data-over-light="true"] {
+  background: #F4F1EA;
+  border-bottom-color: rgba(30, 91, 255, 0.18);
+}
+.exp-nav[data-over-light="true"] .exp-nav-brand {
+  color: #1E5BFF;
+}
+.exp-nav[data-over-light="true"] .exp-nav-logo span {
+  background-color: #1E5BFF !important;
+}
+.exp-nav[data-over-light="true"] .exp-nav-links a {
+  color: rgba(42, 49, 104, 0.85);
+}
+.exp-nav[data-over-light="true"] .exp-nav-links a:hover {
+  color: #1E5BFF;
+}
+.exp-nav[data-over-light="true"] .exp-btn-outline {
+  color: #1E5BFF;
+  border-color: rgba(30, 91, 255, 0.55);
+}
+
+/* Hero is in normal flow — scrolls up with the page like any other section.
+   Scroll-tied opacity (--hero-fade, updated by JS in page.tsx) makes the
+   whole hero block fade out as the user scrolls past it, so the dark "page"
+   visibly transitions to the parchment world during the scroll itself
+   rather than via a static spacer. */
+.exp-hero-sticky {
+  position: relative;
+  opacity: var(--hero-fade, 1);
+  will-change: opacity;
+}
+
+/* Parchment body sits directly after the hero in normal flow. No top fade
+   needed — the hero fades via its own scroll-tied opacity, so by the time
+   the wrapper scrolls into view the hero is already transparent and the
+   seam is just parchment-to-parchment (invisible). */
+.exp-light-wrapper {
+  position: relative;
+  background: #F4F1EA;
 }
 
 .exp-nav-logo-group {
@@ -1450,6 +1519,103 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 .exp-terminal-reset:hover {
   color: var(--t-accent);
+}
+
+/* ─── FYF — light-mode palette overrides ───
+   The terminal card defaults to dark-mode styling (translucent black bg,
+   white-alpha text, orchid accent). Inside the light-theme wrapper the
+   same tokens become unreadable on parchment. Re-skin everything to the
+   royal-blue light palette so the card feels native to the light page.
+   Also force the left-card heading + subtitle to white so they read on
+   the dark top of the FYF gradient (royal-blue ink on dark-blue gradient
+   was the worst of both worlds). */
+
+[data-theme="light"] .exp-col-label--gradient .exp-section-heading,
+[data-theme="light"] .exp-col-label--gradient .exp-label-desc {
+  color: #ffffff;
+}
+
+/* Make the FYF gradient card merge into the parchment page bg instead of
+   looking like a contained box. The mask keeps the top-left fully opaque
+   (where the heading sits on the saturated peak) and fades the bottom-right
+   into transparent, revealing the parchment behind. Combined with the
+   gradient's own parchment endpoint matching the page bg (#F4F1EA), the
+   card now blends into the page rather than reading as a discrete rect. */
+[data-theme="light"] .exp-col-label--gradient {
+  -webkit-mask-image: linear-gradient(
+    to bottom right,
+    #000 0%,
+    #000 45%,
+    rgba(0, 0, 0, 0.85) 65%,
+    rgba(0, 0, 0, 0.40) 85%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom right,
+    #000 0%,
+    #000 45%,
+    rgba(0, 0, 0, 0.85) 65%,
+    rgba(0, 0, 0, 0.40) 85%,
+    transparent 100%
+  );
+}
+
+[data-theme="light"] .exp-finder-terminal {
+  --t-accent: #1E5BFF;
+  --t-accent-dim: rgba(30, 91, 255, 0.10);
+  --t-accent-glow: rgba(30, 91, 255, 0.18);
+  background: rgba(30, 91, 255, 0.04);
+  border-color: rgba(30, 91, 255, 0.18);
+}
+[data-theme="light"] .exp-finder-terminal::after {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(30, 91, 255, 0.025) 1px,
+    rgba(30, 91, 255, 0.025) 2px
+  );
+}
+[data-theme="light"] .exp-terminal-bar {
+  border-bottom-color: rgba(30, 91, 255, 0.14);
+}
+[data-theme="light"] .exp-terminal-title {
+  color: rgba(42, 49, 104, 0.45);
+}
+[data-theme="light"] .exp-terminal-text,
+[data-theme="light"] .exp-terminal-result-desc {
+  color: rgba(42, 49, 104, 0.85);
+}
+[data-theme="light"] .exp-terminal-cursor {
+  background: rgba(30, 91, 255, 0.85);
+}
+[data-theme="light"] .exp-terminal-key {
+  background: rgba(30, 91, 255, 0.05);
+  border-color: rgba(30, 91, 255, 0.25);
+  color: rgba(42, 49, 104, 0.85);
+}
+[data-theme="light"] .exp-terminal-key:hover {
+  color: #1E5BFF;
+  background: rgba(30, 91, 255, 0.10);
+  box-shadow:
+    0 0 24px rgba(30, 91, 255, 0.18),
+    inset 0 0 12px rgba(30, 91, 255, 0.08);
+}
+[data-theme="light"] .exp-terminal-divider {
+  color: rgba(42, 49, 104, 0.45);
+}
+[data-theme="light"] .exp-terminal-result-title {
+  color: #1E5BFF;
+}
+[data-theme="light"] .exp-terminal-tag {
+  color: rgba(42, 49, 104, 0.65);
+  border-color: rgba(30, 91, 255, 0.22);
+}
+[data-theme="light"] .exp-terminal-reset {
+  color: rgba(42, 49, 104, 0.5);
+}
+[data-theme="light"] .exp-terminal-reset:hover {
+  color: #1E5BFF;
 }
 
 /* ============================================

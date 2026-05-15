@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { SHARED_START } from './sharedTime';
-import { useTheme } from './ThemeProvider';
 
 const vertexShaderSource = `
   attribute vec2 position;
@@ -45,43 +44,33 @@ const fragmentShaderSource = `
     return vec3(0.000, 0.000, 1.000);              // Blue
   }
 
-  // 14-state color cycle over 70s — matching HeroGradientGL exactly
+  // Blue-centric cycle (matches HeroGradientGL) — 10 segments over 50s.
+  // peakA stays royal blue; peakB cycles through turquoise, baby pink,
+  // peach, periwinkle, and light orange accents.
   void cycleColors(float time, out vec3 peakA, out vec3 peakB) {
-    vec3 cO = brandColor(0); vec3 cS = brandColor(1);
-    vec3 cG = brandColor(2); vec3 cT = brandColor(3); vec3 cB = brandColor(4);
+    vec3 cBlue        = vec3(0.000, 0.000, 1.000);
+    vec3 cTurquoise   = vec3(0.251, 0.878, 0.816);
+    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863);
+    vec3 cBabyPink    = vec3(1.000, 0.785, 0.866);
+    vec3 cPeach       = vec3(1.000, 0.855, 0.725);
+    vec3 cLightOrange = vec3(1.000, 0.627, 0.478);
 
-    // Extended palette — peak pairs for 5 additional themed states
-    vec3 cGold        = vec3(0.722, 0.671, 0.220); // #B8AB38
-    vec3 cVanilla     = vec3(0.878, 0.843, 0.580); // #E0D794
-    vec3 cWine        = vec3(0.435, 0.114, 0.106); // #6F1D1B
-    vec3 cAshGrey     = vec3(0.678, 0.741, 0.671); // #ADBDAB
-    vec3 cBurntPeach  = vec3(0.886, 0.447, 0.357); // #E2725B
-    vec3 cSoftApricot = vec3(1.000, 0.855, 0.725); // #FFDAB9
-    vec3 cInferno     = vec3(0.667, 0.000, 0.012); // #AA0003
-    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863); // #BFB4DC
-    vec3 cMagenta     = vec3(1.000, 0.000, 1.000); // #FF00FF
-    vec3 cYellow      = vec3(1.000, 1.000, 0.000); // #FFFF00
-
-    float progress = mod(time, 70.0) / 70.0;
-    float seg = progress * 14.0;
+    float progress = mod(time, 50.0) / 50.0;
+    float seg = progress * 10.0;
     int idx = int(floor(seg));
     float t = ssmooth(seg - floor(seg));
 
     vec3 fA, fB, tA, tB;
-    if (idx == 0)       { fA = cO;          fB = cO;           tA = cB;          tB = cS;           }
-    else if (idx == 1)  { fA = cB;          fB = cS;           tA = cG;          tB = cG;           }
-    else if (idx == 2)  { fA = cG;          fB = cG;           tA = cGold;       tB = cVanilla;     } // → Ancient Gild
-    else if (idx == 3)  { fA = cGold;       fB = cVanilla;     tA = cO;          tB = cT;           } // bridge
-    else if (idx == 4)  { fA = cO;          fB = cT;           tA = cS;          tB = cS;           }
-    else if (idx == 5)  { fA = cS;          fB = cS;           tA = cBurntPeach; tB = cSoftApricot; } // → Terracotta Sunset
-    else if (idx == 6)  { fA = cBurntPeach; fB = cSoftApricot; tA = cWine;       tB = cAshGrey;     } // → Vintage Hearth
-    else if (idx == 7)  { fA = cWine;       fB = cAshGrey;     tA = cB;          tB = cT;           } // bridge
-    else if (idx == 8)  { fA = cB;          fB = cT;           tA = cB;          tB = cB;           }
-    else if (idx == 9)  { fA = cB;          fB = cB;           tA = cInferno;    tB = cPeriwinkle;  } // → Scarlet Glacier
-    else if (idx == 10) { fA = cInferno;    fB = cPeriwinkle;  tA = cMagenta;    tB = cYellow;      } // → Retro Future
-    else if (idx == 11) { fA = cMagenta;    fB = cYellow;      tA = cO;          tB = cG;           } // bridge
-    else if (idx == 12) { fA = cO;          fB = cG;           tA = cT;          tB = cT;           }
-    else                { fA = cT;          fB = cT;           tA = cO;          tB = cO;           }
+    if (idx == 0)       { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cTurquoise;   }
+    else if (idx == 1)  { fA = cBlue; fB = cTurquoise;    tA = cBlue; tB = cBlue;        }
+    else if (idx == 2)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cBabyPink;    }
+    else if (idx == 3)  { fA = cBlue; fB = cBabyPink;     tA = cBlue; tB = cBlue;        }
+    else if (idx == 4)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cPeach;       }
+    else if (idx == 5)  { fA = cBlue; fB = cPeach;        tA = cBlue; tB = cBlue;        }
+    else if (idx == 6)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cPeriwinkle;  }
+    else if (idx == 7)  { fA = cBlue; fB = cPeriwinkle;   tA = cBlue; tB = cBlue;        }
+    else if (idx == 8)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cLightOrange; }
+    else                { fA = cBlue; fB = cLightOrange;  tA = cBlue; tB = cBlue;        }
 
     peakA = mix(fA, tA, t);
     peakB = mix(fB, tB, t);
@@ -99,7 +88,14 @@ const fragmentShaderSource = `
 
     float verticalBias = smoothstep(0.05, 0.95, gp);
     float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
-    vec3 peak = mix(peakA, peakB, colorMix);
+    // Dark mode: swirl-modulated blend of peakA and peakB (the dark ramp mutes
+    // pure-peak regions so the swirl reads as subtle cloud variation).
+    // Light mode: drop the peakA/peakB spatial split entirely — use peakA. The
+    // wider light ramp keeps peak saturated through the middle of the canvas,
+    // so the swirl-modulated peakA↔peakB boundary wobbles visibly as a "blob"
+    // when the pair is hue-opposite (orchid+green, magenta+yellow). Single-peak
+    // eliminates the boundary. Matches HeroGradientGL.
+    vec3 peak = mix(mix(peakA, peakB, colorMix), peakA, u_light_mode);
 
     // Subtle luminance wave — bands aren't perfectly horizontal, bottom protected
     float wave = (vnoise(uv * 2.0 + vec2(time * 0.06, -time * 0.04)) - 0.5) * 0.06;
@@ -111,7 +107,6 @@ const fragmentShaderSource = `
     // muddy olive when the peak has R ≈ G.
     if (u_light_mode > 0.5) {
       vec3 parchment = vec3(0.957, 0.945, 0.918);
-      vec3 tint      = mix(peak, parchment, 0.6);
 
       float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
       float yellowShift = warmBias * step(peak.g, peak.r);
@@ -126,14 +121,26 @@ const fragmentShaderSource = `
       float minCh    = min(min(darkened.r, darkened.g), darkened.b);
       vec3 deepPeak  = max(darkened - vec3(minCh * 0.55), vec3(0.0));
 
-      // Wide tint→peak so pixel-mosaic has variation across the whole canvas.
-      float t1 = smoothstep(0.00, 0.08, gp);
-      float t2 = smoothstep(0.05, 0.80, gp);
-      float t3 = smoothstep(0.88, 1.00, gp);
+      // 5-zone ramp analogous to dark mode, inverted tonal direction
+      // (parchment bottom → ultraDeep top). Transition widths copy dark mode
+      // exactly so the gradient has continuous slope at every gp, making the
+      // per-column y-offset mosaic visible across the full canvas. Matches
+      // HeroGradientGL.
+      vec3 wash      = mix(peak, parchment, 0.85);
+      vec3 tint      = mix(peak, parchment, 0.55);
+      vec3 ultraDeep = deepPeak * 0.65;
 
-      vec3 color = mix(parchment, tint, t1);
-      color = mix(color, peak, t2);
-      color = mix(color, deepPeak, t3);
+      float t1 = smoothstep(0.00, 0.10, gp);
+      float t2 = smoothstep(0.06, 0.24, gp);
+      float t3 = smoothstep(0.15, 0.55, gp);
+      float t4 = smoothstep(0.45, 0.85, gp);
+      float t5 = smoothstep(0.75, 1.00, gp);
+
+      vec3 color = mix(parchment, wash, t1);
+      color = mix(color, tint, t2);
+      color = mix(color, peak, t3);
+      color = mix(color, deepPeak, t4);
+      color = mix(color, ultraDeep, t5);
       return color;
     }
 
@@ -165,12 +172,10 @@ const fragmentShaderSource = `
     vec2 cellId = floor(uv * grid);
     vec2 pixelUv = cellId / grid + vec2(0.5) / grid;
 
-    // Per-column y-offset — matches hero (0.035). Light mode amplifies 3× so
-    // neighbouring blocks sample meaningfully different vertical positions across
-    // the wide tint→peak transition where the gradient slope is otherwise gentle.
+    // Per-column y-offset — matches hero (0.035). Same in both modes now that
+    // the 5-zone light ramp provides continuous gradient slope.
     float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
-    float actualOffset = mix(colOffset, colOffset * 3.0, u_light_mode);
-    pixelUv.y += actualOffset;
+    pixelUv.y += colOffset;
 
     // === Color cycling (same 14-state 70s cycle as hero) ===
     vec3 peakA, peakB;
@@ -182,22 +187,9 @@ const fragmentShaderSource = `
     // Pixelated color (per-block — only revealed during shimmer)
     vec3 pixelColor = computeGradient(pixelUv, u_time, peakA, peakB);
 
-    // Light mode: mix each block toward a saturated deepPeak reference (gp =
-    // 0.90..0.98) of the same column. Multiplicative jitter wasn't enough on
-    // the bright tint/parchment area — it left blocks visually indistinguishable
-    // from neighbours. Mixing toward an actual saturated hue gives every block
-    // strong dark/light contrast regardless of how flat the smooth gradient is,
-    // so the diagonal shimmer reads end-to-end like in dark mode.
-    if (u_light_mode > 0.5) {
-      float blockHash = hash(cellId);
-      vec2 satUv = vec2(pixelUv.x, mix(0.90, 0.98, blockHash));
-      vec3 satRef = computeGradient(satUv, u_time, peakA, peakB);
-      pixelColor = mix(pixelColor, satRef, 0.30 + 0.35 * blockHash);
-    }
-
     // === DIAGONAL SHIMMER — only mask, matches hero's no-mouse case ===
     float diag = (uv.x + 1.0 - uv.y) * 0.5;
-    float shimmerSpeed = mix(0.25, 0.18, u_light_mode);
+    float shimmerSpeed = 0.25;
     float shimmerPos = fract(u_time * shimmerSpeed);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
@@ -232,14 +224,9 @@ const fragmentShaderSource = `
 `;
 
 export default function PixelGradientCanvas() {
+  // Locked to light mode in the hybrid design — FYF sits on the parchment
+  // page surface below the dark hero.
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { isDark } = useTheme();
-  const lightModeRef = useRef(isDark ? 0 : 1);
-
-  // Keep the ref in sync so the render loop reads the current theme value.
-  useEffect(() => {
-    lightModeRef.current = isDark ? 0 : 1;
-  }, [isDark]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -300,7 +287,7 @@ export default function PixelGradientCanvas() {
     let animationFrameId: number;
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START);
-      gl.uniform1f(lightModeLoc, lightModeRef.current);
+      gl.uniform1f(lightModeLoc, 1.0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationFrameId = requestAnimationFrame(render);
     };
