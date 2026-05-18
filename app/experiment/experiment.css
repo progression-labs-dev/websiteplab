@@ -1236,6 +1236,689 @@ html:has(.experiment) { scroll-behavior: auto; }
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.4);
+  object-fit: cover;
+  display: block;
+}
+
+/* Carousel stage + dots */
+.exp-proof-stage {
+  position: relative;
+}
+.exp-proof-grid {
+  display: grid;
+}
+.exp-proof-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.exp-proof-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.3s ease;
+}
+.exp-proof-dot--active {
+  background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="light"] .exp-proof-dot {
+  background: rgba(30, 91, 255, 0.2);
+}
+[data-theme="light"] .exp-proof-dot--active {
+  background: rgba(30, 91, 255, 0.85);
+}
+
+/* Spotlight layout: featured case-study quote + video side by side */
+.exp-proof-spotlight {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.exp-proof-spotlight-quote {
+  text-align: left;
+}
+.exp-proof-spotlight-quote .exp-quote {
+  margin: 0;
+  text-align: left;
+}
+.exp-proof-spotlight-quote .exp-quote-author {
+  text-align: left;
+  margin-top: 16px;
+}
+.exp-proof-spotlight-media {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+.exp-proof-spotlight-media .exp-proof-video {
+  max-width: 100%;
+}
+.exp-proof-spotlight-media .exp-proof-learn-more {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .exp-proof-spotlight {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .exp-proof-spotlight-quote,
+  .exp-proof-spotlight-quote .exp-quote,
+  .exp-proof-spotlight-quote .exp-quote-author {
+    text-align: center;
+  }
+  .exp-proof-spotlight-media {
+    align-items: center;
+  }
+}
+
+/* Light-mode palette for proof / case-study UI */
+[data-theme="light"] .exp-proof-video {
+  border-color: rgba(30, 91, 255, 0.22);
+  background: rgba(30, 91, 255, 0.05);
+}
+[data-theme="light"] .exp-proof-learn-more {
+  border-color: rgba(30, 91, 255, 0.35);
+  color: #1E5BFF;
+}
+[data-theme="light"] .exp-proof-learn-more:hover {
+  border-color: rgba(30, 91, 255, 0.65);
+  color: #1E5BFF;
+  background: rgba(30, 91, 255, 0.06);
+}
+
+/* Empty blog image divs collapse so text-only cards don't leave a tall gap */
+.exp-blog-image:empty {
+  display: none;
+}
+
+/* ─── Case study route (/experiment/case-studies/[slug]) — v1 port ─── */
+
+/* Back link (used in story hero) */
+.exp-case-study-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--exp-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.exp-case-study-back:hover {
+  color: var(--exp-text-primary);
+}
+
+/* Hero banner — slim strip with the same WebGL pixel gradient used in the
+   Find Your Fit section, plus the PL × Globo lockup on top. Background is
+   parchment so the masked bottom of the canvas fades cleanly into the body. */
+.exp-cs-hero-banner {
+  position: relative;
+  margin: 56px 80px 0 80px;
+  height: 240px;
+  overflow: hidden;
+  background: #f2eee3;
+  border: 1px dashed var(--alpha-12);
+  isolation: isolate;
+}
+
+/* Both gradient canvases (WebGL ramp + ASCII shimmer) fill the banner
+   directly — same setup the Find Your Fit card uses. A soft mask fades the
+   bottom edge into the parchment body so there's no hard seam. */
+.exp-cs-hero-banner > canvas {
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 70%,
+    rgba(0, 0, 0, 0.5) 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 70%,
+    rgba(0, 0, 0, 0.5) 90%,
+    transparent 100%
+  );
+}
+
+/* Grain/noise overlay — matches the hero's feTurbulence treatment. Masked
+   with the same bottom fade as the gradient so the grain doesn't sit on top
+   of the parchment fade-out and grey it. */
+.exp-cs-hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 60%,
+    rgba(0, 0, 0, 0.6) 85%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 60%,
+    rgba(0, 0, 0, 0.6) 85%,
+    transparent 100%
+  );
+}
+
+/* Faint ASCII shimmer — turn the overlay down so it reads as texture, not
+   text, in the slim banner format. The bottom mask is applied at the canvas
+   level via .exp-cs-hero-banner-gradient-wrap > canvas. */
+.exp-cs-hero-banner .exp-ascii-overlay {
+  opacity: 0.45;
+  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.25));
+}
+.exp-cs-hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  /* Soft centre vignette so the logos read against the gradient. No bottom
+     darkening — that was painting grey over the parchment fade. */
+  background: radial-gradient(
+    ellipse 50% 40% at 50% 50%,
+    rgba(0, 0, 0, 0.28) 0%,
+    transparent 75%
+  );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 60%,
+    rgba(0, 0, 0, 0.6) 85%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 60%,
+    rgba(0, 0, 0, 0.6) 85%,
+    transparent 100%
+  );
+}
+.exp-cs-hero-banner-lockup {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px;
+}
+.exp-cs-hero-banner-logo {
+  display: block;
+  width: auto;
+  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.45));
+}
+.exp-cs-hero-banner-logo--pl {
+  height: 32px;
+}
+.exp-cs-hero-banner-logo--globo {
+  /* Globo source is a white-on-black .jpg (no alpha channel) — use as a
+     luminance mask on a white fill so only the speech-bubble mark shows.
+     mask-size pushed high enough to crop past the bright edge artifacts in
+     the source .jpg that were showing as vertical white bars at lower sizes. */
+  height: 48px;
+  width: 96px;
+  background: #ffffff;
+  -webkit-mask-image: url(/logos/globo.jpg);
+  mask-image: url(/logos/globo.jpg);
+  -webkit-mask-size: 260% auto;
+  mask-size: 260% auto;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  mask-mode: luminance;
+  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.35));
+}
+.exp-cs-hero-banner-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Story hero block (title, lede, meta row) */
+.exp-cs-story-hero {
+  position: relative;
+  padding: 96px 80px 56px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.exp-cs-story-hero .exp-case-study-back {
+  margin-bottom: 32px;
+  display: inline-flex;
+}
+.exp-cs-story-hero-inner {
+  max-width: 920px;
+}
+.exp-cs-story-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--exp-text-secondary);
+  margin-bottom: 40px;
+}
+.exp-cs-story-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  background: #1E5BFF;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(30, 91, 255, 0.55);
+  animation: exp-cs-pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes exp-cs-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+.exp-cs-story-eyebrow-sep {
+  color: var(--exp-text-tertiary);
+  font-weight: 300;
+}
+.exp-cs-story-h1 {
+  font-size: var(--exp-h1);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  margin: 0 0 28px 0;
+  max-width: 680px;
+  text-transform: none;
+  color: var(--exp-text-primary);
+}
+.exp-cs-story-h1 strong { font-weight: 600; color: var(--exp-text-primary); }
+.exp-cs-story-h1 em {
+  font-style: normal;
+  font-weight: 400;
+  color: #1E5BFF;
+}
+.exp-cs-story-lede {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--exp-text-secondary);
+  margin: 0 0 40px 0;
+  max-width: 720px;
+  letter-spacing: -0.01em;
+}
+.exp-cs-story-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--alpha-12);
+  max-width: 920px;
+}
+.exp-cs-story-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 24px;
+}
+.exp-cs-story-meta-k {
+  font-family: var(--exp-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--exp-text-tertiary);
+}
+.exp-cs-story-meta-v {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--exp-text-secondary);
+  font-weight: 400;
+}
+
+/* Plus divider — local namespace so we don't depend on the shared one being available */
+.exp-cs-plus-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  border-top: 1px dashed var(--alpha-12);
+  margin: 0 80px;
+}
+.exp-cs-plus-divider-mark {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #f2eee3;
+  color: var(--exp-text-tertiary);
+  font-size: 14px;
+  font-weight: 300;
+  font-family: var(--exp-mono);
+  line-height: 1;
+}
+
+/* Stats strip */
+.exp-cs-story-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 80px;
+  align-items: end;
+}
+.exp-cs-story-stat {
+  padding: 0 24px;
+  position: relative;
+}
+.exp-cs-story-stat:not(:first-child) {
+  border-left: 1px dashed var(--alpha-12);
+}
+.exp-cs-story-stat-num {
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 16px;
+  color: var(--exp-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.exp-cs-story-stat-suffix {
+  font-size: 0.5em;
+  font-weight: 300;
+  color: var(--exp-text-secondary);
+}
+.exp-cs-story-stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--exp-text-secondary);
+  max-width: 280px;
+}
+.exp-cs-story-stat-muted {
+  color: var(--exp-text-tertiary);
+  display: block;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Generic story section (200px sticky label + prose) */
+.exp-cs-story-section {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 80px;
+  align-items: start;
+}
+.exp-cs-story-section-label {
+  position: sticky;
+  top: 100px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--exp-text-secondary);
+  padding-top: 8px;
+}
+.exp-cs-story-section-body { max-width: 680px; }
+.exp-cs-story-section-body > p {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
+  margin: 0 0 20px 0;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.exp-cs-story-section-body > p strong {
+  font-weight: 600;
+  color: var(--exp-text-primary);
+}
+.exp-cs-story-section-body > p em {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-style: italic;
+  color: var(--exp-text-secondary);
+  font-weight: 400;
+  opacity: 0.85;
+}
+.exp-cs-story-h2 {
+  font-size: var(--exp-h2);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 28px 0;
+  color: var(--exp-text-primary);
+  max-width: 26ch;
+}
+.exp-cs-story-h2 strong { font-weight: 600; }
+.exp-cs-story-h2 em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--exp-text-secondary);
+}
+
+/* Three criteria block */
+.exp-cs-criteria {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  border-top: 1px dashed var(--alpha-12);
+}
+.exp-cs-criterion {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px dashed var(--alpha-12);
+  align-items: start;
+}
+.exp-cs-criterion-id {
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--exp-text-tertiary);
+  padding-top: 4px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.exp-cs-criterion-title {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: var(--exp-text-primary);
+  letter-spacing: 0;
+  grid-column: 2;
+}
+.exp-cs-criterion-desc {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--exp-text-secondary);
+  margin: 0;
+  font-weight: 400;
+  font-style: italic;
+  grid-column: 2;
+  letter-spacing: -0.01em;
+}
+
+/* Breathing room between the criteria block and the trailing paragraph that
+   follows it — otherwise prose sits right against the last criterion's
+   closing dashed border. */
+.exp-cs-criteria + p {
+  margin-top: 40px;
+}
+
+/* Pull quote section */
+.exp-cs-story-quote-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 96px 80px;
+  text-align: left;
+}
+.exp-cs-story-quote {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--exp-text-primary);
+  max-width: 920px;
+  margin: 0 0 24px 0;
+  position: relative;
+}
+.exp-cs-story-quote em {
+  font-style: normal;
+  color: #1E5BFF;
+}
+.exp-cs-story-quote-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--exp-text-secondary);
+}
+.exp-cs-story-quote-line {
+  width: 32px;
+  height: 1px;
+  background: var(--alpha-30);
+}
+.exp-cs-story-quote-author strong {
+  color: var(--exp-text-primary);
+  font-weight: 600;
+}
+
+/* CTA */
+.exp-cs-story-cta {
+  text-align: center;
+  padding: 140px 80px;
+  margin: 0 auto;
+  max-width: 920px;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    rgba(30, 91, 255, 0.08),
+    transparent 70%
+  );
+}
+.exp-cs-story-cta-eyebrow {
+  font-family: var(--exp-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--exp-text-tertiary);
+  margin-bottom: 16px;
+}
+.exp-cs-story-cta-heading {
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+  color: var(--exp-text-primary);
+}
+.exp-cs-story-cta-body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--exp-text-secondary);
+  margin: 0 auto 32px;
+  max-width: 580px;
+}
+.exp-cs-story-cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.exp-cs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.exp-cs-btn-filled {
+  background: #1E5BFF;
+  color: #ffffff;
+  border: 1px solid #1E5BFF;
+}
+.exp-cs-btn-filled:hover {
+  background: #0d49eb;
+  border-color: #0d49eb;
+}
+.exp-cs-btn-outline {
+  background: transparent;
+  color: #1E5BFF;
+  border: 1px solid rgba(30, 91, 255, 0.35);
+}
+.exp-cs-btn-outline:hover {
+  border-color: rgba(30, 91, 255, 0.65);
+  background: rgba(30, 91, 255, 0.06);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .exp-cs-hero-banner { margin: 56px 40px 0 40px; height: 220px; }
+  .exp-cs-story-hero { padding: 132px 40px 48px 40px; }
+  .exp-cs-story-meta { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
+  .exp-cs-story-stats { padding: 48px 40px; gap: 24px; }
+  .exp-cs-story-stat { padding: 0 12px; }
+  .exp-cs-story-stat:not(:first-child) { border-left: none; }
+  .exp-cs-story-section { grid-template-columns: 1fr; gap: 32px; padding: 64px 40px; }
+  .exp-cs-story-section-label { position: static; }
+  .exp-cs-story-quote-section { padding: 64px 40px; }
+  .exp-cs-story-cta { padding: 96px 40px; }
+  .exp-cs-plus-divider { margin: 0 40px; }
+}
+@media (max-width: 640px) {
+  .exp-cs-hero-banner { margin: 56px 20px 0 20px; height: 180px; }
+  .exp-cs-hero-banner-lockup { gap: 20px; }
+  .exp-cs-story-hero { padding: 120px 20px 40px 20px; }
+  .exp-cs-story-h1 { max-width: none; }
+  .exp-cs-story-meta { grid-template-columns: 1fr 1fr; }
+  .exp-cs-story-stats { grid-template-columns: 1fr; padding: 32px 20px; gap: 32px; }
+  .exp-cs-story-stat { padding: 24px 0; border-top: 1px dashed var(--alpha-12); }
+  .exp-cs-story-stat:first-child { border-top: none; padding-top: 0; }
+  .exp-cs-story-section { padding: 48px 20px; gap: 24px; }
+  .exp-cs-story-quote-section { padding: 48px 20px; }
+  .exp-cs-criterion { grid-template-columns: 40px 1fr; gap: 16px; }
+  .exp-cs-plus-divider { margin: 0 20px; }
 }
 
 /* ============================================
@@ -2697,6 +3380,28 @@ html:has(.experiment) { scroll-behavior: auto; }
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Over-parchment palette — pill flips to a frosted royal-blue glass with
+   navy ink once the user has scrolled past the dark hero. */
+.exp-viewmode-toggle[data-over-light="true"] {
+  background: rgba(30, 91, 255, 0.10);
+  border-color: rgba(30, 91, 255, 0.25);
+  box-shadow:
+    0 4px 12px rgba(30, 91, 255, 0.10),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+.exp-viewmode-toggle[data-over-light="true"] .exp-viewmode-slider {
+  background: rgba(30, 91, 255, 0.65);
+}
+.exp-viewmode-toggle[data-over-light="true"] .exp-viewmode-seg {
+  color: rgba(42, 49, 104, 0.55);
+}
+.exp-viewmode-toggle[data-over-light="true"] .exp-viewmode-seg:hover {
+  color: #1E5BFF;
+}
+.exp-viewmode-toggle[data-over-light="true"] .exp-viewmode-seg--active {
+  color: #ffffff;
+}
+
 /* ============================================
    MACHINE VIEW — Structured card layout
    ============================================ */
@@ -2712,26 +3417,27 @@ html:has(.experiment) { scroll-behavior: auto; }
   font-family: var(--exp-mono);
   font-size: 13px;
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.6);
+  /* Machine view sits on the parchment body — navy ink so it reads cleanly. */
+  color: rgba(42, 49, 104, 0.75);
 }
 
 /* Card — each section is a bordered card */
 .exp-m-card {
   padding: 24px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(30, 91, 255, 0.35);
   border-bottom: none;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(30, 91, 255, 0.03);
 }
 
 .exp-m-card:last-of-type {
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  border-bottom: 1px dashed rgba(30, 91, 255, 0.35);
 }
 
 /* Title — site name */
 .exp-m-title {
   font-size: 15px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1E5BFF;
   letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
@@ -2740,7 +3446,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-m-h2 {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(42, 49, 104, 0.6);
   margin-bottom: 12px;
   letter-spacing: 0.02em;
 }
@@ -2748,17 +3454,17 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-m-h3 {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(42, 49, 104, 0.5);
   margin-bottom: 8px;
 }
 
 /* Body text */
 .exp-m-body {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(42, 49, 104, 0.8);
 }
 
 .exp-m-muted {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(42, 49, 104, 0.55);
   margin-bottom: 4px;
 }
 
@@ -2770,37 +3476,37 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-m-link {
-  color: rgba(255, 255, 255, 0.7);
+  color: #1E5BFF;
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .exp-m-link:hover {
-  color: rgba(255, 255, 255, 0.95);
+  color: #0d49eb;
 }
 
 .exp-m-link--cta {
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.06);
+  color: #1E5BFF;
+  background: rgba(30, 91, 255, 0.08);
   padding: 2px 8px;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(30, 91, 255, 0.4);
 }
 
 .exp-m-url {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(42, 49, 104, 0.4);
   margin-left: 1px;
 }
 
 /* List items */
 .exp-m-list-item {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(42, 49, 104, 0.7);
   padding-left: 4px;
 }
 
 /* Subsection divider */
 .exp-m-sub {
   padding-top: 16px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+  border-top: 1px dashed rgba(30, 91, 255, 0.2);
 }
 
 .exp-m-sub:first-of-type {
@@ -2810,7 +3516,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 /* Recommendation block */
 .exp-m-rec {
   padding: 12px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+  border-bottom: 1px dashed rgba(30, 91, 255, 0.2);
 }
 
 .exp-m-rec:last-child {
@@ -2819,33 +3525,33 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 .exp-m-rec-journey {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(42, 49, 104, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 4px;
 }
 
 .exp-m-rec-title {
-  color: rgba(255, 255, 255, 0.85);
+  color: #1E5BFF;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .exp-m-rec-desc {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(42, 49, 104, 0.7);
   margin-bottom: 6px;
 }
 
 .exp-m-rec-services {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(42, 49, 104, 0.5);
   margin-bottom: 6px;
 }
 
 /* Quote block */
 .exp-m-quote {
   padding: 16px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+  border-bottom: 1px dashed rgba(30, 91, 255, 0.2);
 }
 
 .exp-m-quote:last-child {
@@ -2853,25 +3559,25 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 .exp-m-quote-text {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(42, 49, 104, 0.78);
   font-style: italic;
   margin-bottom: 8px;
 }
 
 .exp-m-quote-attr {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(42, 49, 104, 0.55);
 }
 
 .exp-m-quote-attr strong {
-  color: rgba(255, 255, 255, 0.65);
+  color: #1E5BFF;
   font-weight: 500;
 }
 
 /* Blog entry */
 .exp-m-blog {
   padding: 12px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+  border-bottom: 1px dashed rgba(30, 91, 255, 0.2);
 }
 
 .exp-m-blog:last-child {
@@ -2880,7 +3586,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 .exp-m-blog-meta {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(42, 49, 104, 0.5);
   margin-bottom: 4px;
 }
 
@@ -2888,7 +3594,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-m-footer {
   padding: 24px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(42, 49, 104, 0.4);
   font-size: 11px;
 }
 

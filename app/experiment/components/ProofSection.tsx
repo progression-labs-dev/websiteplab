@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { TESTIMONIALS } from '../data/siteContent'
 
 const testimonials = TESTIMONIALS
@@ -57,47 +58,79 @@ export default function ProofSection() {
 
   return (
     <section ref={sectionRef} className="exp-section">
-      {/* Testimonials — CSS Grid stack so height matches tallest quote (zero layout shift) */}
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ display: 'grid' }}>
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              style={{
-                gridArea: '1 / 1',
-                opacity: i === activeIndex ? 1 : 0,
-                transition: 'opacity 0.5s ease',
-                pointerEvents: i === activeIndex ? 'auto' : 'none',
-              }}
-            >
-              <blockquote className="exp-quote" style={{ margin: '0 auto' }}>
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-              <div className="exp-quote-author">
-                <strong>{t.author}</strong> &mdash; {t.role}
-              </div>
+      {/* Testimonials — CSS Grid stack so height matches tallest card (zero layout shift) */}
+      <div className="exp-proof-stage">
+        <div className="exp-proof-grid">
+          {testimonials.map((t, i) => {
+            const isActive = i === activeIndex
+            const hasSpotlight = Boolean(t.caseStudy)
 
-            </div>
-          ))}
+            return (
+              <div
+                key={i}
+                className={
+                  hasSpotlight
+                    ? 'exp-proof-card exp-proof-card--spotlight'
+                    : 'exp-proof-card'
+                }
+                style={{
+                  gridArea: '1 / 1',
+                  opacity: isActive ? 1 : 0,
+                  transition: 'opacity 0.5s ease',
+                  pointerEvents: isActive ? 'auto' : 'none',
+                }}
+              >
+                {hasSpotlight && t.caseStudy ? (
+                  <div className="exp-proof-spotlight">
+                    <div className="exp-proof-spotlight-quote">
+                      <blockquote className="exp-quote">
+                        &ldquo;{t.quote}&rdquo;
+                      </blockquote>
+                      <div className="exp-quote-author">
+                        <strong>{t.author}</strong> &mdash; {t.role}
+                      </div>
+                    </div>
+                    <div className="exp-proof-spotlight-media">
+                      <video
+                        className="exp-proof-video"
+                        controls
+                        preload="metadata"
+                        poster={t.caseStudy.videoPoster}
+                      />
+                      <Link
+                        href={`/experiment/case-studies/${t.caseStudy.slug}`}
+                        className="exp-proof-learn-more"
+                      >
+                        See more
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <blockquote className="exp-quote" style={{ margin: '0 auto' }}>
+                      &ldquo;{t.quote}&rdquo;
+                    </blockquote>
+                    <div className="exp-quote-author">
+                      <strong>{t.author}</strong> &mdash; {t.role}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
 
         {/* Dots indicator */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
+        <div className="exp-proof-dots">
           {testimonials.map((_, i) => (
             <button
               key={i}
               onClick={() => handleDotClick(i)}
               aria-label={`Show testimonial ${i + 1}`}
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                border: 'none',
-                cursor: 'pointer',
-                background: i === activeIndex ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.2)',
-                transition: 'background 0.3s ease',
-                padding: 0,
-              }}
+              className={
+                i === activeIndex ? 'exp-proof-dot exp-proof-dot--active' : 'exp-proof-dot'
+              }
             />
           ))}
         </div>

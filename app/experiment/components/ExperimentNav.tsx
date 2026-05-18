@@ -7,10 +7,14 @@ import { NAV_LINKS } from '../data/siteContent'
 
 interface ExperimentNavProps {
   showBrand?: boolean
+  // On pages without a dark hero (e.g. case study routes), force the nav
+  // into its light-mode palette from the start instead of waiting for the
+  // scroll threshold to flip it.
+  forceLight?: boolean
 }
 
 const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
-  function ExperimentNav({ showBrand = false }, ref) {
+  function ExperimentNav({ showBrand = false, forceLight = false }, ref) {
     const navRef = useRef<HTMLElement | null>(null)
     useImperativeHandle(ref, () => navRef.current as HTMLElement)
 
@@ -18,9 +22,13 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
     // over the parchment body once you scroll past it. Toggle a flag so the
     // CSS can swap text/border colours to stay legible against the surface
     // behind it.
-    const [overLight, setOverLight] = useState(false)
+    const [overLight, setOverLight] = useState(forceLight)
 
     useEffect(() => {
+      if (forceLight) {
+        setOverLight(true)
+        return
+      }
       const onScroll = () => {
         // The hero fades over the first viewport-height of scroll. Switch
         // nav contrast at ~40% of that fade so the nav swaps to royal-blue
@@ -34,7 +42,7 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
       onScroll()
       window.addEventListener('scroll', onScroll, { passive: true })
       return () => window.removeEventListener('scroll', onScroll)
-    }, [])
+    }, [forceLight])
 
     return (
       <nav

@@ -7,7 +7,6 @@ import LogoMarquee from './components/LogoMarquee'
 import FindYourFit from './components/FindYourFit'
 import ProofSection from './components/ProofSection'
 import CTASection from './components/CTASection'
-import BlogSection from './components/BlogSection'
 import PlusDivider from './components/PlusDivider'
 import PostHogTracker from './components/PostHogTracker'
 import ViewModeToggle from './components/ViewModeToggle'
@@ -124,12 +123,6 @@ export default function ExperimentPage() {
 
           <section id="work" data-section="work">
             <ProofSection />
-          </section>
-
-          <PlusDivider />
-
-          <section id="lab" data-section="lab">
-            <BlogSection />
           </section>
 
           <PlusDivider />
