@@ -91,11 +91,12 @@ export default function ProofSection() {
                       </div>
                     </div>
                     <div className="exp-proof-spotlight-media">
-                      <video
+                      <iframe
                         className="exp-proof-video"
-                        controls
-                        preload="metadata"
-                        poster={t.caseStudy.videoPoster}
+                        src={`https://www.youtube.com/embed/${t.caseStudy.youtubeId}`}
+                        title={`${t.author} testimonial`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
                       />
                       <Link
                         href={`/experiment/case-studies/${t.caseStudy.slug}`}
@@ -121,19 +122,21 @@ export default function ProofSection() {
           })}
         </div>
 
-        {/* Dots indicator */}
-        <div className="exp-proof-dots">
-          {testimonials.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => handleDotClick(i)}
-              aria-label={`Show testimonial ${i + 1}`}
-              className={
-                i === activeIndex ? 'exp-proof-dot exp-proof-dot--active' : 'exp-proof-dot'
-              }
-            />
-          ))}
-        </div>
+        {/* Dots indicator — only shown when there's more than one testimonial */}
+        {testimonials.length > 1 && (
+          <div className="exp-proof-dots">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => handleDotClick(i)}
+                aria-label={`Show testimonial ${i + 1}`}
+                className={
+                  i === activeIndex ? 'exp-proof-dot exp-proof-dot--active' : 'exp-proof-dot'
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

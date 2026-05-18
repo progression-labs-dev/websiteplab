@@ -396,7 +396,7 @@ export interface Testimonial {
   role: string
   caseStudy?: {
     slug: string
-    videoPoster: string
+    youtubeId: string
   }
 }
 
@@ -407,18 +407,8 @@ export const TESTIMONIALS: Testimonial[] = [
     role: 'CEO of Globo',
     caseStudy: {
       slug: 'globo',
-      videoPoster: '/case-studies/globo-placeholder.png',
+      youtubeId: 'rDV_iqkWzHY',
     },
-  },
-  {
-    quote: "Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn't think were possible.",
-    author: 'Sarah Chen',
-    role: 'CTO of TechVentures',
-  },
-  {
-    quote: 'Working with Progression Labs has been a game-changer. They brought deep expertise and a collaborative approach that made all the difference in our AI journey.',
-    author: 'Michael Roberts',
-    role: 'VP Engineering at DataFlow',
   },
 ]
 

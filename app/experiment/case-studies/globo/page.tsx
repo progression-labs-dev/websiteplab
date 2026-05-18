@@ -128,6 +128,21 @@ export default function GloboCaseStudyPage() {
 
         <div className="exp-cs-plus-divider"><span className="exp-cs-plus-divider-mark">+</span></div>
 
+        {/* Customer testimonial video — Dipak Patel, Globo */}
+        <section className="exp-cs-story-video-section" aria-label="Customer testimonial video">
+          <div className="exp-cs-story-video-frame">
+            <iframe
+              className="exp-cs-story-video"
+              src="https://www.youtube.com/embed/rDV_iqkWzHY"
+              title="Dipak Patel — Globo CEO testimonial"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </section>
+
+        <div className="exp-cs-plus-divider"><span className="exp-cs-plus-divider-mark">+</span></div>
+
         {/* About Globo */}
         <section className="exp-cs-story-section">
           <div className="exp-cs-story-section-label">About Globo</div>
