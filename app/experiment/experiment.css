@@ -1775,6 +1775,34 @@ html:has(.experiment) { scroll-behavior: auto; }
   margin-top: 40px;
 }
 
+/* Embedded testimonial video (YouTube iframe) — centered, 16:9, royal-blue
+   light-mode framing. */
+.exp-cs-story-video-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 80px;
+  display: flex;
+  justify-content: center;
+}
+.exp-cs-story-video-frame {
+  width: 100%;
+  max-width: 880px;
+}
+.exp-cs-story-video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(30, 91, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(30, 91, 255, 0.05);
+  display: block;
+}
+@media (max-width: 1024px) {
+  .exp-cs-story-video-section { padding: 40px 40px; }
+}
+@media (max-width: 640px) {
+  .exp-cs-story-video-section { padding: 32px 20px; }
+}
+
 /* Pull quote section */
 .exp-cs-story-quote-section {
   max-width: 1100px;
