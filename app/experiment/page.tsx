@@ -116,8 +116,6 @@ export default function ExperimentPage() {
             <LogoMarquee />
           </div>
 
-          <PlusDivider />
-
           <section id="services" data-section="services">
             <FindYourFit />
           </section>
