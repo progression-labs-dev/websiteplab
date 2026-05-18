@@ -92,7 +92,7 @@
 /* ─── Light Mode Overrides — Parchment + Electric Royal Blue ─── */
 [data-theme="light"] {
   --exp-white: #1E5BFF;          /* electric royal — primary ink */
-  --exp-black: #f2eee3;          /* parchment — bg / filled-button text */
+  --exp-black: #ffffff;          /* parchment — bg / filled-button text */
   --exp-gray: #2A3168;           /* deep ink for secondary content */
 
   --exp-border: rgba(30, 91, 255, 0.55);      /* electric royal dashed frame, more visible */
@@ -119,7 +119,7 @@
   --alpha-60: rgba(30, 91, 255, 0.72);
   --alpha-80: rgba(30, 91, 255, 0.88);
 
-  --exp-bg: #f2eee3;             /* parchment */
+  --exp-bg: #ffffff;             /* parchment */
   --exp-surface: rgba(30, 91, 255, 0.05);
   --exp-surface-hover: rgba(30, 91, 255, 0.10);
   --exp-text-primary: #1E5BFF;   /* electric royal */
@@ -127,7 +127,7 @@
   --exp-text-tertiary: rgba(42, 49, 104, 0.65);
 
   --exp-hero-overlay: linear-gradient(to top, rgba(244, 241, 234, 0.70), transparent);
-  --exp-hero-frame-bg: #f2eee3;
+  --exp-hero-frame-bg: #ffffff;
 
   --exp-scanner-curtain: #1E5BFF;
 
@@ -144,7 +144,7 @@ body:has(.experiment) {
   /* Hybrid design: page surface is parchment regardless of section theme.
      Hero canvas sits on top with its own dark gradient and fades into this
      parchment surface via the wavy alpha mask at its bottom edge. */
-  background: #f2eee3 !important;
+  background: #ffffff !important;
 }
 
 /* Fix: globals.css sets scroll-behavior:smooth which conflicts with Lenis —
@@ -156,7 +156,7 @@ html:has(.experiment) { scroll-behavior: auto; }
    dark gradient over the top section and fades into this parchment via the
    wavy alpha mask at its bottom edge. */
 .experiment {
-  background: #f2eee3;
+  background: #ffffff;
   color: var(--exp-text-primary);
   min-height: 100vh;
   overflow: clip;
@@ -413,7 +413,7 @@ html:has(.experiment) { scroll-behavior: auto; }
    `backgroundColor` (the mask fill colour), so we need !important here to
    override it without changing the JSX. */
 .exp-nav[data-over-light="true"] {
-  background: #f2eee3;
+  background: #ffffff;
   border-bottom-color: rgba(30, 91, 255, 0.18);
 }
 .exp-nav[data-over-light="true"] .exp-nav-brand {
@@ -450,7 +450,7 @@ html:has(.experiment) { scroll-behavior: auto; }
    seam is just parchment-to-parchment (invisible). */
 .exp-light-wrapper {
   position: relative;
-  background: #f2eee3;
+  background: #ffffff;
 }
 
 /* Vertical dashed edges through the parchment body. .experiment::before draws
@@ -1367,7 +1367,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   margin: 56px 80px 0 80px;
   height: 240px;
   overflow: hidden;
-  background: #f2eee3;
+  background: #ffffff;
   border: 1px dashed var(--alpha-12);
   isolation: isolate;
 }
@@ -1610,7 +1610,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: #f2eee3;
+  background: #ffffff;
   color: var(--exp-text-tertiary);
   font-size: 14px;
   font-weight: 300;
@@ -2272,7 +2272,7 @@ html:has(.experiment) { scroll-behavior: auto; }
    looking like a contained box. The mask keeps the top-left fully opaque
    (where the heading sits on the saturated peak) and fades the bottom-right
    into transparent, revealing the parchment behind. Combined with the
-   gradient's own parchment endpoint matching the page bg (#f2eee3), the
+   gradient's own parchment endpoint matching the page bg (#ffffff), the
    card now blends into the page rather than reading as a discrete rect. */
 [data-theme="light"] .exp-col-label--gradient {
   -webkit-mask-image: linear-gradient(
