@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { SHARED_START } from './sharedTime'
 
 interface AsciiOverlayProps {
   active: boolean
@@ -60,7 +61,6 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
 
     initGrid()
 
-    const startTime = performance.now() / 1000
     let rafId: number
 
     const render = () => {
@@ -68,13 +68,19 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
       mouseY += (targetY - mouseY) * 0.08
       mouseActive += (targetActive - mouseActive) * 0.1
 
-      const time = performance.now() / 1000 - startTime
+      // Use SHARED_START so the shimmer phase matches the WebGL shader's uTime —
+      // overlay and underlying gradient stay perfectly in sync.
+      const time = performance.now() / 1000 - SHARED_START
       const aspect = width / height
 
       ctx.clearRect(0, 0, width, height)
       ctx.font = `500 ${FONT_SIZE}px "Inter", sans-serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
+
+      // White ink in both modes — matches the hero shader's shimmer aesthetic.
+      const inkRgb = '255, 255, 255'
+      const inkAlphaMul = 1.0
 
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i]
@@ -105,8 +111,8 @@ export default function AsciiOverlay({ active }: AsciiOverlayProps) {
 
         // ONLY DRAW if the mask is actually active (no lingering background text)
         if (mask > 0.01) {
-          const finalAlpha = mask * cell.brightness
-          ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
+          const finalAlpha = Math.min(mask * cell.brightness * inkAlphaMul, 1.0)
+          ctx.fillStyle = `rgba(${inkRgb}, ${finalAlpha})`
           ctx.fillText(cell.char, px, py)
         }
       }

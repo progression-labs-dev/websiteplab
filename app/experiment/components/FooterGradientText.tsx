@@ -19,6 +19,7 @@ const fragmentShaderSource = `
   precision highp float;
   uniform vec2 u_resolution; // CSS px (DPR-independent, matches HeroGradientGL.uResolution)
   uniform float u_time;
+  uniform float u_light_mode; // 0 = dark, 1 = light (parchment floor + wash)
   varying vec2 vUv;
 
   float hash(vec2 p) {
@@ -46,43 +47,33 @@ const fragmentShaderSource = `
     return vec3(0.000, 0.000, 1.000);
   }
 
-  // 14-state color cycle over 70s — matching HeroGradientGL exactly
+  // Blue-centric cycle (matches HeroGradientGL) — 10 segments over 50s.
+  // peakA stays royal blue; peakB cycles through turquoise, baby pink,
+  // peach, periwinkle, and light orange accents.
   void cycleColors(float time, out vec3 peakA, out vec3 peakB) {
-    vec3 cO = brandColor(0); vec3 cS = brandColor(1);
-    vec3 cG = brandColor(2); vec3 cT = brandColor(3); vec3 cB = brandColor(4);
+    vec3 cBlue        = vec3(0.000, 0.000, 1.000);
+    vec3 cTurquoise   = vec3(0.251, 0.878, 0.816);
+    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863);
+    vec3 cBabyPink    = vec3(1.000, 0.785, 0.866);
+    vec3 cPeach       = vec3(1.000, 0.855, 0.725);
+    vec3 cLightOrange = vec3(1.000, 0.627, 0.478);
 
-    // Extended palette — peak pairs for 5 additional themed states
-    vec3 cGold        = vec3(0.722, 0.671, 0.220); // #B8AB38
-    vec3 cVanilla     = vec3(0.878, 0.843, 0.580); // #E0D794
-    vec3 cWine        = vec3(0.435, 0.114, 0.106); // #6F1D1B
-    vec3 cAshGrey     = vec3(0.678, 0.741, 0.671); // #ADBDAB
-    vec3 cBurntPeach  = vec3(0.886, 0.447, 0.357); // #E2725B
-    vec3 cSoftApricot = vec3(1.000, 0.855, 0.725); // #FFDAB9
-    vec3 cInferno     = vec3(0.667, 0.000, 0.012); // #AA0003
-    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863); // #BFB4DC
-    vec3 cMagenta     = vec3(1.000, 0.000, 1.000); // #FF00FF
-    vec3 cYellow      = vec3(1.000, 1.000, 0.000); // #FFFF00
-
-    float progress = mod(time, 70.0) / 70.0;
-    float seg = progress * 14.0;
+    float progress = mod(time, 50.0) / 50.0;
+    float seg = progress * 10.0;
     int idx = int(floor(seg));
     float t = ssmooth(seg - floor(seg));
 
     vec3 fA, fB, tA, tB;
-    if (idx == 0)       { fA = cO;          fB = cO;           tA = cB;          tB = cS;           }
-    else if (idx == 1)  { fA = cB;          fB = cS;           tA = cG;          tB = cG;           }
-    else if (idx == 2)  { fA = cG;          fB = cG;           tA = cGold;       tB = cVanilla;     } // → Ancient Gild
-    else if (idx == 3)  { fA = cGold;       fB = cVanilla;     tA = cO;          tB = cT;           } // bridge
-    else if (idx == 4)  { fA = cO;          fB = cT;           tA = cS;          tB = cS;           }
-    else if (idx == 5)  { fA = cS;          fB = cS;           tA = cBurntPeach; tB = cSoftApricot; } // → Terracotta Sunset
-    else if (idx == 6)  { fA = cBurntPeach; fB = cSoftApricot; tA = cWine;       tB = cAshGrey;     } // → Vintage Hearth
-    else if (idx == 7)  { fA = cWine;       fB = cAshGrey;     tA = cB;          tB = cT;           } // bridge
-    else if (idx == 8)  { fA = cB;          fB = cT;           tA = cB;          tB = cB;           }
-    else if (idx == 9)  { fA = cB;          fB = cB;           tA = cInferno;    tB = cPeriwinkle;  } // → Scarlet Glacier
-    else if (idx == 10) { fA = cInferno;    fB = cPeriwinkle;  tA = cMagenta;    tB = cYellow;      } // → Retro Future
-    else if (idx == 11) { fA = cMagenta;    fB = cYellow;      tA = cO;          tB = cG;           } // bridge
-    else if (idx == 12) { fA = cO;          fB = cG;           tA = cT;          tB = cT;           }
-    else                { fA = cT;          fB = cT;           tA = cO;          tB = cO;           }
+    if (idx == 0)       { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cTurquoise;   }
+    else if (idx == 1)  { fA = cBlue; fB = cTurquoise;    tA = cBlue; tB = cBlue;        }
+    else if (idx == 2)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cBabyPink;    }
+    else if (idx == 3)  { fA = cBlue; fB = cBabyPink;     tA = cBlue; tB = cBlue;        }
+    else if (idx == 4)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cPeach;       }
+    else if (idx == 5)  { fA = cBlue; fB = cPeach;        tA = cBlue; tB = cBlue;        }
+    else if (idx == 6)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cPeriwinkle;  }
+    else if (idx == 7)  { fA = cBlue; fB = cPeriwinkle;   tA = cBlue; tB = cBlue;        }
+    else if (idx == 8)  { fA = cBlue; fB = cBlue;         tA = cBlue; tB = cLightOrange; }
+    else                { fA = cBlue; fB = cLightOrange;  tA = cBlue; tB = cBlue;        }
 
     peakA = mix(fA, tA, t);
     peakB = mix(fB, tB, t);
@@ -100,12 +91,62 @@ const fragmentShaderSource = `
 
     float verticalBias = smoothstep(0.05, 0.95, gp);
     float colorMix = clamp(verticalBias + (swirl - 0.5) * 1.0, 0.0, 1.0);
-    vec3 peak = mix(peakA, peakB, colorMix);
+    // Dark mode: swirl-modulated blend of peakA and peakB.
+    // Light mode: drop the peakA/peakB spatial split entirely — use peakA. The
+    // wider light ramp keeps peak saturated through the canvas, so the
+    // swirl-modulated peakA↔peakB boundary wobbles visibly as a "blob" when
+    // the pair is hue-opposite. Single-peak eliminates the boundary. Matches
+    // HeroGradientGL and PixelGradientCanvas.
+    vec3 peak = mix(mix(peakA, peakB, colorMix), peakA, u_light_mode);
 
     float wave = (vnoise(uv * 2.0 + vec2(time * 0.06, -time * 0.04)) - 0.5) * 0.06;
     float protection = smoothstep(0.0, 0.25, gp);
     gp = clamp(gp + wave * protection, 0.0, 1.0);
 
+    // Light mode: hue-preserving deep companion (matches HeroGradientGL) →
+    // peak → tint → parchment. Footer uv is Y-flipped so gp=0 is canvas top,
+    // gp=1 is canvas bottom. Tonal direction: ultraDeep at top → parchment at
+    // bottom (inverse of Hero/FYF).
+    if (u_light_mode > 0.5) {
+      vec3 parchment = vec3(0.949, 0.933, 0.890);
+
+      float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
+      float yellowShift = warmBias * step(peak.g, peak.r);
+      float greenShift  = warmBias * step(peak.r, peak.g) * (1.0 - step(peak.g, peak.r));
+      vec3 hueShifted = vec3(
+        peak.r * (1.0 - greenShift * 0.50),
+        peak.g * (1.0 - yellowShift * 0.55),
+        peak.b
+      );
+
+      vec3 darkened  = hueShifted * 0.45;
+      float minCh    = min(min(darkened.r, darkened.g), darkened.b);
+      vec3 deepPeak  = max(darkened - vec3(minCh * 0.55), vec3(0.0));
+
+      // 5-zone ramp analogous to dark mode below. Footer gp is Y-flipped so
+      // gp=0 is canvas top and gp=1 is canvas bottom. Tonal direction goes
+      // parchment (top) → ultraDeep (bottom) — the deepest colour sits at
+      // the bottom edge of the canvas, matching the user's mental model of
+      // "footer = end of page, dark sits at the bottom edge".
+      vec3 wash      = mix(peak, parchment, 0.85);
+      vec3 tint      = mix(peak, parchment, 0.55);
+      vec3 ultraDeep = deepPeak * 0.65;
+
+      float t1 = smoothstep(0.00, 0.10, gp);  // parchment → wash
+      float t2 = smoothstep(0.06, 0.24, gp);  // wash → tint
+      float t3 = smoothstep(0.15, 0.55, gp);  // tint → peak
+      float t4 = smoothstep(0.45, 0.85, gp);  // peak → deepPeak
+      float t5 = smoothstep(0.75, 1.00, gp);  // deepPeak → ultraDeep
+
+      vec3 color = mix(parchment, wash, t1);
+      color = mix(color, tint, t2);
+      color = mix(color, peak, t3);
+      color = mix(color, deepPeak, t4);
+      color = mix(color, ultraDeep, t5);
+      return color;
+    }
+
+    // Dark mode: original 5-zone ramp — UNCHANGED from the live site.
     vec3 deep = peak * 0.06;
     vec3 mid  = peak * 0.35;
     vec3 wash = mix(peak, vec3(1.0), 0.5);
@@ -134,6 +175,8 @@ const fragmentShaderSource = `
     vec2 cellId = floor(uv * grid);
     vec2 pixelUv = cellId / grid + vec2(0.5) / grid;
 
+    // Per-column y-offset — matches Hero/FYF (0.035). Same in both modes now
+    // that the 5-zone light ramp provides continuous gradient slope.
     float colOffset = hash(vec2(cellId.x, 0.0)) * 0.035;
     pixelUv.y += colOffset;
 
@@ -145,35 +188,40 @@ const fragmentShaderSource = `
 
     // Diagonal shimmer — only mask, matches hero's no-mouse case
     float diag = (uv.x + 1.0 - uv.y) * 0.5;
-    float shimmerPos = fract(u_time * 0.25);
+    float shimmerSpeed = 0.25;
+    float shimmerPos = fract(u_time * shimmerSpeed);
     float shimmerDist = abs(diag - shimmerPos);
     shimmerDist = min(shimmerDist, 1.0 - shimmerDist);
     float shimmerMask = exp(-shimmerDist * shimmerDist * 120.0) * 0.6;
 
     vec3 color = mix(smoothColor, pixelColor, shimmerMask);
 
-    // Alpha — fades UP from bottom (solid at bottom, transparent at top).
-    // pixelUv.y is in flipped-Y space (1 at bottom, 0 at top), matching the original mask intent.
+    // Alpha — dark mode keeps the wavy mask that fades UP from a solid bottom
+    // (atmospheric rise into black page bg).
+    // Light mode forces alpha = 1.0; the colour ramp already fades to parchment
+    // at the bottom of the canvas, so any blocky alpha variation just shows up
+    // as grey pixel artefacts against the parchment page bg.
     float y = pixelUv.y;
 
-    // Wavy edge with organic movement
     float wave = sin(pixelUv.x * 3.5 + 1.2 + u_time * 0.6) * 0.10
                + sin(pixelUv.x * 8.0 + 3.7 - u_time * 0.45) * 0.06
                + cos(pixelUv.x * 5.5 + 0.5 + u_time * 0.35) * 0.07
                + sin(pixelUv.x * 12.0 + u_time * 0.8) * 0.03;
 
-    // Right side extends further up
     float rightPush = (smoothstep(0.4, 1.0, pixelUv.x)) * 0.15;
     float leftPush = (1.0 - smoothstep(0.0, 0.5, pixelUv.x)) * 0.08;
     float edgePush = leftPush + rightPush;
 
-    float alpha = smoothstep(-0.25, 0.55, y + wave + edgePush);
+    float darkAlpha = smoothstep(-0.25, 0.55, y + wave + edgePush);
+    float alpha = mix(darkAlpha, 1.0, u_light_mode);
 
     gl_FragColor = vec4(color, alpha);
   }
 `
 
 export default function FooterGradient() {
+  // Locked to light mode in the hybrid design — footer sits on the parchment
+  // page surface below the dark hero.
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -215,6 +263,7 @@ export default function FooterGradient() {
 
     const resolutionLoc = gl.getUniformLocation(program, 'u_resolution')
     const timeLoc = gl.getUniformLocation(program, 'u_time')
+    const lightModeLoc = gl.getUniformLocation(program, 'u_light_mode')
 
     const resize = () => {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio
@@ -228,6 +277,7 @@ export default function FooterGradient() {
     let animationFrameId: number
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START)
+      gl.uniform1f(lightModeLoc, 1.0)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
       animationFrameId = requestAnimationFrame(render)
     }

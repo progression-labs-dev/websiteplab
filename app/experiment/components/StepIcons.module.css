@@ -30,6 +30,12 @@
   stop-color: var(--t-accent, rgb(186, 85, 211));
 }
 
+.stopFade {
+  /* Fades the bottom of the stroke into the surrounding ink colour —
+     white on dark mode, electric royal on light mode. Driven by primary text. */
+  stop-color: var(--exp-text-primary, #ffffff);
+}
+
 /* =========================================
    Bouncing Stack (Question 1)
    ========================================= */

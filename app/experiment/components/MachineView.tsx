@@ -8,16 +8,10 @@ import {
   JOURNEYS,
   RECOMMENDATIONS,
   TESTIMONIALS,
-  BLOG_POSTS,
   CONTACT_EMAIL,
   LINKEDIN_URL,
 } from '../data/siteContent'
 import { BRAINSTORM_HREF } from './brainstormMailto'
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-}
 
 export default function MachineView() {
   return (
@@ -102,18 +96,6 @@ export default function MachineView() {
           <div key={i} className="exp-m-quote">
             <div className="exp-m-quote-text">&ldquo;{t.quote}&rdquo;</div>
             <div className="exp-m-quote-attr">— <strong>{t.author}</strong>, {t.role}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Blog */}
-      <div className="exp-m-card" data-section="lab">
-        <div className="exp-m-h2">## Blog — From the Lab</div>
-        {BLOG_POSTS.map(p => (
-          <div key={p.title} className="exp-m-blog">
-            <div className="exp-m-h3">### {p.title}</div>
-            <div className="exp-m-blog-meta">{p.category} · {formatDate(p.date)}</div>
-            <div className="exp-m-body">{p.excerpt}</div>
           </div>
         ))}
       </div>

@@ -19,7 +19,7 @@ export default function StepIcons({ step }: StepIconsProps) {
         <defs>
           <linearGradient id="stack-grad" gradientUnits="userSpaceOnUse" x1="100" y1="70" x2="100" y2="144">
             <stop offset="0%" className={styles.stopAccent} />
-            <stop offset="100%" stopColor="#ffffff" />
+            <stop offset="100%" className={styles.stopFade} />
           </linearGradient>
         </defs>
         {/* All 3 share the same cy=130 so they rest as one flat shape */}
@@ -37,7 +37,7 @@ export default function StepIcons({ step }: StepIconsProps) {
         <defs>
           <linearGradient id="rings-grad" gradientUnits="userSpaceOnUse" x1="100" y1="68" x2="100" y2="132">
             <stop offset="0%" className={styles.stopAccent} />
-            <stop offset="100%" stopColor="#ffffff" />
+            <stop offset="100%" className={styles.stopFade} />
           </linearGradient>
         </defs>
         <circle cx="100" cy="100" r="32" className={`${styles.ring} ${styles.ring1}`} />
@@ -61,7 +61,7 @@ export default function StepIcons({ step }: StepIconsProps) {
           </clipPath>
           <linearGradient id="venn-grad" gradientUnits="userSpaceOnUse" x1="100" y1="47" x2="100" y2="160">
             <stop offset="0%" className={styles.stopAccent} />
-            <stop offset="100%" stopColor="#ffffff" />
+            <stop offset="100%" className={styles.stopFade} />
           </linearGradient>
         </defs>
         {/* 3 outlined circles */}

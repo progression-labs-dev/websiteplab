@@ -1,29 +1,76 @@
 'use client'
 
-import { forwardRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import ShuffleHover from './ShuffleHover'
 import ArrowIcon from './ArrowIcon'
-import { useTheme } from './ThemeProvider'
 import { NAV_LINKS } from '../data/siteContent'
 
 interface ExperimentNavProps {
   showBrand?: boolean
+  // On pages without a dark hero (e.g. case study routes), force the nav
+  // into its light-mode palette from the start instead of waiting for the
+  // scroll threshold to flip it.
+  forceLight?: boolean
 }
 
 const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
-  function ExperimentNav({ showBrand = false }, ref) {
-    const { toggleTheme, isDark } = useTheme()
+  function ExperimentNav({ showBrand = false, forceLight = false }, ref) {
+    const navRef = useRef<HTMLElement | null>(null)
+    useImperativeHandle(ref, () => navRef.current as HTMLElement)
+
+    // Hybrid design: nav sits over the dark hero at the top of the page and
+    // over the parchment body once you scroll past it. Toggle a flag so the
+    // CSS can swap text/border colours to stay legible against the surface
+    // behind it.
+    const [overLight, setOverLight] = useState(forceLight)
+
+    useEffect(() => {
+      if (forceLight) {
+        setOverLight(true)
+        return
+      }
+      const onScroll = () => {
+        // The hero fades over the first viewport-height of scroll. Switch
+        // nav contrast at ~40% of that fade so the nav swaps to royal-blue
+        // ink while the bg behind it is transitioning past 50%-parchment —
+        // keeps the text readable through the whole fade. Without this
+        // earlier threshold the nav stays white-on-darkening-bg and the
+        // text disappears against the lightening parchment behind.
+        const threshold = window.innerHeight * 0.4
+        setOverLight(window.scrollY > threshold)
+      }
+      onScroll()
+      window.addEventListener('scroll', onScroll, { passive: true })
+      return () => window.removeEventListener('scroll', onScroll)
+    }, [forceLight])
 
     return (
-      <nav ref={ref} className="exp-nav" style={{ opacity: 0 }}>
-        {/* Column 1: SVG P-logo + Brand name */}
+      <nav
+        ref={navRef}
+        className="exp-nav"
+        data-over-light={overLight ? 'true' : 'false'}
+        style={{ opacity: 0 }}
+      >
+        {/* Column 1: P-logo (tinted via mask + currentColor) + Brand name */}
         <div className="exp-nav-logo-group">
           <div className="exp-nav-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={isDark ? '/logo-white.png' : '/logo-black.png'}
-              alt="Progression Labs"
-              style={{ height: 16, width: 'auto' }}
+            <span
+              role="img"
+              aria-label="Progression Labs"
+              style={{
+                display: 'inline-block',
+                width: 16,
+                height: 16,
+                backgroundColor: 'var(--exp-text-primary)',
+                WebkitMaskImage: 'url(/logo-white.png)',
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: 'url(/logo-white.png)',
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+              }}
             />
           </div>
           <span
@@ -48,26 +95,6 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
         </ul>
 
         {/* Column 3: CTA button */}
-        {/* Theme toggle — uncomment to re-enable:
-        <button
-          onClick={toggleTheme}
-          className="exp-theme-toggle"
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {isDark ? (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
-              <circle cx="8" cy="8" r="3" /><line x1="8" y1="1" x2="8" y2="3" /><line x1="8" y1="13" x2="8" y2="15" />
-              <line x1="1" y1="8" x2="3" y2="8" /><line x1="13" y1="8" x2="15" y2="8" />
-              <line x1="3.05" y1="3.05" x2="4.46" y2="4.46" /><line x1="11.54" y1="11.54" x2="12.95" y2="12.95" />
-              <line x1="3.05" y1="12.95" x2="4.46" y2="11.54" /><line x1="11.54" y1="4.46" x2="12.95" y2="3.05" />
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
-              <path d="M13.5 8.5a5.5 5.5 0 0 1-6-6 5.5 5.5 0 1 0 6 6z" />
-            </svg>
-          )}
-        </button>
-        */}
         <div className="exp-nav-cta">
           <a href="#contact" className="exp-btn-outline">
             Get in touch <ArrowIcon />

@@ -82,6 +82,10 @@ export default function FinderAsciiOverlay() {
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
+      // White ink in both modes — matches the shader's shimmer aesthetic.
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light'
+      const inkRgb = '255, 255, 255'
+
       for (let i = 0; i < grid.length; i++) {
         const cell = grid[i]
 
@@ -116,11 +120,25 @@ export default function FinderAsciiOverlay() {
           glBrightness = (Math.max(r, g, b) / 255) * (a / 255)
         }
 
-        // Only show ASCII where the gradient is actually visible
-        if (shimmerMask > 0.01 && glBrightness > 0.12) {
-          const finalAlpha = shimmerMask * cell.brightness * Math.min(glBrightness * 2.0, 1.0)
-          ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha})`
-          ctx.fillText(cell.char, px, py)
+        // Dark mode: gate by sampled GL luminance so ASCII only renders where
+        // the gradient is bright enough to read against the black page bg.
+        // Light mode: parchment is itself a high-luminance bg, so the original
+        // gate would let cells through but with a glBrightness multiplier that
+        // makes royal-blue ink too faint to read on parchment. Skip the gate
+        // and apply a constant alpha boost so ink renders cleanly everywhere
+        // inside the shimmer band.
+        if (isLight) {
+          if (shimmerMask > 0.01) {
+            const finalAlpha = Math.min(shimmerMask * cell.brightness * 1.6, 1.0)
+            ctx.fillStyle = `rgba(${inkRgb}, ${finalAlpha})`
+            ctx.fillText(cell.char, px, py)
+          }
+        } else {
+          if (shimmerMask > 0.01 && glBrightness > 0.12) {
+            const finalAlpha = shimmerMask * cell.brightness * Math.min(glBrightness * 2.0, 1.0)
+            ctx.fillStyle = `rgba(${inkRgb}, ${finalAlpha})`
+            ctx.fillText(cell.char, px, py)
+          }
         }
       }
 

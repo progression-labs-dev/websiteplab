@@ -394,6 +394,10 @@ export interface Testimonial {
   quote: string
   author: string
   role: string
+  caseStudy?: {
+    slug: string
+    videoPoster: string
+  }
 }
 
 export const TESTIMONIALS: Testimonial[] = [
@@ -401,6 +405,10 @@ export const TESTIMONIALS: Testimonial[] = [
     quote: "They've gone beyond just a number of engineers that I'm outsourcing AI for. They truly have been a thought partner, someone that's been very dependable and someone who helped us shape our strategy.",
     author: 'Dipak Patel',
     role: 'CEO of Globo',
+    caseStudy: {
+      slug: 'globo',
+      videoPoster: '/case-studies/globo-placeholder.png',
+    },
   },
   {
     quote: "Progression Labs transformed our approach to AI implementation. Their team delivered beyond our expectations and helped us achieve results we didn't think were possible.",
@@ -431,8 +439,6 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'Vibe Coding and the Death of Syntax',
     excerpt:
       'Karpathy coined it — programming via natural language, forgetting code exists. What this means for engineering teams and the future of software craft.',
-    image: '/blog/vibe-coding.png',
-    video: '/blog/blue-white-horse.mp4',
   },
   {
     category: 'Insights',
@@ -440,8 +446,6 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'Ghost Intelligence: Why LLMs Are Not What You Think',
     excerpt:
       'LLMs are "summoned ghosts", not gradually evolving animals. A fundamentally new type of intelligence that demands a new mental model.',
-    image: '/blog/ghost-intelligence.png',
-    video: '/blog/green-yellow-frog.mp4',
   },
   {
     category: 'Strategy',
@@ -449,8 +453,6 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'RLVR: The Quiet Revolution in How Models Learn to Reason',
     excerpt:
       'Reinforcement Learning from Verifiable Rewards — the shift from probabilistic imitation to logical reasoning that defined 2025.',
-    image: '/blog/rlvr-revolution.png',
-    video: '/blog/vibrant-green-flower.mp4',
   },
   {
     category: 'Process',
@@ -458,7 +460,5 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'The Magnitude 9 Earthquake: Engineering in the Agent Era',
     excerpt:
       'The profession is being dramatically refactored — agents, subagents, prompts, MCP, tools, plugins. How to ride the wave instead of drowning in it.',
-    image: '/blog/magnitude-earthquake.png',
-    video: '/blog/salmon-pink-jelly.mp4',
   },
 ]
