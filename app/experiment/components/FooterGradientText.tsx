@@ -108,7 +108,7 @@ const fragmentShaderSource = `
     // gp=1 is canvas bottom. Tonal direction: ultraDeep at top → parchment at
     // bottom (inverse of Hero/FYF).
     if (u_light_mode > 0.5) {
-      vec3 parchment = vec3(0.949, 0.933, 0.890);
+      vec3 parchment = vec3(1.0, 1.0, 1.0);
 
       float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
       float yellowShift = warmBias * step(peak.g, peak.r);

@@ -101,7 +101,7 @@ const fragmentShader = `
     // (subtract a fraction of the min channel) so every cycle state has a
     // clean rich deep colour, never a grey/dirty mid-tone.
     if (uLightMode > 0.5) {
-      vec3 parchment = vec3(0.949, 0.933, 0.890);   // #f2eee3
+      vec3 parchment = vec3(1.0, 1.0, 1.0);   // #ffffff
 
       // Hue-preserving shifts: warm-yellow peaks (R >= G) drop G toward red;
       // green peaks (G > R) drop R toward forest. Both prevent muddy olive when
@@ -243,7 +243,7 @@ const fragmentShader = `
       float sweep = 1.0 - vUv.y;
       float threshold = noise * 0.3 + sweep * 0.7;
       // Reveal palette adapts to mode so the parchment page doesn't flash dark.
-      vec3 baseColor = mix(vec3(0.004), vec3(0.949, 0.933, 0.890), uLightMode);
+      vec3 baseColor = mix(vec3(0.004), vec3(1.0, 1.0, 1.0), uLightMode);
       vec3 dimColor  = mix(vec3(0.14),  vec3(0.85),                 uLightMode);
 
       if (uRevealProgress > threshold + 0.08) {
