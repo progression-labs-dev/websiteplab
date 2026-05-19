@@ -24,6 +24,7 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
         ref={navRef}
         className="exp-nav"
         data-over-light={forceLight ? 'true' : 'false'}
+        data-theme={forceLight ? 'light' : undefined}
         style={{ opacity: 0 }}
       >
         {/* Column 1: P-logo (tinted via mask + currentColor) + Brand name —

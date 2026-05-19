@@ -89,47 +89,47 @@
   color: var(--exp-text-primary);
 }
 
-/* ─── Light Mode Overrides — Parchment + Electric Royal Blue ─── */
+/* ─── Light Mode Overrides — Bone + Black ink ─── */
 [data-theme="light"] {
-  --exp-white: #1E5BFF;          /* electric royal — primary ink */
-  --exp-black: #ffffff;          /* parchment — bg / filled-button text */
-  --exp-gray: #2A3168;           /* deep ink for secondary content */
+  --exp-white: #000000;          /* primary ink — pure black */
+  --exp-black: #FAF7F2;          /* bone parchment — bg / filled-button text */
+  --exp-gray: rgba(0, 0, 0, 0.75);
 
-  --exp-border: rgba(30, 91, 255, 0.55);      /* electric royal dashed frame, more visible */
-  --exp-border-hover: rgba(30, 91, 255, 0.75);
-  --exp-bracket: rgba(30, 91, 255, 0.55);
+  --exp-border: rgba(0, 0, 0, 0.55);
+  --exp-border-hover: rgba(0, 0, 0, 0.75);
+  --exp-bracket: rgba(0, 0, 0, 0.45);
 
-  /* General ink alpha — electric royal so dashed lines and accents pop */
-  --alpha-02: rgba(30, 91, 255, 0.04);
-  --alpha-03: rgba(30, 91, 255, 0.05);
-  --alpha-04: rgba(30, 91, 255, 0.06);
-  --alpha-05: rgba(30, 91, 255, 0.07);
-  --alpha-06: rgba(30, 91, 255, 0.08);
-  --alpha-08: rgba(30, 91, 255, 0.10);
-  --alpha-10: rgba(30, 91, 255, 0.14);
-  --alpha-12: rgba(30, 91, 255, 0.50);        /* dashed border lines — very visible */
-  --alpha-15: rgba(30, 91, 255, 0.20);
-  --alpha-18: rgba(30, 91, 255, 0.24);
-  --alpha-20: rgba(30, 91, 255, 0.28);
-  --alpha-25: rgba(30, 91, 255, 0.32);
-  --alpha-30: rgba(30, 91, 255, 0.40);
-  --alpha-35: rgba(30, 91, 255, 0.48);
-  --alpha-45: rgba(30, 91, 255, 0.55);
-  --alpha-50: rgba(30, 91, 255, 0.62);
-  --alpha-60: rgba(30, 91, 255, 0.72);
-  --alpha-80: rgba(30, 91, 255, 0.88);
+  /* Ink alpha tokens — black-tinted so dashed lines and accents pop on bone */
+  --alpha-02: rgba(0, 0, 0, 0.04);
+  --alpha-03: rgba(0, 0, 0, 0.05);
+  --alpha-04: rgba(0, 0, 0, 0.06);
+  --alpha-05: rgba(0, 0, 0, 0.07);
+  --alpha-06: rgba(0, 0, 0, 0.08);
+  --alpha-08: rgba(0, 0, 0, 0.10);
+  --alpha-10: rgba(0, 0, 0, 0.14);
+  --alpha-12: rgba(0, 0, 0, 0.22);            /* dashed border lines on bone */
+  --alpha-15: rgba(0, 0, 0, 0.20);
+  --alpha-18: rgba(0, 0, 0, 0.24);
+  --alpha-20: rgba(0, 0, 0, 0.28);
+  --alpha-25: rgba(0, 0, 0, 0.32);
+  --alpha-30: rgba(0, 0, 0, 0.40);
+  --alpha-35: rgba(0, 0, 0, 0.48);
+  --alpha-45: rgba(0, 0, 0, 0.55);
+  --alpha-50: rgba(0, 0, 0, 0.62);
+  --alpha-60: rgba(0, 0, 0, 0.72);
+  --alpha-80: rgba(0, 0, 0, 0.88);
 
-  --exp-bg: #ffffff;             /* parchment */
-  --exp-surface: rgba(30, 91, 255, 0.05);
-  --exp-surface-hover: rgba(30, 91, 255, 0.10);
-  --exp-text-primary: #1E5BFF;   /* electric royal */
-  --exp-text-secondary: #2A3168;
-  --exp-text-tertiary: rgba(42, 49, 104, 0.65);
+  --exp-bg: #FAF7F2;             /* bone — very subtle warm off-white */
+  --exp-surface: rgba(0, 0, 0, 0.04);
+  --exp-surface-hover: rgba(0, 0, 0, 0.08);
+  --exp-text-primary: #000000;
+  --exp-text-secondary: rgba(0, 0, 0, 0.75);
+  --exp-text-tertiary: rgba(0, 0, 0, 0.55);
 
-  --exp-hero-overlay: linear-gradient(to top, rgba(244, 241, 234, 0.70), transparent);
-  --exp-hero-frame-bg: #ffffff;
+  --exp-hero-overlay: linear-gradient(to top, rgba(250, 247, 242, 0.70), transparent);
+  --exp-hero-frame-bg: #FAF7F2;
 
-  --exp-scanner-curtain: #1E5BFF;
+  --exp-scanner-curtain: #000000;
 
   --exp-logo-invert: brightness(0);
 }
@@ -401,29 +401,29 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 
 /* When the nav is forced into its light palette (case study routes via
-   forceLight={true}), swap text/border/bg to the royal-blue parchment
-   palette. The logo span uses an inline `backgroundColor` (the mask fill
-   colour), so we need !important here to override it without changing the
-   JSX. */
+   forceLight={true}), the nav itself sets data-theme="light" so the var
+   tokens below resolve to the case-study bone + black palette. The logo
+   span uses an inline `backgroundColor` (the mask fill colour), so we need
+   !important here to override it without changing the JSX. */
 .exp-nav[data-over-light="true"] {
-  background: #ffffff;
-  border-bottom-color: rgba(30, 91, 255, 0.18);
+  background: var(--exp-bg);
+  border-bottom-color: var(--alpha-15);
 }
 .exp-nav[data-over-light="true"] .exp-nav-brand {
-  color: #1E5BFF;
+  color: var(--exp-text-primary);
 }
 .exp-nav[data-over-light="true"] .exp-nav-logo span {
-  background-color: #1E5BFF !important;
+  background-color: var(--exp-text-primary) !important;
 }
 .exp-nav[data-over-light="true"] .exp-nav-links a {
-  color: rgba(42, 49, 104, 0.85);
+  color: var(--exp-text-secondary);
 }
 .exp-nav[data-over-light="true"] .exp-nav-links a:hover {
-  color: #1E5BFF;
+  color: var(--exp-text-primary);
 }
 .exp-nav[data-over-light="true"] .exp-btn-outline {
-  color: #1E5BFF;
-  border-color: rgba(30, 91, 255, 0.55);
+  color: var(--exp-text-primary);
+  border-color: var(--exp-border);
 }
 
 /* Hero is in normal flow — scrolls up with the page like any other section.
@@ -443,7 +443,7 @@ html:has(.experiment) { scroll-behavior: auto; }
    seam is just parchment-to-parchment (invisible). */
 .exp-light-wrapper {
   position: relative;
-  background: #ffffff;
+  background: var(--exp-bg);
 }
 
 /* Vertical dashed edges through the parchment body. .experiment::before draws
@@ -1345,6 +1345,18 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 /* ─── Case study route (/experiment/case-studies/[slug]) — v1 port ─── */
 
+/* Bold emphasis: horizontal gradient inspired by the hero's white → peach →
+   light-orange → royal-blue opening phase. Becomes the single point of
+   colour on the otherwise bone-on-black page so emphasis pops without
+   needing italic or weight changes. Hex values match the brand palette
+   in HeroGradientGL.tsx (cPeach #FFDAB9, cLightOrange #FFA07A, cBlue
+   #0000FF). */
+.exp-case-study-page strong,
+.exp-case-study-page .exp-cs-story-stat-num,
+.exp-case-study-page .exp-cs-story-stat-suffix {
+  color: #0000FF;
+}
+
 /* Back link (used in story hero) */
 .exp-case-study-back {
   display: inline-flex;
@@ -1362,13 +1374,14 @@ html:has(.experiment) { scroll-behavior: auto; }
 
 /* Hero banner — slim strip with the same WebGL pixel gradient used in the
    Find Your Fit section, plus the PL × Globo lockup on top. Background is
-   parchment so the masked bottom of the canvas fades cleanly into the body. */
+   the bone page surface so the masked bottom of the canvas fades cleanly
+   into the body. */
 .exp-cs-hero-banner {
   position: relative;
   margin: 56px 80px 0 80px;
   height: 240px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--exp-bg);
   border: 1px dashed var(--alpha-12);
   isolation: isolate;
 }
@@ -1526,9 +1539,9 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-cs-story-eyebrow-dot {
   width: 6px;
   height: 6px;
-  background: #1E5BFF;
+  background: #0000FF;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(30, 91, 255, 0.55);
+  box-shadow: 0 0 8px rgba(0, 0, 255, 0.55);
   animation: exp-cs-pulse-dot 2.5s ease-in-out infinite;
 }
 @keyframes exp-cs-pulse-dot {
@@ -1553,7 +1566,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-cs-story-h1 em {
   font-style: normal;
   font-weight: 400;
-  color: #1E5BFF;
+  color: var(--exp-text-primary);
 }
 .exp-cs-story-lede {
   font-family: 'Inter', sans-serif;
@@ -1611,7 +1624,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: #ffffff;
+  background: var(--exp-bg);
   color: var(--exp-text-tertiary);
   font-size: 14px;
   font-weight: 300;
@@ -1792,9 +1805,9 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-cs-story-video {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border: 1px solid rgba(30, 91, 255, 0.22);
+  border: 1px solid var(--alpha-18);
   border-radius: 8px;
-  background: rgba(30, 91, 255, 0.05);
+  background: var(--exp-surface);
   display: block;
 }
 @media (max-width: 1024px) {
@@ -1824,7 +1837,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 }
 .exp-cs-story-quote em {
   font-style: normal;
-  color: #1E5BFF;
+  color: var(--exp-text-primary);
 }
 .exp-cs-story-quote-author {
   display: inline-flex;
@@ -1855,7 +1868,7 @@ html:has(.experiment) { scroll-behavior: auto; }
   max-width: 920px;
   background: radial-gradient(
     ellipse 80% 80% at 50% 50%,
-    rgba(30, 91, 255, 0.08),
+    var(--alpha-08),
     transparent 70%
   );
 }
@@ -1903,22 +1916,22 @@ html:has(.experiment) { scroll-behavior: auto; }
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 .exp-cs-btn-filled {
-  background: #1E5BFF;
-  color: #ffffff;
-  border: 1px solid #1E5BFF;
+  background: var(--exp-text-primary);
+  color: var(--exp-bg);
+  border: 1px solid var(--exp-text-primary);
 }
 .exp-cs-btn-filled:hover {
-  background: #0d49eb;
-  border-color: #0d49eb;
+  background: var(--exp-text-secondary);
+  border-color: var(--exp-text-secondary);
 }
 .exp-cs-btn-outline {
   background: transparent;
-  color: #1E5BFF;
-  border: 1px solid rgba(30, 91, 255, 0.35);
+  color: var(--exp-text-primary);
+  border: 1px solid var(--alpha-30);
 }
 .exp-cs-btn-outline:hover {
-  border-color: rgba(30, 91, 255, 0.65);
-  background: rgba(30, 91, 255, 0.06);
+  border-color: var(--alpha-50);
+  background: var(--alpha-04);
 }
 
 /* Responsive */
