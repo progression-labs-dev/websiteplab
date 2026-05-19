@@ -58,6 +58,13 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
           href="/experiment"
           aria-label="Progression Labs — home"
           className="exp-nav-logo-group exp-nav-logo-link"
+          onClick={() => {
+            // If already on /experiment, the route change is a no-op — scroll
+            // to the top so the logo still feels responsive as a "home" link.
+            if (typeof window !== 'undefined' && window.location.pathname === '/experiment') {
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+          }}
         >
           <div className="exp-nav-logo">
             <span
