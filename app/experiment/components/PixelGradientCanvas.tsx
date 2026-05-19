@@ -44,19 +44,41 @@ const fragmentShaderSource = `
     return vec3(0.000, 0.000, 1.000);              // Blue
   }
 
-  // Blue-centric cycle (matches HeroGradientGL) — 10 segments over 50s.
-  // peakA stays royal blue; peakB cycles through turquoise, baby pink,
-  // peach, periwinkle, and light orange accents.
+  // Blue-centric cycle. Two paths:
+  //   Dark mode (main page / FindYourFit): full 10-segment palette over 50s
+  //     — turquoise, baby pink, peach, periwinkle, light orange accents.
+  //   Light mode (case study banner): warm-only 4-segment cycle over 20s
+  //     — blue → peach → blue → light orange. No purple, turquoise, or pink,
+  //     so the bone-on-blue surface never drifts to cooler accents.
   void cycleColors(float time, out vec3 peakA, out vec3 peakB) {
     vec3 cBlue        = vec3(0.000, 0.000, 1.000);
-    vec3 cTurquoise   = vec3(0.251, 0.878, 0.816);
-    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863);
-    vec3 cBabyPink    = vec3(1.000, 0.785, 0.866);
     vec3 cPeach       = vec3(1.000, 0.855, 0.725);
     vec3 cLightOrange = vec3(1.000, 0.627, 0.478);
 
-    // +25s phase offset so the cycle lands at the peach+blue phase on first
-    // paint (matches HeroGradientGL — keeps both gradients in sync).
+    if (u_light_mode > 0.5) {
+      // Case-study warm-only cycle. +5s offset lands on the blue+peach phase
+      // at first paint (matches the hero's opening look).
+      float progress = mod(time + 5.0, 20.0) / 20.0;
+      float seg = progress * 4.0;
+      int idx = int(floor(seg));
+      float t = ssmooth(seg - floor(seg));
+
+      vec3 fA = cBlue, tA = cBlue, fB, tB;
+      if (idx == 0)      { fB = cBlue;        tB = cPeach;       }
+      else if (idx == 1) { fB = cPeach;       tB = cBlue;        }
+      else if (idx == 2) { fB = cBlue;        tB = cLightOrange; }
+      else               { fB = cLightOrange; tB = cBlue;        }
+
+      peakA = mix(fA, tA, t);
+      peakB = mix(fB, tB, t);
+      return;
+    }
+
+    // Dark mode: full 10-segment cycle (unchanged).
+    vec3 cTurquoise   = vec3(0.251, 0.878, 0.816);
+    vec3 cPeriwinkle  = vec3(0.749, 0.706, 0.863);
+    vec3 cBabyPink    = vec3(1.000, 0.785, 0.866);
+
     float progress = mod(time + 25.0, 50.0) / 50.0;
     float seg = progress * 10.0;
     int idx = int(floor(seg));
