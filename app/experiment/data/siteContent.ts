@@ -396,7 +396,8 @@ export interface Testimonial {
   role: string
   caseStudy?: {
     slug: string
-    youtubeId: string
+    videoSrc: string
+    videoPoster: string
   }
 }
 
@@ -407,7 +408,8 @@ export const TESTIMONIALS: Testimonial[] = [
     role: 'CEO of Globo',
     caseStudy: {
       slug: 'globo',
-      youtubeId: 'rDV_iqkWzHY',
+      videoSrc: '/case-studies/globo-testimonial.mp4',
+      videoPoster: '/case-studies/globo-testimonial-poster.jpg',
     },
   },
 ]

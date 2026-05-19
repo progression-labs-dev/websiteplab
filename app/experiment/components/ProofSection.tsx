@@ -91,12 +91,13 @@ export default function ProofSection() {
                       </div>
                     </div>
                     <div className="exp-proof-spotlight-media">
-                      <iframe
+                      <video
                         className="exp-proof-video"
-                        src={`https://www.youtube.com/embed/${t.caseStudy.youtubeId}`}
-                        title={`${t.author} testimonial`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
+                        src={t.caseStudy.videoSrc}
+                        poster={t.caseStudy.videoPoster}
+                        controls
+                        preload="metadata"
+                        playsInline
                       />
                       <Link
                         href={`/experiment/case-studies/${t.caseStudy.slug}`}

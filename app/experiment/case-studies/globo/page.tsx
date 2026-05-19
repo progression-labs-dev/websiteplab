@@ -131,12 +131,13 @@ export default function GloboCaseStudyPage() {
         {/* Customer testimonial video — Dipak Patel, Globo */}
         <section className="exp-cs-story-video-section" aria-label="Customer testimonial video">
           <div className="exp-cs-story-video-frame">
-            <iframe
+            <video
               className="exp-cs-story-video"
-              src="https://www.youtube.com/embed/rDV_iqkWzHY"
-              title="Dipak Patel — Globo CEO testimonial"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
+              src="/case-studies/globo-testimonial.mp4"
+              poster="/case-studies/globo-testimonial-poster.jpg"
+              controls
+              preload="metadata"
+              playsInline
             />
           </div>
         </section>
