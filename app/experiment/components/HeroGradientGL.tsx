@@ -175,7 +175,10 @@ const fragmentShader = `
     vec3 cLightOrange = vec3(1.000, 0.627, 0.478); // #FFA07A warm accent
 
     float cycleSec = 50.0;
-    float progress = mod(uTime, cycleSec) / cycleSec;
+    // Phase offset of +25s lands the cycle at segment 5 (peach peak against
+    // royal blue) on first paint — establishes the peach+blue gradient as
+    // the brand opening colour, then cycle continues from there.
+    float progress = mod(uTime + 25.0, cycleSec) / cycleSec;
     float segProgress = progress * 10.0;
     int segIndex = int(floor(segProgress));
     float t = ssmooth(segProgress - floor(segProgress));
