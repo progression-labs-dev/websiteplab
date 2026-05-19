@@ -1075,7 +1075,7 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-logo-static-img {
   height: 36px;
   width: auto;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.85);
   display: block;
 }
 
