@@ -5,7 +5,7 @@ import ThemeProvider from './components/ThemeProvider'
 import ViewModeProvider from './components/ViewModeProvider'
 
 export const metadata: Metadata = {
-  title: 'Progression Labs — AI That Ships',
+  title: 'Progression Labs',
   description: 'Custom AI agents that scale for the most complex problems in the real world.',
 }
 
