@@ -108,7 +108,7 @@ const fragmentShaderSource = `
     // parchment at bottom (matches HeroGradientGL). Yellow-shift fix prevents
     // muddy olive when the peak has R ≈ G.
     if (u_light_mode > 0.5) {
-      vec3 parchment = vec3(1.0, 1.0, 1.0);
+      vec3 parchment = vec3(0.980, 0.969, 0.949); // #FAF7F2 bone
 
       float warmBias  = max(0.0, min(peak.r, peak.g) - peak.b);
       float yellowShift = warmBias * step(peak.g, peak.r);
