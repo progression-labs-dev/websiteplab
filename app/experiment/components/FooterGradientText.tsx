@@ -222,8 +222,8 @@ const fragmentShaderSource = `
 `
 
 export default function FooterGradient() {
-  // Locked to light mode in the hybrid design — footer sits on the parchment
-  // page surface below the dark hero.
+  // Locked to dark mode — main page is fully dark; the gradient peaks rise
+  // from a near-black floor that matches the hero's aesthetic.
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -279,7 +279,7 @@ export default function FooterGradient() {
     let animationFrameId: number
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START)
-      gl.uniform1f(lightModeLoc, 1.0)
+      gl.uniform1f(lightModeLoc, 0.0)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
       animationFrameId = requestAnimationFrame(render)
     }

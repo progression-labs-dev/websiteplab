@@ -30,7 +30,7 @@ export default function GloboCaseStudyPage() {
             (dark navy at top fading to parchment at bottom), faint ASCII
             shimmer, and PL × Globo lockup on top. */}
         <section className="exp-cs-hero-banner" aria-label="Progression Labs and Globo partnership">
-          <PixelGradientCanvas />
+          <PixelGradientCanvas lightMode={true} />
           <FinderAsciiOverlay />
           <div className="exp-cs-hero-banner-overlay" aria-hidden="true" />
           <div className="exp-cs-hero-banner-lockup">
