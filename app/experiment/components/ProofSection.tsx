@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import Link from 'next/link'
 import { TESTIMONIALS } from '../data/siteContent'
 
 const testimonials = TESTIMONIALS
@@ -99,13 +98,6 @@ export default function ProofSection() {
                         preload="metadata"
                         playsInline
                       />
-                      <Link
-                        href={`/experiment/case-studies/${t.caseStudy.slug}`}
-                        className="exp-proof-learn-more"
-                      >
-                        See more
-                        <span aria-hidden="true">→</span>
-                      </Link>
                     </div>
                   </div>
                 ) : (
