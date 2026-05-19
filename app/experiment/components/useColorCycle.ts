@@ -3,44 +3,23 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { SHARED_START } from './sharedTime'
 
-// Brand palette — same 5 colors as hero shader
-const cO: [number, number, number] = [186, 85, 211]   // Orchid
-const cS: [number, number, number] = [255, 160, 122]  // Salmon
-const cG: [number, number, number] = [185, 233, 121]  // Green
-const cT: [number, number, number] = [64, 224, 208]   // Turquoise
-const cB: [number, number, number] = [0, 0, 255]      // Blue
+// Brand palette — royal blue + warm accents only (no yellow, no purple, no
+// green). Mirrors the case-study banner shader cycle.
+const cB: [number, number, number]           = [0, 0, 255]      // #0000FF royal blue
+const cPeach: [number, number, number]       = [255, 218, 185]  // #FFDAB9 peach
+const cLightOrange: [number, number, number] = [255, 160, 122]  // #FFA07A light orange
 
-// Extended palette — peak pairs for 5 themed states (mirrors shader cGold/cVanilla/etc.)
-const cGold: [number, number, number]        = [184, 171, 56]   // #B8AB38
-const cVanilla: [number, number, number]     = [224, 215, 148]  // #E0D794
-const cWine: [number, number, number]        = [111, 29, 27]    // #6F1D1B
-const cAshGrey: [number, number, number]     = [173, 189, 171]  // #ADBDAB
-const cBurntPeach: [number, number, number]  = [226, 114, 91]   // #E2725B
-const cSoftApricot: [number, number, number] = [255, 218, 185]  // #FFDAB9
-const cInferno: [number, number, number]     = [170, 0, 3]      // #AA0003
-const cPeriwinkle: [number, number, number]  = [191, 180, 220]  // #BFB4DC
-const cMagenta: [number, number, number]     = [255, 0, 255]    // #FF00FF
-const cYellow: [number, number, number]      = [255, 255, 0]    // #FFFF00
-
-// 14-state dual-color cycle — mirrors hero/FYF/footer shaders exactly
+// 4-state dual-color cycle: blue → blue+peach → blue → blue+light-orange.
+// Stays in brand-warm territory throughout — used to drive --t-accent on the
+// FindYourFit terminal animated icons (BounceRings, ProcessRings, PulsingGrid).
 const STATES: [[number,number,number],[number,number,number],[number,number,number],[number,number,number]][] = [
-  [cO,          cO,           cB,          cS],          // 0
-  [cB,          cS,           cG,          cG],          // 1
-  [cG,          cG,           cGold,       cVanilla],    // 2  → Ancient Gild
-  [cGold,       cVanilla,     cO,          cT],          // 3  bridge
-  [cO,          cT,           cS,          cS],          // 4
-  [cS,          cS,           cBurntPeach, cSoftApricot],// 5  → Terracotta Sunset
-  [cBurntPeach, cSoftApricot, cWine,       cAshGrey],    // 6  → Vintage Hearth
-  [cWine,       cAshGrey,     cB,          cT],          // 7  bridge
-  [cB,          cT,           cB,          cB],          // 8
-  [cB,          cB,           cInferno,    cPeriwinkle], // 9  → Scarlet Glacier
-  [cInferno,    cPeriwinkle,  cMagenta,    cYellow],     // 10 → Retro Future
-  [cMagenta,    cYellow,      cO,          cG],          // 11 bridge
-  [cO,          cG,           cT,          cT],          // 12
-  [cT,          cT,           cO,          cO],          // 13
+  [cB,     cB,           cB, cPeach],        // 0: blue → blue+peach
+  [cB,     cPeach,        cB, cB],            // 1: blue+peach → blue
+  [cB,     cB,            cB, cLightOrange],  // 2: blue → blue+light-orange
+  [cB,     cLightOrange,  cB, cB],            // 3: blue+light-orange → blue
 ]
 
-const CYCLE_SEC = 70
+const CYCLE_SEC = 20
 function ssmooth(t: number) { return t * t * (3 - 2 * t) }
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
@@ -54,8 +33,8 @@ let rafId: number | null = null
 function tick() {
   const elapsed = performance.now() / 1000 - SHARED_START
   const progress = ((elapsed % CYCLE_SEC) + CYCLE_SEC) % CYCLE_SEC / CYCLE_SEC
-  const segProgress = progress * 14
-  const segIndex = Math.min(Math.floor(segProgress), 13)
+  const segProgress = progress * STATES.length
+  const segIndex = Math.min(Math.floor(segProgress), STATES.length - 1)
   const t = ssmooth(segProgress - Math.floor(segProgress))
 
   const [fA, fB, tA, tB] = STATES[segIndex]
