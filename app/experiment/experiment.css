@@ -1044,12 +1044,14 @@ html:has(.experiment) { scroll-behavior: auto; }
   margin-bottom: 32px;
 }
 
-/* 2. The Content Wrapper (Nuclear Centering) */
+/* 2. The Content Wrapper (Nuclear Centering)
+   Shift the stack up by ~half the (label + gap) height so the AWS logo itself
+   sits at the band's vertical centre, not the label+logo group as a whole. */
 .exp-logo-static {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  transform: translate(-50%, calc(-50% - 16px)) !important;
 
   /* Keep inner items stacked nicely */
   display: flex;
@@ -1075,8 +1077,22 @@ html:has(.experiment) { scroll-behavior: auto; }
 .exp-logo-static-img {
   height: 36px;
   width: auto;
-  color: rgba(255, 255, 255, 0.85);
+  color: #ffffff;
   display: block;
+  opacity: 0.85;
+  animation: exp-aws-breathe 5s ease-in-out infinite;
+}
+
+/* Subtle breathing — keeps the marquee band feeling alive without distracting
+   from the rest of the page. Opacity range matches the original 85% baseline
+   plus a slight push to 100% so the logo gently brightens and dims. */
+@keyframes exp-aws-breathe {
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exp-logo-static-img { animation: none; opacity: 0.85; }
 }
 
 /* AWS logo on the parchment body — royal blue ink instead of white-alpha. */
