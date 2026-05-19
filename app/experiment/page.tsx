@@ -107,10 +107,8 @@ export default function ExperimentPage() {
           </div>
         </div>
 
-        {/* Parchment body rises up over the sticky hero. Higher z-index +
-            soft alpha-fade at its top edge create the "off-white comes up
-            from below" effect as the user scrolls. */}
-        <div data-theme="light" className="exp-light-wrapper">
+        {/* Body sections sit below the sticky hero on the same dark surface. */}
+        <div>
           <div className="exp-logo-carousel">
             <LogoMarquee />
           </div>

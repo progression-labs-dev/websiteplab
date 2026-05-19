@@ -225,9 +225,11 @@ const fragmentShaderSource = `
   }
 `;
 
-export default function PixelGradientCanvas() {
-  // Locked to light mode in the hybrid design — FYF sits on the parchment
-  // page surface below the dark hero.
+interface PixelGradientCanvasProps {
+  lightMode?: boolean;
+}
+
+export default function PixelGradientCanvas({ lightMode = false }: PixelGradientCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -289,7 +291,7 @@ export default function PixelGradientCanvas() {
     let animationFrameId: number;
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START);
-      gl.uniform1f(lightModeLoc, 1.0);
+      gl.uniform1f(lightModeLoc, lightMode ? 1.0 : 0.0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationFrameId = requestAnimationFrame(render);
     };
@@ -299,7 +301,7 @@ export default function PixelGradientCanvas() {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [lightMode]);
 
   return (
     <canvas

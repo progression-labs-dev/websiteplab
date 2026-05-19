@@ -141,22 +141,16 @@ html, body { margin: 0; padding: 0; }
 
 body:has(.experiment) {
   overflow: visible !important;
-  /* Hybrid design: page surface is parchment regardless of section theme.
-     Hero canvas sits on top with its own dark gradient and fades into this
-     parchment surface via the wavy alpha mask at its bottom edge. */
-  background: #ffffff !important;
+  background: var(--exp-bg) !important;
 }
 
 /* Fix: globals.css sets scroll-behavior:smooth which conflicts with Lenis —
    both try to smooth-scroll simultaneously, causing micro-jitter. Override to auto. */
 html:has(.experiment) { scroll-behavior: auto; }
 
-/* --- Root Wrapper ---
-   Hybrid design: page surface is parchment. The hero canvas paints its own
-   dark gradient over the top section and fades into this parchment via the
-   wavy alpha mask at its bottom edge. */
+/* --- Root Wrapper --- */
 .experiment {
-  background: #ffffff;
+  background: var(--exp-bg);
   color: var(--exp-text-primary);
   min-height: 100vh;
   overflow: clip;
@@ -406,12 +400,11 @@ html:has(.experiment) { scroll-behavior: auto; }
   font-family: 'Inter', sans-serif;
 }
 
-/* Once scrolled past the hero, the nav sits over the parchment body — swap
-   text/border to the royal-blue light-mode palette so contrast holds, and
-   swap the nav's own solid bg to parchment so it's a clean block instead of
-   a black bar over light content. The logo span uses an inline
-   `backgroundColor` (the mask fill colour), so we need !important here to
-   override it without changing the JSX. */
+/* When the nav is forced into its light palette (case study routes via
+   forceLight={true}), swap text/border/bg to the royal-blue parchment
+   palette. The logo span uses an inline `backgroundColor` (the mask fill
+   colour), so we need !important here to override it without changing the
+   JSX. */
 .exp-nav[data-over-light="true"] {
   background: #ffffff;
   border-bottom-color: rgba(30, 91, 255, 0.18);
