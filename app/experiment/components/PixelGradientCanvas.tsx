@@ -55,7 +55,9 @@ const fragmentShaderSource = `
     vec3 cPeach       = vec3(1.000, 0.855, 0.725);
     vec3 cLightOrange = vec3(1.000, 0.627, 0.478);
 
-    float progress = mod(time, 50.0) / 50.0;
+    // +25s phase offset so the cycle lands at the peach+blue phase on first
+    // paint (matches HeroGradientGL — keeps both gradients in sync).
+    float progress = mod(time + 25.0, 50.0) / 50.0;
     float seg = progress * 10.0;
     int idx = int(floor(seg));
     float t = ssmooth(seg - floor(seg));
