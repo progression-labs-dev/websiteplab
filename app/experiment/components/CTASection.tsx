@@ -92,9 +92,8 @@ export default function CTASection() {
               aria-label="Progression Labs"
               style={{
                 display: 'inline-block',
-                width: 20,
-                height: 20,
-                opacity: 0.7,
+                width: 16,
+                height: 16,
                 backgroundColor: 'var(--exp-text-primary)',
                 WebkitMaskImage: 'url(/logo-white.png)',
                 WebkitMaskSize: 'contain',
