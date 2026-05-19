@@ -1,6 +1,7 @@
 'use client'
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import Link from 'next/link'
 import ShuffleHover from './ShuffleHover'
 import ArrowIcon from './ArrowIcon'
 import { NAV_LINKS } from '../data/siteContent'
@@ -51,8 +52,13 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
         data-over-light={overLight ? 'true' : 'false'}
         style={{ opacity: 0 }}
       >
-        {/* Column 1: P-logo (tinted via mask + currentColor) + Brand name */}
-        <div className="exp-nav-logo-group">
+        {/* Column 1: P-logo (tinted via mask + currentColor) + Brand name —
+            clickable, routes to the home page. */}
+        <Link
+          href="/experiment"
+          aria-label="Progression Labs — home"
+          className="exp-nav-logo-group exp-nav-logo-link"
+        >
           <div className="exp-nav-logo">
             <span
               role="img"
@@ -79,7 +85,7 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
           >
             Progression Labs
           </span>
-        </div>
+        </Link>
 
         {/* Column 2: Centered links with shuffle hover */}
         <ul className="exp-nav-links">

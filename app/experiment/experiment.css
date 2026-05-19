@@ -477,6 +477,14 @@ html:has(.experiment) { scroll-behavior: auto; }
   margin-left: 12px;
 }
 
+/* Wordmark + logo behave as a single Link to /. Reset link defaults so it
+   inherits the nav's colour/decoration. */
+.exp-nav-logo-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .exp-nav-logo {
   width: 16px;
   height: 16px;
