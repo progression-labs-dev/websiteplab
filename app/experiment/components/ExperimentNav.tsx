@@ -30,13 +30,14 @@ const ExperimentNav = forwardRef<HTMLElement, ExperimentNavProps>(
         {/* Column 1: P-logo (tinted via mask + currentColor) + Brand name —
             clickable, routes to the home page. */}
         <Link
-          href="/experiment"
+          href="/"
           aria-label="Progression Labs — home"
           className="exp-nav-logo-group exp-nav-logo-link"
           onClick={() => {
-            // If already on /experiment, the route change is a no-op — scroll
-            // to the top so the logo still feels responsive as a "home" link.
-            if (typeof window !== 'undefined' && window.location.pathname === '/experiment') {
+            // If already on the home route, the route change is a no-op —
+            // scroll to top so the logo still feels responsive.
+            if (typeof window !== 'undefined' &&
+                (window.location.pathname === '/' || window.location.pathname === '/experiment')) {
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }
           }}
