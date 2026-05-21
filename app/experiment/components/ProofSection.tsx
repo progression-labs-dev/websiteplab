@@ -21,9 +21,11 @@ export default function ProofSection() {
     setActiveIndex(index)
   }, [])
 
-  // Scroll-tied blur + fade reveal — the section starts blurred and
-  // slightly offset, smoothly resolves to crisp as the user scrolls it
-  // into view. Matches the wonderful.ai-style "soft-focus reveal" feel.
+  // Bidirectional scroll-blur reveal — the section starts blurred when
+  // it's off-screen at the bottom, eases into focus as it enters the
+  // viewport, holds sharp through the middle, then eases back into blur
+  // as it exits the top. Mirrored when scrolling back up. Matches the
+  // wonderful.ai-style "soft-focus" breathing.
   useEffect(() => {
     const el = sectionRef.current
     if (!el) return
@@ -44,24 +46,38 @@ export default function ProofSection() {
         }
 
         gsap.set(el, {
-          opacity: 0,
+          opacity: 0.4,
           filter: 'blur(14px)',
           y: 40,
           willChange: 'filter, transform, opacity',
         })
 
-        gsap.to(el, {
+        // Timeline mapped to the section's full traversal of the viewport.
+        // Enter (0–35% of scroll range) → hold clear (35–65%) → exit (65–100%).
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: el,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        })
+
+        tl.to(el, {
           opacity: 1,
           filter: 'blur(0px)',
           y: 0,
           ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 95%',
-            end: 'top 35%',
-            scrub: 1,
-          },
-        })
+          duration: 0.35,
+        }, 0)
+
+        tl.to(el, {
+          opacity: 0.4,
+          filter: 'blur(14px)',
+          y: -40,
+          ease: 'power2.in',
+          duration: 0.35,
+        }, 0.65)
       }, el)
     }
 
