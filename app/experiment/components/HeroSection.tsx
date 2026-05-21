@@ -120,7 +120,7 @@ export default function HeroSection({ onNavReveal, onBrandReveal }: HeroSectionP
             }} className="exp-btn-filled">
               {variant.cta} <ArrowIcon />
             </a>
-            <a href="#work" className="exp-btn-outline">
+            <a href="#work" className="exp-btn-outline exp-btn-glow">
               See our work <ArrowIcon />
             </a>
           </div>

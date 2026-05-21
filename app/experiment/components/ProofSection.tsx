@@ -21,7 +21,9 @@ export default function ProofSection() {
     setActiveIndex(index)
   }, [])
 
-  // GSAP ScrollTrigger fade-up entrance
+  // Scroll-tied blur + fade reveal — the section starts blurred and
+  // slightly offset, smoothly resolves to crisp as the user scrolls it
+  // into view. Matches the wonderful.ai-style "soft-focus reveal" feel.
   useEffect(() => {
     const el = sectionRef.current
     if (!el) return
@@ -34,15 +36,30 @@ export default function ProofSection() {
       gsap.registerPlugin(ScrollTrigger)
 
       ctx = gsap.context(() => {
-        gsap.set(el, { opacity: 0 })
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+        if (prefersReduced) {
+          gsap.set(el, { opacity: 1, filter: 'blur(0px)' })
+          return
+        }
+
+        gsap.set(el, {
+          opacity: 0,
+          filter: 'blur(14px)',
+          y: 40,
+          willChange: 'filter, transform, opacity',
+        })
+
         gsap.to(el, {
           opacity: 1,
-          duration: 0.8,
-          ease: 'power3.out',
+          filter: 'blur(0px)',
+          y: 0,
+          ease: 'power2.out',
           scrollTrigger: {
             trigger: el,
-            start: 'top 80%',
-            once: true,
+            start: 'top 95%',
+            end: 'top 35%',
+            scrub: 1,
           },
         })
       }, el)
@@ -95,7 +112,7 @@ export default function ProofSection() {
                         src={t.caseStudy.videoSrc}
                         poster={t.caseStudy.videoPoster}
                         controls
-                        preload="metadata"
+                        preload="none"
                         playsInline
                       />
                     </div>
