@@ -40,7 +40,9 @@ export default function FindYourFit() {
     import('gsap').then(mod => { gsapRef.current = mod.default })
   }, [])
 
-  // GSAP ScrollTrigger initial reveal
+  // Bidirectional scroll-blur reveal — matches ProofSection.
+  // Section enters blurred from below, focuses through the middle,
+  // re-blurs as it exits the top. Mirrored on scroll-up.
   useEffect(() => {
     let ctx: { revert: () => void } | null = null
 
@@ -53,17 +55,44 @@ export default function FindYourFit() {
       if (!el) return
 
       ctx = gsap.context(() => {
-        gsap.set(el, { opacity: 0 })
-        gsap.to(el, {
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+        if (prefersReduced) {
+          gsap.set(el, { opacity: 1, filter: 'blur(0px)' })
+          return
+        }
+
+        gsap.set(el, {
+          opacity: 0.4,
+          filter: 'blur(14px)',
+          y: 40,
+          willChange: 'filter, transform, opacity',
+        })
+
+        const tl = gsap.timeline({
           scrollTrigger: {
             trigger: el,
-            start: 'top 85%',
-            once: true,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
           },
         })
+
+        tl.to(el, {
+          opacity: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          ease: 'power2.out',
+          duration: 0.35,
+        }, 0)
+
+        tl.to(el, {
+          opacity: 0.4,
+          filter: 'blur(14px)',
+          y: -40,
+          ease: 'power2.in',
+          duration: 0.35,
+        }, 0.65)
       })
     }
 
