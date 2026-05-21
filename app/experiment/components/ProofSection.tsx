@@ -46,8 +46,8 @@ export default function ProofSection() {
         }
 
         gsap.set(el, {
-          opacity: 0.4,
-          filter: 'blur(14px)',
+          opacity: 0.35,
+          filter: 'blur(22px)',
           y: 40,
           willChange: 'filter, transform, opacity',
         })
@@ -72,8 +72,8 @@ export default function ProofSection() {
         }, 0)
 
         tl.to(el, {
-          opacity: 0.4,
-          filter: 'blur(14px)',
+          opacity: 0.35,
+          filter: 'blur(22px)',
           y: -40,
           ease: 'power2.in',
           duration: 0.35,

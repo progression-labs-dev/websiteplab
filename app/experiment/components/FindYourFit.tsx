@@ -28,6 +28,7 @@ export default function FindYourFit() {
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [resultLines, setResultLines] = useState(0)
+  const sectionRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   const gsapRef = useRef<typeof import('gsap')['default'] | null>(null)
@@ -51,7 +52,7 @@ export default function FindYourFit() {
       const { ScrollTrigger } = await import('gsap/ScrollTrigger')
       gsap.registerPlugin(ScrollTrigger)
 
-      const el = contentRef.current
+      const el = sectionRef.current
       if (!el) return
 
       ctx = gsap.context(() => {
@@ -63,8 +64,8 @@ export default function FindYourFit() {
         }
 
         gsap.set(el, {
-          opacity: 0.4,
-          filter: 'blur(14px)',
+          opacity: 0.35,
+          filter: 'blur(22px)',
           y: 40,
           willChange: 'filter, transform, opacity',
         })
@@ -87,8 +88,8 @@ export default function FindYourFit() {
         }, 0)
 
         tl.to(el, {
-          opacity: 0.4,
-          filter: 'blur(14px)',
+          opacity: 0.35,
+          filter: 'blur(22px)',
           y: -40,
           ease: 'power2.in',
           duration: 0.35,
@@ -219,7 +220,7 @@ export default function FindYourFit() {
     : null
 
   return (
-    <div className="exp-12-grid exp-12-grid--half exp-finder">
+    <div ref={sectionRef} className="exp-12-grid exp-12-grid--half exp-finder">
       {/* Left column — Unicorn Studio WebGL canvas + text overlay */}
       <div ref={labelRef} className="exp-col-label exp-col-label--gradient exp-col-label--top">
         {/* WebGL pixel gradient canvas — sits behind text */}
