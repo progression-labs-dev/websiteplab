@@ -597,6 +597,40 @@ html:has(.experiment) { scroll-behavior: auto; }
   color: var(--exp-text-primary);
 }
 
+/* AI glow modifier — slow-pulsing periwinkle halo. Applied only on the
+   hero "See our work" CTA so other .exp-btn-outline uses are unchanged. */
+.exp-btn-outline.exp-btn-glow {
+  position: relative;
+  isolation: isolate;
+  animation: exp-btn-glow 3.6s ease-in-out infinite;
+}
+
+@keyframes exp-btn-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 12px 2px rgba(140, 170, 255, 0.18),
+      inset 0 0 0 1px rgba(140, 170, 255, 0.08);
+    border-color: var(--alpha-30);
+  }
+  50% {
+    box-shadow:
+      0 0 28px 8px rgba(140, 170, 255, 0.40),
+      inset 0 0 0 1px rgba(140, 170, 255, 0.20);
+    border-color: var(--alpha-60);
+  }
+}
+
+.exp-btn-outline.exp-btn-glow:hover {
+  animation-duration: 1.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exp-btn-outline.exp-btn-glow {
+    animation: none;
+    box-shadow: 0 0 16px 2px rgba(140, 170, 255, 0.25);
+  }
+}
+
 .exp-btn-filled {
   display: inline-flex;
   align-items: center;
@@ -647,6 +681,13 @@ html:has(.experiment) { scroll-behavior: auto; }
   padding-left: 32px;
   padding-right: 32px;
   position: relative;
+}
+
+/* FindYourFit's grid has no built-in top padding, so the proof→FYF
+   boundary feels cramped relative to the FYF→CTA boundary. Add a
+   bit of breathing room below the testimonial section. */
+section[data-section="work"] {
+  padding-bottom: 80px;
 }
 
 /* --- Tag Component (Isidor .tag-component) --- */
@@ -1028,144 +1069,6 @@ html:has(.experiment) { scroll-behavior: auto; }
   margin-bottom: 24px;
 }
 
-/* --- Logo section (Isidor Splide-style infinite CSS marquee) --- */
-/* 1. The Parent Container */
-.exp-logo-carousel {
-  position: relative !important; /* Crucial: establishes the bounding box for absolute centering */
-  width: 100%;
-  min-height: 320px; /* Gives the box physical height — taller so the AWS logo sits comfortably mid-band */
-  margin: 0;
-  padding: 0;
-  background-color: transparent;
-}
-
-.exp-logo-carousel-label {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-/* 2. The Content Wrapper (Nuclear Centering)
-   Shift the stack up by ~half the (label + gap) height so the AWS logo itself
-   sits at the band's vertical centre, not the label+logo group as a whole. */
-.exp-logo-static {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, calc(-50% - 16px)) !important;
-
-  /* Keep inner items stacked nicely */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-
-  /* Strip any rogue spacing that was causing the original bug */
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* 3. The SVG Row */
-.exp-logo-static-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-}
-
-/* 4. The SVG itself */
-.exp-logo-static-img {
-  height: 36px;
-  width: auto;
-  color: #ffffff;
-  display: block;
-  opacity: 0.85;
-  animation: exp-aws-breathe 5s ease-in-out infinite;
-}
-
-/* Subtle breathing — keeps the marquee band feeling alive without distracting
-   from the rest of the page. Opacity range matches the original 85% baseline
-   plus a slight push to 100% so the logo gently brightens and dims. */
-@keyframes exp-aws-breathe {
-  0%, 100% { opacity: 0.78; transform: scale(1); }
-  50%      { opacity: 1;    transform: scale(1.03); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .exp-logo-static-img { animation: none; opacity: 0.85; }
-}
-
-/* AWS logo on the parchment body — royal blue ink instead of white-alpha. */
-[data-theme="light"] .exp-logo-static-img {
-  color: rgba(30, 91, 255, 0.75);
-}
-
-.exp-marquee {
-  overflow: hidden;
-  /* Edge fade masks for seamless loop illusion */
-  mask-image: linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent);
-}
-
-.exp-marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 40s linear infinite;
-}
-
-.exp-marquee-track:hover {
-  animation-play-state: paused;
-}
-
-.exp-marquee-item {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0 28px;
-  height: 48px;
-  flex-shrink: 0;
-}
-
-.exp-marquee-item img {
-  height: 26px;
-  width: auto;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.45;
-  transition: opacity 0.3s ease;
-}
-
-.exp-marquee-item:hover img {
-  opacity: 0.75;
-}
-
-.exp-marquee-divider {
-  width: 1px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.1);
-  margin-right: 28px;
-  flex-shrink: 0;
-}
-
-/* ============================================
-   MARQUEE (kept for fallback, unused in static logo grid)
-   ============================================ */
-
-.exp-marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 35s linear infinite;
-}
-
-.exp-marquee-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
 /* ============================================
    TESTIMONIAL
    ============================================ */
@@ -1296,12 +1199,16 @@ html:has(.experiment) { scroll-behavior: auto; }
   grid-template-columns: 1fr 1fr;
   gap: 56px;
   align-items: center;
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
 }
 .exp-proof-spotlight-quote {
   text-align: left;
+  /* Lift the quote block to align its visual midline with the video's centre.
+     The "See more" button below the video shifts the media column's centre
+     down ~30px relative to the video itself; this compensates. */
+  transform: translateY(-32px);
 }
 .exp-proof-spotlight-quote .exp-quote {
   margin: 0;
@@ -1328,6 +1235,9 @@ html:has(.experiment) { scroll-behavior: auto; }
   .exp-proof-spotlight {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+  .exp-proof-spotlight-quote {
+    transform: none;
   }
   .exp-proof-spotlight-quote,
   .exp-proof-spotlight-quote .exp-quote,

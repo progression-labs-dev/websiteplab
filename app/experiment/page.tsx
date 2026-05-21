@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import HeroSection from './components/HeroSection'
 import ExperimentNav from './components/ExperimentNav'
-import LogoMarquee from './components/LogoMarquee'
 import FindYourFit from './components/FindYourFit'
 import ProofSection from './components/ProofSection'
 import CTASection from './components/CTASection'
@@ -107,20 +106,18 @@ export default function ExperimentPage() {
           </div>
         </div>
 
-        {/* Body sections sit below the sticky hero on the same dark surface. */}
+        {/* Body sections sit below the sticky hero on the same dark surface.
+            Proof comes first to put the Globo testimonial + video immediately
+            below the hero, then FindYourFit, then the CTA/footer. */}
         <div>
-          <div className="exp-logo-carousel">
-            <LogoMarquee />
-          </div>
-
-          <section id="services" data-section="services">
-            <FindYourFit />
+          <section id="work" data-section="work">
+            <ProofSection />
           </section>
 
           <PlusDivider />
 
-          <section id="work" data-section="work">
-            <ProofSection />
+          <section id="services" data-section="services">
+            <FindYourFit />
           </section>
 
           <PlusDivider />
