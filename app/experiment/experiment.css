@@ -1054,14 +1054,6 @@ section[data-section="work"] {
   mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, white 50%, white 60%, transparent 80%);
 }
 
-/* PixelGradientCanvas (the underlying WebGL gradient, not the ASCII overlay) —
-   fade out the bottom so the shader's dark-tail 32px blocks stop becoming
-   visible against the page background. */
-.exp-col-label--gradient > canvas:not(.exp-ascii-overlay) {
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
-}
-
 .exp-col-label--gradient .exp-section-heading {
   font-weight: 300;
   font-size: var(--exp-h1);
