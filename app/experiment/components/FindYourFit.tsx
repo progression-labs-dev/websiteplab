@@ -227,6 +227,10 @@ export default function FindYourFit() {
         <PixelGradientCanvas />
         {/* ASCII characters that appear with the shimmer sweep */}
         <FinderAsciiOverlay />
+        {/* Dark gradient overlay over the bottom of the canvas — hides the
+            chunky pixel structure where the shader fades to transparent.
+            Mirrors the hero's .exp-hero-frame::before approach. */}
+        <div className="exp-fyf-bottom-fade" aria-hidden="true" />
         {/* Text content — sits on top */}
         <div className="exp-col-label-content">
           <ScrollDecode
