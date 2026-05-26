@@ -1060,9 +1060,24 @@ section[data-section="work"] {
    shader blocks read as chunky grey squares against the page bg) falls
    below the column boundary and is clipped by .exp-col-label--gradient's
    overflow:hidden. */
-.exp-finder .exp-col-label--gradient > canvas:not(.exp-ascii-overlay) {
-  bottom: auto !important;
-  height: 200% !important;
+/* Find Your Fit column — replace the PixelGradientCanvas with a clean
+   CSS gradient. The canvas's 32px shader blocks were exposing themselves
+   in the dark-tail zones; every CSS attempt to hide them (mask, overlay)
+   re-revealed them at partial alpha. A plain linear gradient has no
+   discrete pixel structure, so it can fade smoothly into the page bg.
+   Trade-off: this column no longer color-cycles in step with the hero /
+   footer canvases — it's a static brand-blue wash. */
+.exp-finder .exp-col-label--gradient > canvas {
+  display: none !important;
+}
+.exp-finder .exp-col-label--gradient {
+  background: linear-gradient(
+    to bottom,
+    rgba(80, 120, 255, 0.85) 0%,
+    rgba(40, 70, 230, 0.75) 35%,
+    rgba(20, 40, 180, 0.45) 65%,
+    transparent 100%
+  );
 }
 
 .exp-col-label--gradient .exp-section-heading {
