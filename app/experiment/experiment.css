@@ -1054,16 +1054,6 @@ section[data-section="work"] {
   mask-image: linear-gradient(to bottom, transparent 0%, transparent 35%, white 50%, white 60%, transparent 80%);
 }
 
-/* PixelGradientCanvas in the Find Your Fit column — render the canvas at
-   2x the column height anchored to the top, so the shader's vibrant
-   colour zone fills the visible area and the dark-tail (where the 32px
-   shader blocks read as chunky grey squares against the page bg) falls
-   below the column boundary and is clipped by .exp-col-label--gradient's
-   overflow:hidden. */
-.exp-finder .exp-col-label--gradient > canvas:not(.exp-ascii-overlay) {
-  bottom: auto !important;
-  height: 200% !important;
-}
 
 .exp-col-label--gradient .exp-section-heading {
   font-weight: 300;
