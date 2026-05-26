@@ -1048,14 +1048,11 @@ section[data-section="work"] {
 
 /* Grain is baked into the WebGL shader — no CSS grain needed */
 
-/* Find Your Fit — overlay over the bottom of the PixelGradientCanvas to hide
-   the chunky pixel structure that appears where the shader's alpha fades to
-   transparent (because the discrete 32px blocks at partial alpha read against
-   the page bg as visible grey squares). Mirrors the hero's .exp-hero-frame::before
-   approach, but pushes to fully opaque black at the bottom since the FYF canvas
-   underneath isn't opaque (unlike the hero shader which outputs alpha=1.0). */
-.exp-finder .exp-col-label--gradient::after {
-  content: '';
+/* Find Your Fit — bottom-fade overlay (a real DOM div, not a pseudo, so
+   the existing ::after grain effect on .exp-col-label--gradient is
+   preserved). Hides the chunky pixel structure where the shader's alpha
+   fades to transparent. Mirrors the hero's .exp-hero-frame::before. */
+.exp-fyf-bottom-fade {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1068,12 +1065,12 @@ section[data-section="work"] {
     rgba(0, 0, 0, 0.5) 60%,
     transparent 100%
   );
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 .exp-finder .exp-col-label--gradient .exp-col-label-content {
   position: relative;
-  z-index: 2;
+  z-index: 4;
 }
 
 /* ASCII overlay — visible on edges + pixel fade zone, but always clear around text */
