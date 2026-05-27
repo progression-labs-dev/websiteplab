@@ -15,6 +15,7 @@ const fragmentShaderSource = `
   uniform vec2 u_resolution; // CSS pixels (DPR-independent, matches HeroGradientGL.uResolution)
   uniform float u_time;
   uniform float u_light_mode; // 0 = dark, 1 = light (parchment floor + wash)
+  uniform float u_solid_alpha; // 0 = use shader's atmospheric fade, 1 = force alpha=1.0
   varying vec2 vUv;
 
   float hash(vec2 p) {
@@ -241,7 +242,10 @@ const fragmentShaderSource = `
     // the bottom, so any blocky alpha variation just shows up as grey pixel
     // artefacts against the parchment page bg.
     float darkAlpha = smoothstep(-0.55, 0.50, y + wave + edgePush);
-    float alpha = mix(darkAlpha, 1.0, u_light_mode);
+    // Force alpha=1.0 when light mode OR solid_alpha is on. Either flag skips
+    // the wavy fade-to-transparent — useful when a CSS overlay handles the
+    // bottom blend, since partial-alpha exposes the shader's 32px pixel grid.
+    float alpha = mix(darkAlpha, 1.0, max(u_light_mode, u_solid_alpha));
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -249,9 +253,16 @@ const fragmentShaderSource = `
 
 interface PixelGradientCanvasProps {
   lightMode?: boolean;
+  /** When true, force alpha=1.0 in dark mode (skip the atmospheric fade).
+   *  Use this when a CSS overlay handles the bottom blend, since the
+   *  shader's partial-alpha zone exposes its 32px pixel grid. */
+  solidAlpha?: boolean;
 }
 
-export default function PixelGradientCanvas({ lightMode = false }: PixelGradientCanvasProps = {}) {
+export default function PixelGradientCanvas({
+  lightMode = false,
+  solidAlpha = false,
+}: PixelGradientCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -297,6 +308,7 @@ export default function PixelGradientCanvas({ lightMode = false }: PixelGradient
     const resolutionLoc = gl.getUniformLocation(program, 'u_resolution');
     const timeLoc = gl.getUniformLocation(program, 'u_time');
     const lightModeLoc = gl.getUniformLocation(program, 'u_light_mode');
+    const solidAlphaLoc = gl.getUniformLocation(program, 'u_solid_alpha');
 
     // Handle Resize — viewport in device px, but pass CSS px to shader so the grid
     // is DPR-independent (matches HeroGradientGL.uResolution semantics)
@@ -314,6 +326,7 @@ export default function PixelGradientCanvas({ lightMode = false }: PixelGradient
     const render = () => {
       gl.uniform1f(timeLoc, performance.now() / 1000.0 - SHARED_START);
       gl.uniform1f(lightModeLoc, lightMode ? 1.0 : 0.0);
+      gl.uniform1f(solidAlphaLoc, solidAlpha ? 1.0 : 0.0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       animationFrameId = requestAnimationFrame(render);
     };
@@ -323,7 +336,7 @@ export default function PixelGradientCanvas({ lightMode = false }: PixelGradient
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [lightMode]);
+  }, [lightMode, solidAlpha]);
 
   return (
     <canvas
