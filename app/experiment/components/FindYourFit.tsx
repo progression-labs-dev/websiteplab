@@ -223,8 +223,11 @@ export default function FindYourFit() {
     <div ref={sectionRef} className="exp-12-grid exp-12-grid--half exp-finder">
       {/* Left column — Unicorn Studio WebGL canvas + text overlay */}
       <div ref={labelRef} className="exp-col-label exp-col-label--gradient exp-col-label--top">
-        {/* WebGL pixel gradient canvas — sits behind text */}
-        <PixelGradientCanvas />
+        {/* WebGL pixel gradient canvas — sits behind text. solidAlpha forces
+            alpha=1.0 so the shader's wavy partial-alpha fade can't expose its
+            32px pixel grid; the .exp-fyf-bottom-fade div below handles the
+            fade-to-black instead. */}
+        <PixelGradientCanvas solidAlpha />
         {/* ASCII characters that appear with the shimmer sweep */}
         <FinderAsciiOverlay />
         {/* Dark gradient overlay over the bottom of the canvas — hides the
