@@ -6,6 +6,19 @@ const nextConfig = {
         source: '/',
         destination: '/experiment',
       },
+      // A2A Agent Card — served from a route handler (app/well-known/agent-card)
+      // so siteContent.ts stays the single source of truth. Next.js ignores
+      // dot-prefixed segments in the app dir, so the spec-required dotted paths
+      // are rewritten onto a routable, non-dotted segment.
+      {
+        source: '/.well-known/agent-card.json',
+        destination: '/well-known/agent-card',
+      },
+      {
+        // Legacy A2A discovery path (pre-2025 spec used /.well-known/agent.json).
+        source: '/.well-known/agent.json',
+        destination: '/well-known/agent-card',
+      },
     ]
   },
   experimental: {
