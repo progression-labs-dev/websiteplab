@@ -31,6 +31,27 @@ export const CTA_CONTENT = {
   cta: 'Request a brainstorm',
 } as const
 
+// ── Find Your Fit — inline "set up a call" form (shown at the result step) ──
+// A/B test mirrors the finder: control = exploratory tone, variant = outcome tone.
+export const FIND_YOUR_FIT_FORM = {
+  control: {
+    heading: 'Want us to take it from here?',
+    sub: "Leave your details and we'll set up a call to scope it — no pitch, just a conversation.",
+    submit: 'Set up a call',
+    sending: 'Sending…',
+    success: "Thanks — we've got it. Someone from the team will be in touch within 1–2 business days.",
+    error: 'Something went wrong sending that. You can email us directly instead.',
+  },
+  variant: {
+    heading: "Let's make it happen",
+    sub: "Drop your details and we'll set up a call to map out the next steps.",
+    submit: 'Set up a call',
+    sending: 'Sending…',
+    success: "Thanks — we've got it. We'll be in touch within 1–2 business days.",
+    error: 'Something went wrong sending that. You can email us directly instead.',
+  },
+} as const
+
 // ── Service Finder ──
 export type Role = 'ceo' | 'cto' | 'product' | 'commercial' | 'other'
 export type Journey = 'no_start' | 'know_what' | 'stuck' | 'need_hands' | 'scaling'

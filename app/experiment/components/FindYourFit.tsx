@@ -10,7 +10,9 @@ import FinderAsciiOverlay from './FinderAsciiOverlay'
 import { BRAINSTORM_HREF, openBrainstormEmail } from './brainstormMailto'
 import { useFeatureFlagVariantKey } from '@posthog/react'
 import posthog from 'posthog-js'
-import { ROLES, JOURNEYS, RECOMMENDATIONS, RECOMMENDATIONS_VARIANT, FINDER_VARIANT, type Role, type Journey } from '../data/siteContent'
+import { ROLES, JOURNEYS, RECOMMENDATIONS, RECOMMENDATIONS_VARIANT, FINDER_VARIANT, FIND_YOUR_FIT_FORM, CONTACT_EMAIL, type Role, type Journey } from '../data/siteContent'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const TYPING_SPEED = 35 // ms per character
 
@@ -28,6 +30,15 @@ export default function FindYourFit() {
   const [typedText, setTypedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [resultLines, setResultLines] = useState(0)
+
+  // Inline "set up a call" form state (shown at the result step)
+  const formCopy = isVariant ? FIND_YOUR_FIT_FORM.variant : FIND_YOUR_FIT_FORM.control
+  const [formName, setFormName] = useState('')
+  const [formEmail, setFormEmail] = useState('')
+  const [formNote, setFormNote] = useState('')
+  const [formHoneypot, setFormHoneypot] = useState('') // bots fill this; humans never see it
+  const [formState, setFormState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+
   const sectionRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
@@ -212,12 +223,59 @@ export default function FindYourFit() {
       setSelectedJourney(null)
       setTypedText('')
       setResultLines(0)
+      setFormName('')
+      setFormEmail('')
+      setFormNote('')
+      setFormHoneypot('')
+      setFormState('idle')
     })
   }, [animateTransition])
 
   const recommendation = selectedRole && selectedJourney
     ? recommendations[`${selectedRole}-${selectedJourney}`]
     : null
+
+  const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (formState === 'submitting') return
+    // Honeypot: a filled hidden field means a bot — silently "succeed", send nothing.
+    if (formHoneypot) { setFormState('success'); return }
+    if (!EMAIL_RE.test(formEmail.trim())) { setFormState('error'); return }
+
+    const roleLabel = roles.find(r => r.id === selectedRole)?.label || selectedRole || ''
+    const journeyLabel = journeys.find(j => j.id === selectedJourney)?.label || selectedJourney || ''
+    const rec = recommendation
+
+    setFormState('submitting')
+    posthog.capture('finder_form_submitted', {
+      role: roleLabel,
+      journey: journeyLabel,
+      recommendation: rec?.title,
+      has_note: !!formNote.trim(),
+    })
+
+    try {
+      const res = await fetch('/api/intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_email: formEmail.trim(),
+          name: formName.trim() || undefined,
+          project_name: rec?.title,
+          project_description: `${roleLabel} · ${journeyLabel} → ${rec?.title}. ${rec?.desc}`,
+          message: formNote.trim() || undefined,
+          source: 'find-your-fit-form',
+          role: roleLabel,
+          journey: journeyLabel,
+          recommendation: rec?.title,
+        }),
+      })
+      if (!res.ok) throw new Error(`intake ${res.status}`)
+      setFormState('success')
+    } catch {
+      setFormState('error')
+    }
+  }, [formState, formHoneypot, formEmail, formName, formNote, selectedRole, selectedJourney, recommendation])
 
   return (
     <div ref={sectionRef} className="exp-12-grid exp-12-grid--half exp-finder">
@@ -351,17 +409,75 @@ export default function FindYourFit() {
                 </div>
               </div>
               <div className={`exp-terminal-line${resultLines >= 5 ? ' exp-terminal-line--visible' : ''}`}>
-                <a href={BRAINSTORM_HREF} onClick={(e) => {
-                  posthog.capture('finder_cta_clicked', {
-                    cta_text: recommendation.cta,
-                    role: roles.find(r => r.id === selectedRole)?.label,
-                    journey: journeys.find(j => j.id === selectedJourney)?.label,
-                    recommendation: recommendation.title,
-                  })
-                  openBrainstormEmail(e)
-                }} className="exp-btn-filled" style={{ marginTop: 16 }}>
-                  {recommendation.cta} <ArrowIcon />
-                </a>
+                {formState === 'success' ? (
+                  <div className="exp-finder-form-success">
+                    <span className="exp-terminal-caret">&gt;</span> {formCopy.success}
+                  </div>
+                ) : (
+                  <form className="exp-finder-form" onSubmit={handleFormSubmit}>
+                    <div className="exp-finder-form-heading">{formCopy.heading}</div>
+                    <div className="exp-finder-form-sub">{formCopy.sub}</div>
+                    {/* Honeypot — visually hidden; only bots fill it */}
+                    <input
+                      type="text"
+                      name="company"
+                      className="exp-finder-hp"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      value={formHoneypot}
+                      onChange={(e) => setFormHoneypot(e.target.value)}
+                    />
+                    <div className="exp-finder-form-fields">
+                      <input
+                        type="text"
+                        className="exp-finder-input"
+                        placeholder="Your name"
+                        autoComplete="name"
+                        value={formName}
+                        onChange={(e) => setFormName(e.target.value)}
+                      />
+                      <input
+                        type="email"
+                        className="exp-finder-input"
+                        placeholder="Work email"
+                        autoComplete="email"
+                        required
+                        value={formEmail}
+                        onChange={(e) => setFormEmail(e.target.value)}
+                      />
+                      <textarea
+                        className="exp-finder-input exp-finder-textarea"
+                        placeholder="Anything specific? (optional)"
+                        rows={2}
+                        value={formNote}
+                        onChange={(e) => setFormNote(e.target.value)}
+                      />
+                    </div>
+                    {formState === 'error' && (
+                      <div className="exp-finder-form-error">
+                        {formCopy.error}{' '}
+                        <a href={BRAINSTORM_HREF} onClick={openBrainstormEmail} className="exp-finder-form-emaillink">
+                          Email {CONTACT_EMAIL}
+                        </a>
+                      </div>
+                    )}
+                    <button
+                      type="submit"
+                      className="exp-btn-filled"
+                      disabled={formState === 'submitting'}
+                      style={{ marginTop: 4 }}
+                    >
+                      {formState === 'submitting' ? formCopy.sending : formCopy.submit} <ArrowIcon />
+                    </button>
+                    <div className="exp-finder-form-secondary">
+                      or{' '}
+                      <a href={BRAINSTORM_HREF} onClick={openBrainstormEmail} className="exp-finder-form-emaillink">
+                        email us directly
+                      </a>
+                    </div>
+                  </form>
+                )}
               </div>
               <button className="exp-terminal-reset" onClick={() => {
                 posthog.capture('finder_reset', {

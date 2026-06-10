@@ -3724,3 +3724,82 @@ section[data-section="work"] {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* ── Find Your Fit — inline "set up a call" form (result step) ── */
+.exp-finder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.exp-finder-form-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--exp-text-primary);
+}
+.exp-finder-form-sub {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--exp-text-secondary);
+}
+.exp-finder-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+.exp-finder-input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  background: var(--exp-surface);
+  border: 1px solid var(--exp-border);
+  color: var(--exp-text-primary);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.exp-finder-input::placeholder { color: var(--exp-text-tertiary); }
+.exp-finder-input:focus {
+  border-color: var(--exp-text-primary);
+  box-shadow: 0 0 0 1px var(--exp-text-primary);
+}
+.exp-finder-textarea {
+  resize: vertical;
+  min-height: 44px;
+  line-height: 1.4;
+}
+/* Honeypot — visually removed but still focusable by bots */
+.exp-finder-hp {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.exp-finder-form-error {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #e5484d;
+}
+.exp-finder-form-success {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--exp-text-primary);
+  margin-top: 16px;
+}
+.exp-finder-form-secondary {
+  font-size: 0.75rem;
+  color: var(--exp-text-tertiary);
+}
+.exp-finder-form-emaillink {
+  color: var(--exp-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.exp-btn-filled:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

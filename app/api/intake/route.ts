@@ -26,6 +26,7 @@ const CORS_HEADERS: Record<string, string> = {
 
 interface Inquiry {
   inquiry_id: string
+  name?: string
   project_name?: string
   project_description: string
   budget_range?: string
@@ -33,14 +34,18 @@ interface Inquiry {
   technologies?: string[]
   contact_email: string
   message?: string
-  received_at: string
+  // Optional context (e.g. attached by the Find Your Fit form).
+  role?: string
+  journey?: string
+  recommendation?: string
   source: string
+  received_at: string
   user_agent: string | null
 }
 
 type InquiryFields = Omit<
   Inquiry,
-  'inquiry_id' | 'received_at' | 'source' | 'user_agent'
+  'inquiry_id' | 'received_at' | 'user_agent'
 >
 
 // ── Validation (hand-rolled; zod is not a dependency) ────────────────────────
@@ -106,11 +111,21 @@ function validate(
     errors.push('message must be a string <= 5000 chars.')
   }
 
+  // Optional short string fields (name + Find Your Fit context + source tag).
+  const shortOk = (v: unknown, max: number) =>
+    v === undefined || (isString(v) && v.length <= max)
+  if (!shortOk(b.name, 200)) errors.push('name must be a string <= 200 chars.')
+  if (!shortOk(b.role, 200)) errors.push('role must be a string <= 200 chars.')
+  if (!shortOk(b.journey, 200)) errors.push('journey must be a string <= 200 chars.')
+  if (!shortOk(b.recommendation, 200)) errors.push('recommendation must be a string <= 200 chars.')
+  if (!shortOk(b.source, 64)) errors.push('source must be a string <= 64 chars.')
+
   if (errors.length) return { ok: false, errors }
 
   return {
     ok: true,
     data: {
+      name: b.name as string | undefined,
       project_name: b.project_name as string | undefined,
       project_description: (b.project_description as string).trim(),
       budget_range: b.budget_range as string | undefined,
@@ -118,55 +133,141 @@ function validate(
       technologies: b.technologies as string[] | undefined,
       contact_email: (b.contact_email as string).trim(),
       message: b.message as string | undefined,
+      role: b.role as string | undefined,
+      journey: b.journey as string | undefined,
+      recommendation: b.recommendation as string | undefined,
+      source: isString(b.source) ? b.source : 'a2a-intake-api',
     },
   }
 }
 
-// ── Delivery seam ────────────────────────────────────────────────────────────
-// THE ONE PLACE to wire real delivery (email / Slack / Notion) later. Interim
-// behavior = server-side PostHog capture + structured log. Never throws to the
-// caller — the response always points the agent at CONTACT_EMAIL as a guaranteed
-// channel, so no inquiry is ever silently lost.
-async function deliverInquiry(inquiry: Inquiry): Promise<void> {
-  // 1. Structured log — visible in Vercel function logs, greppable, never lost.
-  console.info('[intake] inquiry received', JSON.stringify(inquiry))
+// ── Delivery channels ────────────────────────────────────────────────────────
+// Each channel is gated on its own env var, so the feature ships without secrets
+// and lights up as each var is added. Every channel swallows its own errors —
+// delivery must never throw to the caller, and the 201 response always points to
+// CONTACT_EMAIL as the guaranteed human channel, so no inquiry is ever lost.
 
-  // 2. Server-side PostHog capture (reuses the already-public NEXT_PUBLIC_ key —
-  //    no new secret introduced).
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com'
-  if (key) {
-    try {
-      await fetch(`${host.replace(/\/$/, '')}/i/v0/e/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          api_key: key,
-          event: 'agent_intake_submitted',
-          distinct_id: inquiry.contact_email || inquiry.inquiry_id,
-          properties: {
-            inquiry_id: inquiry.inquiry_id,
-            project_name: inquiry.project_name ?? null,
-            budget_range: inquiry.budget_range ?? null,
-            timeline: inquiry.timeline ?? null,
-            technologies: inquiry.technologies ?? [],
-            description_length: inquiry.project_description.length,
-            source: inquiry.source,
-            $lib: 'progression-labs-intake-api',
-            user_agent: inquiry.user_agent,
-          },
-          timestamp: inquiry.received_at,
-        }),
-        // Don't let a slow analytics host block the agent's response.
-        signal: AbortSignal.timeout(3000),
-      })
-    } catch (err) {
-      console.error('[intake] posthog capture failed (inquiry still logged)', err)
-    }
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Email via Resend (https://resend.com) — REST API, no SDK dependency.
+async function sendEmail(inquiry: Inquiry): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return
+  const from = process.env.RESEND_FROM || 'Progression Labs <onboarding@resend.dev>'
+  const subject =
+    `New inquiry${inquiry.recommendation ? `: ${inquiry.recommendation}` : ''}` +
+    `${inquiry.name ? ` — ${inquiry.name}` : ''}`
+  const rows = [
+    inquiry.name && `Name: ${inquiry.name}`,
+    `Email: ${inquiry.contact_email}`,
+    inquiry.role && `Role: ${inquiry.role}`,
+    inquiry.journey && `Journey: ${inquiry.journey}`,
+    inquiry.recommendation && `Recommendation: ${inquiry.recommendation}`,
+    inquiry.message && `Message: ${inquiry.message}`,
+    '',
+    inquiry.project_description,
+    '',
+    `Source: ${inquiry.source} · inquiry_id ${inquiry.inquiry_id}`,
+  ].filter((r): r is string => typeof r === 'string')
+  const html = rows
+    .map((r) => `<p style="margin:0 0 6px;font-family:sans-serif">${escapeHtml(r)}</p>`)
+    .join('')
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from,
+        to: [CONTACT_EMAIL],
+        reply_to: inquiry.contact_email, // so Gabor can reply straight to the lead
+        subject,
+        html,
+      }),
+      signal: AbortSignal.timeout(5000),
+    })
+  } catch (err) {
+    console.error('[intake] resend email failed (inquiry still logged)', err)
   }
+}
 
-  // TODO(intake-delivery): wire real delivery here once the destination is decided.
-  // e.g. await sendEmail(CONTACT_EMAIL, inquiry) / postToSlack(inquiry) / createNotionPage(inquiry).
+// Slack via an incoming webhook.
+async function postToSlack(inquiry: Inquiry): Promise<void> {
+  const url = process.env.SLACK_WEBHOOK_URL
+  if (!url) return
+  const ctx = [inquiry.role, inquiry.journey].filter(Boolean).join(' · ')
+  const text = [
+    `*New inquiry* (${inquiry.source})`,
+    inquiry.name && `*Name:* ${inquiry.name}`,
+    `*Email:* ${inquiry.contact_email}`,
+    ctx && `*Context:* ${ctx}`,
+    inquiry.recommendation && `*Recommendation:* ${inquiry.recommendation}`,
+    inquiry.message && `*Message:* ${inquiry.message}`,
+    `_inquiry_id ${inquiry.inquiry_id}_`,
+  ]
+    .filter(Boolean)
+    .join('\n')
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+      signal: AbortSignal.timeout(5000),
+    })
+  } catch (err) {
+    console.error('[intake] slack post failed (inquiry still logged)', err)
+  }
+}
+
+// Server-side PostHog capture (reuses the already-public NEXT_PUBLIC_ key).
+async function capturePostHog(inquiry: Inquiry): Promise<void> {
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
+  if (!key) return
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com'
+  try {
+    await fetch(`${host.replace(/\/$/, '')}/i/v0/e/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: key,
+        event: 'agent_intake_submitted',
+        distinct_id: inquiry.contact_email || inquiry.inquiry_id,
+        properties: {
+          inquiry_id: inquiry.inquiry_id,
+          name: inquiry.name ?? null,
+          project_name: inquiry.project_name ?? null,
+          budget_range: inquiry.budget_range ?? null,
+          timeline: inquiry.timeline ?? null,
+          technologies: inquiry.technologies ?? [],
+          role: inquiry.role ?? null,
+          journey: inquiry.journey ?? null,
+          recommendation: inquiry.recommendation ?? null,
+          description_length: inquiry.project_description.length,
+          source: inquiry.source,
+          $lib: 'progression-labs-intake-api',
+          user_agent: inquiry.user_agent,
+        },
+        timestamp: inquiry.received_at,
+      }),
+      signal: AbortSignal.timeout(3000),
+    })
+  } catch (err) {
+    console.error('[intake] posthog capture failed (inquiry still logged)', err)
+  }
+}
+
+// ── Delivery seam ────────────────────────────────────────────────────────────
+// THE ONE PLACE that fans an inquiry out to every channel. All run concurrently;
+// each handles its own failure so the caller always gets its 201.
+async function deliverInquiry(inquiry: Inquiry): Promise<void> {
+  // Structured log — visible in Vercel function logs, greppable, never lost.
+  console.info('[intake] inquiry received', JSON.stringify(inquiry))
+  await Promise.allSettled([
+    capturePostHog(inquiry),
+    sendEmail(inquiry),
+    postToSlack(inquiry),
+  ])
 }
 
 // ── POST /api/intake ─────────────────────────────────────────────────────────
@@ -220,9 +321,8 @@ export async function POST(request: NextRequest) {
 
   const inquiry: Inquiry = {
     inquiry_id: crypto.randomUUID(),
-    ...result.data,
+    ...result.data, // includes `source` (defaults to 'a2a-intake-api' in validate)
     received_at: new Date().toISOString(),
-    source: 'a2a-intake-api',
     user_agent: request.headers.get('user-agent'),
   }
 
