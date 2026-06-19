@@ -68,6 +68,31 @@ export const CULTURE = {
   ] as CultureTab[],
 } as const
 
+// Video suite — the ticket's biggest differentiator. Posters are placeholder
+// brand imagery; drop real 60-90s clips in once the filming day lands. The
+// first item renders full-width as the lead clip.
+export interface VideoClip {
+  key: string
+  label: string
+  title: string
+  duration: string
+  poster: string
+}
+
+export const VIDEO_SUITE = {
+  eyebrow: 'In their words',
+  heading: 'See the work, and the people who do it.',
+  intro:
+    'No stock footage, no scripts. Short, honest films from inside the team: what the work actually is, why people join, and a day in the life in London. (Coming with our next filming day.)',
+  clips: [
+    { key: 'why-join', label: 'Founder', title: 'Why join Progression Labs', duration: '2:10', poster: '/careers/hero.png' },
+    { key: 'what-fde', label: 'The role', title: 'What is a Forward Deployed Engineer?', duration: '1:40', poster: '/careers/why-leverage.png' },
+    { key: 'meet-team', label: 'The team', title: 'Meet the team', duration: '1:25', poster: '/careers/culture-work.png' },
+    { key: 'day-life', label: 'London', title: 'A day in the life', duration: '1:55', poster: '/careers/culture-office.png' },
+    { key: 'the-craft', label: 'The craft', title: 'How we work, end to end', duration: '2:30', poster: '/careers/culture-london.png' },
+  ] as VideoClip[],
+} as const
+
 export const WHY_PL = {
   eyebrow: 'Why Progression Labs',
   heading: 'Smallness is the advantage.',

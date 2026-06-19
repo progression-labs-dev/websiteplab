@@ -9,6 +9,7 @@ export default function CareersHero() {
       <div className="careers-hero-grid">
         <div className="careers-hero-copy">
           <p className="careers-eyebrow">{eyebrow}</p>
+          <div className="careers-hero-rule" aria-hidden="true" />
           <h1 className="careers-hero-headline">{headline}</h1>
           <p className="careers-hero-sub">{subhead}</p>
           <div className="careers-hero-actions">
