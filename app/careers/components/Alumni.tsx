@@ -1,4 +1,5 @@
 import CareersSection from './CareersSection'
+import InView from './InView'
 import { ALUMNI } from '../data/careersContent'
 
 // The standout section (per the ticket). Destinations rendered as large type,
@@ -6,15 +7,15 @@ import { ALUMNI } from '../data/careersContent'
 export default function Alumni() {
   const { eyebrow, heading, intro, destinations, quote } = ALUMNI
   return (
-    <CareersSection id="alumni" eyebrow={eyebrow} heading={heading} intro={intro}>
-      <div className="careers-alumni-list">
+    <CareersSection id="alumni" eyebrow={eyebrow} context="Time here compounds." heading={heading} intro={intro}>
+      <InView className="careers-alumni-list cz-stagger">
         {destinations.map((name, i) => (
           <div className="careers-alumni-item" key={name}>
             <span className="careers-alumni-name">{name}</span>
             <span className="careers-alumni-tag">{String(i + 1).padStart(2, '0')} · Where they went</span>
           </div>
         ))}
-      </div>
+      </InView>
       <blockquote className="careers-alumni-quote">
         <p>“{quote.text}”</p>
         <cite>{quote.attribution}</cite>

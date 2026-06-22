@@ -24,9 +24,11 @@
   --cz-hair-2: rgba(26, 26, 26, 0.07);
   --cz-dark: #0a0a0a;     /* near-black: founder, media tiles */
 
-  /* The one accent */
-  --cz-accent: #1b12a9;   /* indigo */
-  --cz-accent-2: #1e5bff; /* royal blue — hover / links */
+  /* Accent pulled to Halfspace restraint: warm near-black graphite. Brand
+     colour (the spectrum) appears ONLY in the two LED-mosaic moments — the
+     hero panel and the closing CTA. Nothing else is coloured. */
+  --cz-accent: #26242a;   /* warm graphite */
+  --cz-accent-2: #26242a;
 
   /* Real signature gradient stops (used ONLY in the LED-mosaic CTA) */
   --pl-grad-0: #fde5e7;
@@ -57,7 +59,7 @@
   --cz-text-3: rgba(255, 255, 255, 0.42);
   --cz-hair: rgba(255, 255, 255, 0.14);
   --cz-hair-2: rgba(255, 255, 255, 0.08);
-  --cz-accent: #9d93ff;   /* indigo lifted for contrast on black */
+  --cz-accent: rgba(255, 255, 255, 0.72); /* graphite, inverted for black */
   background: var(--cz-bg);
   color: var(--cz-ink);
 }
@@ -321,10 +323,10 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--cz-text-3);
+  background: rgba(26, 26, 26, 0.2);
   transition: width 1.2s var(--cz-expo);
 }
-.careers-chart-bar.is-accent { background: var(--cz-accent); }
+.careers-chart-bar.is-accent { background: var(--cz-ink); }
 .careers-chart-row.is-in .careers-chart-bar { width: var(--cz-bar-w, 0%); }
 .careers-chart-caption {
   font-size: 0.96rem;
@@ -721,7 +723,11 @@
   background-size: 20px 20px;
   pointer-events: none;
 }
-.careers-member.is-active { background: var(--cz-accent); }
+.careers-member.is-active { background: #f1ece4; }
+.careers-member.is-active::before { opacity: 0.2; }
+.careers-member.is-active .careers-member-initials,
+.careers-member.is-active .careers-member-name { color: #1a1a1a; }
+.careers-member.is-active .careers-member-role { color: rgba(0, 0, 0, 0.5); }
 .careers-member-initials {
   position: relative;
   z-index: 1;
@@ -729,15 +735,17 @@
   font-weight: 200;
   letter-spacing: -0.02em;
 }
-.careers-member-name { position: relative; z-index: 1; font-size: 0.82rem; font-weight: 500; line-height: 1.25; }
+.careers-member-name { display: block; position: relative; z-index: 1; font-size: 0.82rem; font-weight: 500; line-height: 1.25; }
 .careers-member-role {
+  display: block;
   position: relative;
   z-index: 1;
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+  line-height: 1.2;
 }
 .careers-testimonial {
   position: sticky;
@@ -940,8 +948,104 @@
 .careers-footer-meta a:hover { color: var(--cz-ink); }
 .careers-footer-legal { margin-left: auto; }
 
+/* ============================================================
+   Motion layer — Halfspace feel (masked rises, drawing rules,
+   staggered reveals). Expo easing, deliberate, scroll-triggered.
+   ============================================================ */
+
+/* Group fade + rise */
+.cz-rev { opacity: 0; transform: translateY(34px); transition: opacity 0.85s var(--cz-expo), transform 0.85s var(--cz-expo); }
+.cz-rev.is-in { opacity: 1; transform: none; }
+
+/* Masked word-by-word rise for headings */
+.cz-rt-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.cz-rt-word { display: inline-block; transform: translateY(112%); transition: transform 0.9s var(--cz-expo); }
+.cz-rt.is-in .cz-rt-word { transform: translateY(0); }
+
+/* Drawing divider */
+.cz-rule {
+  height: 1px;
+  width: 100%;
+  background: var(--cz-hair);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.95s cubic-bezier(0.74, 0, 0.18, 0.79);
+}
+.cz-rule.is-in { transform: scaleX(1); }
+
+/* Staggered group children */
+.cz-stagger > * { opacity: 0; transform: translateY(26px); transition: opacity 0.72s var(--cz-expo), transform 0.72s var(--cz-expo); }
+.cz-stagger.is-in > * { opacity: 1; transform: none; }
+.cz-stagger.is-in > :nth-child(1) { transition-delay: 0.04s; }
+.cz-stagger.is-in > :nth-child(2) { transition-delay: 0.11s; }
+.cz-stagger.is-in > :nth-child(3) { transition-delay: 0.18s; }
+.cz-stagger.is-in > :nth-child(4) { transition-delay: 0.25s; }
+.cz-stagger.is-in > :nth-child(5) { transition-delay: 0.32s; }
+.cz-stagger.is-in > :nth-child(6) { transition-delay: 0.39s; }
+.cz-stagger.is-in > :nth-child(7) { transition-delay: 0.46s; }
+.cz-stagger.is-in > :nth-child(8) { transition-delay: 0.53s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cz-rev, .cz-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .cz-rt-word { transform: none !important; transition: none !important; }
+  .cz-rule { transform: scaleX(1) !important; transition: none !important; }
+}
+
+/* ── Bordered-row section header (label left, context right, drawn rule) ── */
+.careers-rowhead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: baseline;
+  padding: 22px 0 clamp(40px, 6vh, 76px);
+}
+.careers-rowhead .careers-eyebrow { margin: 0; }
+.careers-rowhead-context {
+  justify-self: end;
+  text-align: right;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  color: var(--cz-text-3);
+  max-width: 34ch;
+}
+
+/* ── Hero — 2 columns: copy + animated LED-mosaic panel ── */
+.careers-hero-layout {
+  max-width: var(--cz-container);
+  margin: 0 auto;
+  padding: clamp(72px, 12vh, 156px) var(--cz-pad-x) clamp(48px, 7vh, 88px);
+  display: grid;
+  grid-template-columns: 1.06fr 0.94fr;
+  gap: clamp(36px, 5vw, 76px);
+  align-items: center;
+}
+.careers-hero-mosaic {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--pl-grad-3);
+  overflow: hidden;
+  display: grid;
+  align-self: stretch;
+  min-height: 360px;
+}
+.cz-led { opacity: 0.55; animation: cz-breathe 5.5s ease-in-out infinite; }
+@keyframes cz-breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .cz-led { animation: none; opacity: 0.92; }
+}
+
 /* ── Responsive ── */
 @media (max-width: 940px) {
+  .careers-hero-layout { grid-template-columns: 1fr; gap: 32px; }
+  .careers-hero-mosaic { aspect-ratio: 16 / 9; min-height: 0; }
+  .careers-rowhead { grid-template-columns: 1fr; gap: 10px; }
+  .careers-rowhead-context { justify-self: start; text-align: left; }
   .careers-split,
   .careers-team { grid-template-columns: 1fr; }
   .careers-cards { grid-template-columns: repeat(2, 1fr); }

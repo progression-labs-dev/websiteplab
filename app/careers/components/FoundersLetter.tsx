@@ -7,7 +7,7 @@ import { FOUNDERS_LETTER } from '../data/careersContent'
 export default function FoundersLetter() {
   const { eyebrow, greeting, paragraphs, signature, signatureRole } = FOUNDERS_LETTER
   return (
-    <CareersSection id="founders-letter" tone="dark" eyebrow={eyebrow}>
+    <CareersSection id="founders-letter" tone="dark" eyebrow={eyebrow} context="Honest, not a sales pitch.">
       <div className="careers-letter">
         <p className="careers-letter-greeting">{greeting}</p>
         <div className="careers-letter-body">

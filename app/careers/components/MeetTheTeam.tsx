@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import CareersSection from './CareersSection'
+import InView from './InView'
 import { MEET_THE_TEAM } from '../data/careersContent'
 
 function initials(name: string): string {
@@ -22,9 +23,9 @@ export default function MeetTheTeam() {
   }
 
   return (
-    <CareersSection id="team" eyebrow={eyebrow} heading={heading}>
+    <CareersSection id="team" eyebrow={eyebrow} context="Select a name to hear from them." heading={heading}>
       <div className="careers-team">
-        <div className="careers-team-grid" role="tablist" aria-label="Team members">
+        <InView className="careers-team-grid cz-stagger" role="tablist" aria-label="Team members">
           {members.map((mem, i) => (
             <button
               key={mem.name}
@@ -41,7 +42,7 @@ export default function MeetTheTeam() {
               </span>
             </button>
           ))}
-        </div>
+        </InView>
 
         <div className="careers-testimonial">
           <blockquote className="careers-testimonial-quote is-anim" key={nonce}>

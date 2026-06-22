@@ -5,7 +5,7 @@ import { CREDIBILITY } from '../data/careersContent'
 export default function Credibility() {
   const { eyebrow, heading, previouslyAt, proof, badges } = CREDIBILITY
   return (
-    <CareersSection id="credibility" panel eyebrow={eyebrow} heading={heading}>
+    <CareersSection id="credibility" panel eyebrow={eyebrow} context="The bar we hold ourselves to." heading={heading}>
       <p className="careers-strip-label">Team previously at</p>
       <div className="careers-logo-strip">
         {previouslyAt.map((logo) => (

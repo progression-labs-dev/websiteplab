@@ -31,6 +31,11 @@ export default function CareersLayout({
 }) {
   return (
     <div className={`experiment ${signature.variable}`} data-theme="light">
+      {/* No-JS fallback: force all reveal states visible so content never stays
+          hidden if the client bundle fails to run. */}
+      <noscript>
+        <style>{`.cz-rev{opacity:1!important;transform:none!important}.cz-rt-word{transform:none!important}.cz-rule{transform:scaleX(1)!important}.cz-stagger>*{opacity:1!important;transform:none!important}`}</style>
+      </noscript>
       {children}
       {/* Fixed SVG noise/grain texture overlay */}
       <div className="exp-noise" aria-hidden="true">
