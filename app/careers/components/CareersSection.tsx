@@ -5,7 +5,9 @@ import { useEffect, useRef, type ReactNode } from 'react'
 interface CareersSectionProps {
   id?: string
   tone?: 'light' | 'dark'
-  /** Scroll-blur reveal (matches ProofSection/FindYourFit). Default on. */
+  /** Bone panel background (rhythm without photos). */
+  panel?: boolean
+  /** Scroll reveal (one-shot fade + rise). Default on. */
   blur?: boolean
   eyebrow?: string
   heading?: string
@@ -25,6 +27,7 @@ interface CareersSectionProps {
 export default function CareersSection({
   id,
   tone = 'light',
+  panel = false,
   blur = true,
   eyebrow,
   heading,
@@ -63,9 +66,9 @@ export default function CareersSection({
         gsap.to(el, {
           opacity: 1,
           y: 0,
-          duration: 0.9,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 82%', once: true },
+          duration: 1.0,
+          ease: 'expo.out',
+          scrollTrigger: { trigger: el, start: 'top 84%', once: true },
         })
       }, el)
     }
@@ -81,6 +84,7 @@ export default function CareersSection({
       className="careers-section"
       data-tone={tone}
       data-theme={tone === 'dark' ? 'dark' : 'light'}
+      data-panel={panel ? 'true' : undefined}
     >
       <div className="careers-inner">
         {eyebrow && <p className="careers-eyebrow">{eyebrow}</p>}

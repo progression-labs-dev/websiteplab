@@ -1,40 +1,59 @@
-/* eslint-disable @next/next/no-img-element */
+'use client'
+
+import { useState } from 'react'
 import CareersSection from './CareersSection'
 import { MEET_THE_TEAM } from '../data/careersContent'
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
+// Square initial tiles on near-black (no photos). Clicking a member animates the
+// testimonial panel to their quote (the Halfspace click-to-cycle touch).
 export default function MeetTheTeam() {
   const { eyebrow, heading, members } = MEET_THE_TEAM
+  const [active, setActive] = useState(0)
+  const [nonce, setNonce] = useState(0)
+  const m = members[active]
+
+  const pick = (i: number) => {
+    setActive(i)
+    setNonce((n) => n + 1)
+  }
+
   return (
     <CareersSection id="team" eyebrow={eyebrow} heading={heading}>
-      <div className="careers-team-grid">
-        {members.map((m) => (
-          <div className="careers-team-card" key={m.name}>
-            <div className="careers-team-avatar">
-              {m.imageUrl ? (
-                <img src={m.imageUrl} alt={m.name} loading="lazy" />
-              ) : (
-                <span className="careers-team-initials">{initials(m.name)}</span>
-              )}
-            </div>
-            <div className="careers-team-meta">
-              <h3 className="careers-team-name">{m.name}</h3>
-              <p className="careers-team-role">{m.role}</p>
-              <p className="careers-team-line">
-                {m.location} · Previously: {m.previously}
-              </p>
-              <p className="careers-team-quote">“{m.quote}”</p>
-            </div>
+      <div className="careers-team">
+        <div className="careers-team-grid" role="tablist" aria-label="Team members">
+          {members.map((mem, i) => (
+            <button
+              key={mem.name}
+              role="tab"
+              aria-selected={i === active}
+              className={`careers-member${i === active ? ' is-active' : ''}`}
+              onClick={() => pick(i)}
+              onMouseEnter={() => pick(i)}
+            >
+              <span className="careers-member-initials" aria-hidden="true">{initials(mem.name)}</span>
+              <span>
+                <span className="careers-member-name">{mem.name}</span>
+                <span className="careers-member-role">{mem.role}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="careers-testimonial">
+          <blockquote className="careers-testimonial-quote is-anim" key={nonce}>
+            “{m.quote}”
+          </blockquote>
+          <div>
+            <div className="careers-testimonial-name">{m.name}</div>
+            <div className="careers-testimonial-role">{m.role}</div>
+            <div className="careers-testimonial-line">{m.location} · Previously: {m.previously}</div>
           </div>
-        ))}
+          <p className="careers-testimonial-hint">Select a name to hear from them</p>
+        </div>
       </div>
     </CareersSection>
   )

@@ -1,40 +1,24 @@
-/* eslint-disable @next/next/no-img-element */
-import Image from 'next/image'
 import CareersSection from './CareersSection'
 import { ALUMNI } from '../data/careersContent'
 
+// The standout section (per the ticket). Destinations rendered as large type,
+// not logos or photos. "Grow here even if you eventually leave."
 export default function Alumni() {
-  const { eyebrow, heading, intro, image, imageAlt, destinations, quote } = ALUMNI
+  const { eyebrow, heading, intro, destinations, quote } = ALUMNI
   return (
-    <CareersSection id="alumni" tone="dark" eyebrow={eyebrow} heading={heading} intro={intro}>
-      <div className="careers-alumni-split">
-        <div className="careers-alumni-art">
-          <Image
-            src={image}
-            alt={imageAlt}
-            fill
-            sizes="(max-width: 900px) 100vw, 40vw"
-            className="careers-alumni-img"
-          />
-        </div>
-        <div className="careers-alumni-content">
-          <div className="careers-alumni-logos">
-            {destinations.map((d) => (
-              <div className="careers-alumni-logo" key={d.name}>
-                {d.src ? (
-                  <img className="careers-logo" src={d.src} alt={d.name} loading="lazy" />
-                ) : (
-                  <span className="careers-logo-text">{d.name}</span>
-                )}
-              </div>
-            ))}
+    <CareersSection id="alumni" eyebrow={eyebrow} heading={heading} intro={intro}>
+      <div className="careers-alumni-list">
+        {destinations.map((name, i) => (
+          <div className="careers-alumni-item" key={name}>
+            <span className="careers-alumni-name">{name}</span>
+            <span className="careers-alumni-tag">{String(i + 1).padStart(2, '0')} · Where they went</span>
           </div>
-          <blockquote className="careers-alumni-quote">
-            <p>{quote.text}</p>
-            <cite>{quote.attribution}</cite>
-          </blockquote>
-        </div>
+        ))}
       </div>
+      <blockquote className="careers-alumni-quote">
+        <p>“{quote.text}”</p>
+        <cite>{quote.attribution}</cite>
+      </blockquote>
     </CareersSection>
   )
 }
