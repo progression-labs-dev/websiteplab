@@ -36,6 +36,23 @@ function buildLlmsTxt(): string {
     `### ${p.title}\n*${p.category} · ${formatDate(p.date)}*\n${p.excerpt}`
   ).join('\n\n')
 
+  const forAgents = `## For AI agents
+
+Progression Labs is agent-discoverable via the A2A (Agent2Agent) protocol.
+
+- Agent Card: https://www.progressionlabs.com/.well-known/agent-card.json (legacy mirror: /.well-known/agent.json)
+- Skill: \`submit-project-inquiry\`
+- Endpoint: POST https://www.progressionlabs.com/api/intake (Content-Type: application/json)
+
+Minimal inquiry body:
+- project_description (required, string)
+- contact_email (required, email)
+- project_name, budget_range, timeline, technologies[], message (optional)
+
+Returns: { inquiry_id, status, estimated_response_time, next_steps, contact_email }.
+
+Guaranteed channel: if anything fails, email ${CONTACT_EMAIL} directly — no inquiry is ever lost.`
+
   return `# PROGRESSION LABS — AI That Ships
 
 > Custom AI agents that scale for the most complex problems in the real world.
@@ -82,6 +99,10 @@ ${testimonials}
 ## Blog — From the Lab
 
 ${blog}
+
+---
+
+${forAgents}
 
 ---
 
