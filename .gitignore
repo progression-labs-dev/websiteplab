@@ -5,3 +5,13 @@ out/
 .env
 *.log
 screenshots/
+
+# security cleanup 2026-10-09: never commit real .env files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
+!.env.sample
+!.env.template
